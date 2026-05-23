@@ -1,0 +1,199 @@
+{% extends 'base.html' %}
+{% block title %}Detail Tagihan{% endblock %}
+{% block page_title %}Detail Tagihan{% endblock %}
+{% block breadcrumb %}<a href="{{ url_for('tagihan.index') }}" style="color:var(--muted)">Tagihan</a> / Detail{% endblock %}
+{% block topbar_actions %}
+  {% if tagihan.status != 'lunas' %}
+  <a href="{{ url_for('pembayaran.tambah', tagihan_id=tagihan.id) }}" class="btn btn-success">💰 Catat Pembayaran</a>
+
+  {# Tombol kirim WA — hanya tampil jika penghuni punya nomor HP #}
+  {% if tagihan.no_hp %}
+    <a href="{{ url_for('tagihan.kirim_wa', tid=tagihan.id) }}"
+       class="btn btn-outline"
+       onclick="return confirm('Kirim notifikasi WA ke {{ tagihan.nama }} ({{ tagihan.no_hp }})?')">
+      📲 Kirim WA
+    </a>
+  {% else %}
+    <span class="btn btn-outline" style="opacity:.45; cursor:not-allowed;" title="Nomor HP penghuni belum diisi">
+      📲 Kirim WA
+    </span>
+  {% endif %}
+  {% endif %}
+
+  {# Tombol reset notif — tampil jika notif sudah pernah terkirim dan tagihan belum lunas #}
+  {% if tagihan.status != 'lunas' and tagihan.notif_wa_terkirim %}
+    <a href="{{ url_for('tagihan.reset_notif', tid=tagihan.id) }}"
+       class="btn btn-outline btn-sm"
+       style="font-size:11px;"
+       title="Reset agar scheduler bisa kirim ulang otomatis"
+       onclick="return confirm('Reset flag notifikasi?')">
+      🔄 Reset Notif
+    </a>
+  {% endif %}
+{% endblock %}
+
+{% block content %}
+{% set badge = tagihan.status | status_badge %}
+<div class="flex gap-3" style="flex-wrap:wrap; align-items:flex-start;">
+
+  <!-- Info tagihan -->
+  <div class="card" style="min-width:280px; flex:0 0 280px;">
+    <div class="card-title mb-4">📋 Info Tagihan</div>
+    <div style="display:flex; flex-direction:column; gap:14px;">
+      <div>
+        <div class="text-muted" style="font-size:11px; text-transform:uppercase; letter-spacing:.5px;">Penghuni</div>
+        <div class="fw-bold" style="margin-top:2px;">{{ tagihan.nama }}</div>
+        <div class="text-muted">Kamar {{ tagihan.nomor_kamar }}</div>
+      </div>
+
+      <!-- Nomor HP -->
+      <div>
+        <div class="text-muted" style="font-size:11px; text-transform:uppercase; letter-spacing:.5px;">Nomor HP</div>
+        <div style="margin-top:2px;">
+          {% if tagihan.no_hp %}
+            <span class="fw-bold">{{ tagihan.no_hp }}</span>
+          {% else %}
+            <span class="text-muted">— belum diisi</span>
+            <div style="font-size:11px; margin-top:2px;">
+              <a href="{{ url_for('penghuni.edit', pid=tagihan.penghuni_id) }}" style="color:var(--accent);">
+                ✏️ Isi nomor HP
+              </a>
+            </div>
+          {% endif %}
+        </div>
+      </div>
+
+      <div>
+        <div class="text-muted" style="font-size:11px; text-transform:uppercase; letter-spacing:.5px;">Periode</div>
+        <div class="fw-bold" style="margin-top:2px;">{{ tagihan.bulan | nama_bulan }}</div>
+      </div>
+      <div>
+        <div class="text-muted" style="font-size:11px; text-transform:uppercase; letter-spacing:.5px;">Jatuh Tempo</div>
+        <div style="margin-top:2px;">
+          {% if tagihan.tanggal_jatuh_tempo %}
+            {% if tagihan.status != 'lunas' and tagihan.tanggal_jatuh_tempo < today %}
+              <span class="badge badge-danger">⚠️ {{ tagihan.tanggal_jatuh_tempo }}</span>
+              <div class="text-muted" style="font-size:11px; margin-top:4px;">Sudah melewati jatuh tempo</div>
+            {% else %}
+              <span class="fw-bold">{{ tagihan.tanggal_jatuh_tempo }}</span>
+            {% endif %}
+          {% else %}
+            <span class="text-muted">—</span>
+          {% endif %}
+        </div>
+      </div>
+      <div>
+        <div class="text-muted" style="font-size:11px; text-transform:uppercase; letter-spacing:.5px;">Total Tagihan</div>
+        <div class="fw-bold text-mono text-green" style="font-size:22px; margin-top:2px;">{{ tagihan.jumlah | rupiah }}</div>
+      </div>
+      <div>
+        <div class="text-muted" style="font-size:11px; text-transform:uppercase; letter-spacing:.5px;">Sudah Dibayar</div>
+        <div class="fw-bold text-mono text-accent" style="font-size:18px; margin-top:2px;">{{ total_dibayar | rupiah }}</div>
+      </div>
+      <div>
+        <div class="text-muted" style="font-size:11px; text-transform:uppercase; letter-spacing:.5px;">Sisa</div>
+        <div class="fw-bold text-mono {% if sisa > 0 %}text-red{% else %}text-green{% endif %}" style="font-size:18px; margin-top:2px;">{{ sisa | rupiah }}</div>
+      </div>
+      <div>
+        <div class="text-muted" style="font-size:11px; text-transform:uppercase; letter-spacing:.5px;">Status</div>
+        <div style="margin-top:4px;"><span class="badge badge-{{ badge.color }}">{{ badge.label }}</span></div>
+      </div>
+
+      <!-- Status notifikasi WA -->
+      <div>
+        <div class="text-muted" style="font-size:11px; text-transform:uppercase; letter-spacing:.5px;">Notif WA</div>
+        <div style="margin-top:4px;">
+          {% if tagihan.notif_wa_terkirim %}
+            <span class="badge badge-success">✓ Sudah Dikirim</span>
+          {% else %}
+            <span class="badge badge-info">— Belum Dikirim</span>
+          {% endif %}
+        </div>
+      </div>
+
+    </div>
+  </div>
+
+  <!-- Riwayat pembayaran -->
+  <div class="card" style="flex:1; min-width:320px;">
+    <div class="card-title mb-4">💳 Riwayat Pembayaran</div>
+    {% if pembayaran_list %}
+    <div class="table-wrap">
+      <table>
+        <thead>
+          <tr><th>Tanggal</th><th>Jumlah</th><th>Metode</th><th>Bukti Transfer</th><th>Status</th><th>Aksi</th></tr>
+        </thead>
+        <tbody>
+        {% for pm in pembayaran_list %}
+        {% set bukti_list = bukti_map.get(pm.id, []) %}
+        <tr>
+          <td class="text-muted" style="font-size:13px;">{{ pm.tanggal_bayar }}</td>
+          <td class="text-mono text-green fw-bold">{{ pm.jumlah_bayar | rupiah }}</td>
+          <td><span class="badge badge-info">{{ pm.metode }}</span></td>
+
+          <td>
+            {% if bukti_list %}
+              <div style="display:flex; flex-wrap:wrap; gap:5px; align-items:center;">
+                {% for b in bukti_list %}
+                  {% if b.filename.endswith('.pdf') %}
+                    <a href="{{ url_for('static', filename='uploads/' ~ b.filename) }}"
+                       target="_blank"
+                       class="btn btn-outline btn-sm"
+                       title="{{ b.original_name or 'PDF' }}">📄 PDF</a>
+                  {% else %}
+                    <img src="{{ url_for('static', filename='uploads/' ~ b.filename) }}"
+                         class="bukti-thumb"
+                         onclick="showImg('{{ url_for('static', filename='uploads/' ~ b.filename) }}')"
+                         title="{{ b.original_name or '' }}"
+                         alt="Bukti {{ loop.index }}">
+                  {% endif %}
+                {% endfor %}
+                {% if bukti_list | length > 1 %}
+                  <span style="font-size:11px; color:var(--muted);">{{ bukti_list | length }} file</span>
+                {% endif %}
+              </div>
+            {% elif pm.bukti_file %}
+              {% if pm.bukti_file.endswith('.pdf') %}
+                <a href="{{ url_for('static', filename='uploads/' ~ pm.bukti_file) }}"
+                   target="_blank" class="btn btn-outline btn-sm">📄 PDF</a>
+              {% else %}
+                <img src="{{ url_for('static', filename='uploads/' ~ pm.bukti_file) }}"
+                     class="bukti-thumb"
+                     onclick="showImg('{{ url_for('static', filename='uploads/' ~ pm.bukti_file) }}')"
+                     alt="Bukti">
+              {% endif %}
+            {% else %}
+              <span class="text-muted">—</span>
+            {% endif %}
+          </td>
+
+          <td>
+            {% if pm.verified %}
+              <span class="verified-chip yes">✓ Verified</span>
+            {% else %}
+              <span class="verified-chip no">⏳ Pending</span>
+            {% endif %}
+          </td>
+          <td>
+            <div class="flex gap-2">
+              {% if not pm.verified %}
+              <a href="{{ url_for('pembayaran.verifikasi', pid=pm.id, status=1) }}" class="btn btn-success btn-sm" title="Verifikasi">✓</a>
+              {% else %}
+              <a href="{{ url_for('pembayaran.verifikasi', pid=pm.id, status=0) }}" class="btn btn-outline btn-sm" title="Batalkan verifikasi">✗</a>
+              {% endif %}
+              <a href="{{ url_for('pembayaran.hapus', pid=pm.id) }}"
+                 class="btn btn-danger btn-sm"
+                 onclick="return confirm('Hapus pembayaran ini?')" title="Hapus">🗑️</a>
+            </div>
+          </td>
+        </tr>
+        {% endfor %}
+        </tbody>
+      </table>
+    </div>
+    {% else %}
+    <div class="empty"><div class="empty-icon">💳</div>Belum ada pembayaran untuk tagihan ini.</div>
+    {% endif %}
+  </div>
+</div>
+{% endblock %}

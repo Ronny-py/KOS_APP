@@ -1,0 +1,93 @@
+{% extends 'base.html' %}
+{% block title %}Tagihan{% endblock %}
+{% block page_title %}Tagihan Sewa{% endblock %}
+{% block breadcrumb %}Manajemen Tagihan{% endblock %}
+{% block topbar_actions %}
+  <a href="{{ url_for('tagihan.tambah') }}" class="btn btn-primary">＋ Buat Tagihan</a>
+{% endblock %}
+
+{% block content %}
+<!-- Generate tagihan bulanan -->
+<div class="card mb-4" style="padding:16px 20px;">
+  <form method="POST" action="{{ url_for('tagihan.generate') }}" class="flex gap-3 items-center flex-wrap">
+    <span style="font-size:14px; font-weight:600;">⚡ Generate Tagihan Otomatis:</span>
+    <input type="month" name="bulan" value="{{ bulan_ini }}" style="width:160px;">
+    <button type="submit" class="btn btn-success btn-sm"
+            onclick="return confirm('Buat tagihan untuk semua penghuni aktif?')">
+      Generate
+    </button>
+    <span class="text-muted" style="font-size:12px;">Hanya membuat tagihan yang belum ada.</span>
+  </form>
+</div>
+
+<!-- Filter -->
+<form method="GET" class="filter-bar">
+  <div>
+    <label style="font-size:12px;color:var(--muted);margin-bottom:4px;display:block;">Filter Bulan</label>
+    <input type="month" name="bulan" value="{{ filter_bulan }}">
+  </div>
+  <div>
+    <label style="font-size:12px;color:var(--muted);margin-bottom:4px;display:block;">Status</label>
+    <select name="status">
+      <option value="">Semua Status</option>
+      <option value="belum"    {% if filter_status=='belum'    %}selected{% endif %}>Belum Bayar</option>
+      <option value="sebagian" {% if filter_status=='sebagian' %}selected{% endif %}>Sebagian</option>
+      <option value="lunas"    {% if filter_status=='lunas'    %}selected{% endif %}>Lunas</option>
+    </select>
+  </div>
+  <button type="submit" class="btn btn-outline btn-sm">Filter</button>
+  <a href="{{ url_for('tagihan.index') }}" class="btn btn-outline btn-sm">Reset</a>
+</form>
+
+<div class="card">
+  <div class="table-wrap">
+    {% if daftar %}
+    <table>
+      <thead>
+        <tr><th>Kamar</th><th>Nama</th><th>Bulan</th><th>Jumlah</th><th>Jatuh Tempo</th><th>Keterangan</th><th>Status</th><th>Aksi</th></tr>
+      </thead>
+      <tbody>
+      {% for t in daftar %}
+      {% set badge = t.status | status_badge %}
+      <tr>
+        <td><span class="badge badge-info text-mono">{{ t.nomor_kamar }}</span></td>
+        <td class="fw-bold">{{ t.nama }}</td>
+        <td class="text-muted">{{ t.bulan | nama_bulan }}</td>
+        <td class="text-mono text-green">{{ t.jumlah | rupiah }}</td>
+        <td>
+          {% if t.tanggal_jatuh_tempo %}
+            {% if t.status != 'lunas' and t.tanggal_jatuh_tempo < today %}
+              <span class="badge badge-danger" title="Sudah lewat jatuh tempo">⚠️ {{ t.tanggal_jatuh_tempo }}</span>
+            {% else %}
+              <span class="text-muted" style="font-size:13px;">{{ t.tanggal_jatuh_tempo }}</span>
+            {% endif %}
+          {% else %}
+            <span class="text-muted">—</span>
+          {% endif %}
+        </td>
+        <td class="text-muted">{{ t.keterangan or '—' }}</td>
+        <td><span class="badge badge-{{ badge.color }}">{{ badge.label }}</span></td>
+        <td>
+          <div class="flex gap-2">
+            <a href="{{ url_for('tagihan.detail', tid=t.id) }}" class="btn btn-outline btn-sm">🔍 Detail</a>
+            {% if t.status != 'lunas' %}
+            <a href="{{ url_for('pembayaran.tambah', tagihan_id=t.id) }}" class="btn btn-success btn-sm">💰 Bayar</a>
+            {% endif %}
+            <a href="{{ url_for('tagihan.hapus', tid=t.id) }}"
+               class="btn btn-danger btn-sm"
+               onclick="return confirm('Hapus tagihan ini?')">🗑️</a>
+          </div>
+        </td>
+      </tr>
+      {% endfor %}
+      </tbody>
+    </table>
+    {% else %}
+    <div class="empty">
+      <div class="empty-icon">🧾</div>
+      <div>Tidak ada tagihan ditemukan.</div>
+    </div>
+    {% endif %}
+  </div>
+</div>
+{% endblock %}

@@ -1,0 +1,62 @@
+{% extends 'base.html' %}
+{% block title %}Buat Tagihan{% endblock %}
+{% block page_title %}Buat Tagihan Manual{% endblock %}
+{% block breadcrumb %}<a href="{{ url_for('tagihan.index') }}" style="color:var(--muted)">Tagihan</a> / Buat{% endblock %}
+
+{% block content %}
+<div class="card" style="max-width:560px;">
+  <form method="POST">
+    <div class="form-group">
+      <label>Penghuni *</label>
+      <select name="penghuni_id" required>
+        <option value="">— Pilih Penghuni —</option>
+        {% for p in penghuni_list %}
+        <option value="{{ p.id }}">Kamar {{ p.nomor_kamar }} — {{ p.nama }} ({{ p.harga_sewa | rupiah }})</option>
+        {% endfor %}
+      </select>
+    </div>
+    <div class="form-grid">
+      <div class="form-group">
+        <label>Periode Bulan *</label>
+        <input type="month" name="bulan" value="{{ bulan_ini }}" required
+               id="inp-bulan" onchange="updateJatuhTempo()">
+      </div>
+      <div class="form-group">
+        <label>Jumlah (Rp) *</label>
+        <input type="number" name="jumlah" min="0" step="1000" required>
+      </div>
+    </div>
+    <div class="form-group">
+      <label>Tanggal Jatuh Tempo</label>
+      <input type="date" name="tanggal_jatuh_tempo" id="inp-jatuh-tempo">
+      <div class="text-muted" style="font-size:12px; margin-top:4px;">
+        Kosongkan untuk otomatis menggunakan hari terakhir bulan tersebut.
+      </div>
+    </div>
+    <div class="form-group">
+      <label>Keterangan</label>
+      <input type="text" name="keterangan" placeholder="misal: Sewa + listrik">
+    </div>
+    <div class="flex gap-2 mt-3">
+      <button type="submit" class="btn btn-primary">➕ Buat Tagihan</button>
+      <a href="{{ url_for('tagihan.index') }}" class="btn btn-outline">Batal</a>
+    </div>
+  </form>
+</div>
+
+<script>
+function updateJatuhTempo() {
+  const bulan = document.getElementById('inp-bulan').value;
+  if (!bulan) return;
+  // Hitung hari terakhir bulan
+  const [year, month] = bulan.split('-').map(Number);
+  const lastDay = new Date(year, month, 0).getDate();
+  const jt = document.getElementById('inp-jatuh-tempo');
+  if (!jt.value) {
+    jt.value = `${year}-${String(month).padStart(2,'0')}-${String(lastDay).padStart(2,'0')}`;
+  }
+}
+// Set default on page load
+document.addEventListener('DOMContentLoaded', updateJatuhTempo);
+</script>
+{% endblock %}

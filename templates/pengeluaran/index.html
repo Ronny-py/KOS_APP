@@ -1,0 +1,153 @@
+{% extends 'base.html' %}
+{% block title %}Pengeluaran{% endblock %}
+{% block page_title %}Pengeluaran Operasional{% endblock %}
+{% block breadcrumb %}Pengeluaran{% endblock %}
+
+{% block topbar_actions %}
+  <a href="{{ url_for('pengeluaran.tambah') }}" class="btn btn-primary">➕ Catat Pengeluaran</a>
+{% endblock %}
+
+{% block content %}
+
+{# ── Filter ── #}
+<div class="card" style="margin-bottom:16px;">
+  <form method="get" style="display:flex; gap:12px; align-items:flex-end; flex-wrap:wrap;">
+    <div class="form-group" style="margin:0;">
+      <label>Bulan</label>
+      <input type="month" name="bulan" value="{{ bulan }}"
+             style="padding:6px 10px; border-radius:6px; border:1px solid var(--border); background:var(--surface); color:var(--text);">
+    </div>
+    <div class="form-group" style="margin:0;">
+      <label>Kategori</label>
+      <select name="kategori">
+        <option value="">Semua Kategori</option>
+        {% for k, label in kategori %}
+          <option value="{{ k }}" {% if k == filter_kat %}selected{% endif %}>{{ label }}</option>
+        {% endfor %}
+      </select>
+    </div>
+    <button type="submit" class="btn btn-primary">🔍 Filter</button>
+    <a href="{{ url_for('pengeluaran.index') }}" class="btn btn-outline">Reset</a>
+  </form>
+</div>
+
+{# ── Layout dua kolom: tabel + rekap ── #}
+<div class="flex gap-3" style="flex-wrap:wrap; align-items:flex-start;">
+
+  {# ── Tabel pengeluaran ── #}
+  <div class="card" style="flex:1; min-width:340px;">
+    <div class="card-header">
+      <div class="card-title">📋 Daftar Pengeluaran</div>
+      <div style="font-size:13px; color:var(--muted);">
+        Total: <span class="fw-bold text-red">{{ total | rupiah }}</span>
+      </div>
+    </div>
+    <div class="table-wrap">
+      {% if daftar %}
+      <table>
+        <thead>
+          <tr>
+            <th>Tanggal</th>
+            <th>Kategori</th>
+            <th>Keterangan</th>
+            <th>Dibayar ke</th>
+            <th>Jumlah</th>
+            <th>Aksi</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for p in daftar %}
+          <tr>
+            <td class="text-muted" style="white-space:nowrap; font-size:12px;">{{ p.tanggal }}</td>
+            <td>
+              <span class="badge badge-secondary" style="font-size:11px; white-space:nowrap;">
+                {{ kategori_map.get(p.kategori, p.kategori) }}
+              </span>
+            </td>
+            <td class="fw-bold">
+              {{ p.keterangan }}
+              {% if p.catatan %}
+                <div class="text-muted" style="font-size:11px; font-weight:400;">{{ p.catatan }}</div>
+              {% endif %}
+            </td>
+            <td class="text-muted" style="font-size:12px;">{{ p.dibayar_ke or '—' }}</td>
+            <td class="text-mono text-red fw-bold">{{ p.jumlah | rupiah }}</td>
+            <td>
+              <div class="flex gap-2">
+                <a href="{{ url_for('pengeluaran.edit', eid=p.id) }}"
+                   class="btn btn-outline btn-sm" title="Edit">✏️</a>
+                <a href="{{ url_for('pengeluaran.hapus', eid=p.id) }}"
+                   class="btn btn-danger btn-sm" title="Hapus"
+                   onclick="return confirm('Hapus pengeluaran ini?')">🗑️</a>
+              </div>
+            </td>
+          </tr>
+          {% endfor %}
+        </tbody>
+        <tfoot>
+          <tr style="font-weight:600; border-top:2px solid var(--border);">
+            <td colspan="4">Total</td>
+            <td class="text-mono text-red">{{ total | rupiah }}</td>
+            <td></td>
+          </tr>
+        </tfoot>
+      </table>
+      {% else %}
+      <div class="empty">
+        <div class="empty-icon">💸</div>
+        <div>Belum ada pengeluaran untuk periode ini.</div>
+        <a href="{{ url_for('pengeluaran.tambah') }}" class="btn btn-primary" style="margin-top:12px;">
+          ➕ Catat Pengeluaran
+        </a>
+      </div>
+      {% endif %}
+    </div>
+  </div>
+
+  {# ── Rekap per kategori ── #}
+  <div style="min-width:240px; flex:0 0 240px; display:flex; flex-direction:column; gap:12px;">
+
+    <div class="card">
+      <div class="card-title mb-3">📊 Rekap per Kategori</div>
+      {% if rekap %}
+        {% set grand = rekap | sum(attribute='total') %}
+        {% for r in rekap %}
+        <div style="margin-bottom:10px;">
+          <div style="display:flex; justify-content:space-between; margin-bottom:4px; font-size:13px;">
+            <span>{{ kategori_map.get(r.kategori, r.kategori) }}</span>
+            <span class="fw-bold text-red">{{ r.total | rupiah }}</span>
+          </div>
+          {% if grand > 0 %}
+          {% set pct = (r.total / grand * 100) | round(0) | int %}
+          <div style="height:5px; background:var(--border); border-radius:99px; overflow:hidden;">
+            <div style="height:100%; width:{{ pct }}%; background:var(--accent); border-radius:99px;"></div>
+          </div>
+          {% endif %}
+        </div>
+        {% endfor %}
+        <div style="border-top:1px solid var(--border); padding-top:10px; margin-top:4px;
+                    display:flex; justify-content:space-between; font-weight:600;">
+          <span>Total</span>
+          <span class="text-red text-mono">{{ grand | rupiah }}</span>
+        </div>
+      {% else %}
+        <div class="text-muted" style="font-size:13px;">Belum ada data.</div>
+      {% endif %}
+    </div>
+
+    {# Quick entry hint #}
+    <div class="card" style="background:color-mix(in srgb, var(--accent) 8%, transparent);
+         border-color:color-mix(in srgb, var(--accent) 30%, transparent);">
+      <div style="font-size:13px; line-height:1.6;">
+        <div class="fw-bold" style="margin-bottom:6px;">💡 Kategori tersedia:</div>
+        {% for k, label in kategori %}
+          <div style="color:var(--muted);">{{ label }}</div>
+        {% endfor %}
+      </div>
+    </div>
+
+  </div>
+
+</div>
+
+{% endblock %}

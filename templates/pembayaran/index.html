@@ -1,0 +1,117 @@
+{% extends 'base.html' %}
+{% block title %}Pembayaran{% endblock %}
+{% block page_title %}Riwayat Pembayaran{% endblock %}
+{% block breadcrumb %}Semua Pembayaran{% endblock %}
+
+{% block content %}
+<div class="card">
+  <div class="table-wrap">
+    {% if daftar %}
+    <table>
+      <thead>
+        <tr>
+          <th>Tanggal</th><th>Kamar</th><th>Nama</th><th>Periode</th>
+          <th>Tagihan</th><th>Dibayar</th><th>Metode</th>
+          <th>Bukti <span style="font-weight:400; font-size:11px; color:var(--muted);">(bisa lebih dari 1)</span></th>
+          <th>Verifikasi</th><th>Aksi</th>
+        </tr>
+      </thead>
+      <tbody>
+      {% for pm in daftar %}
+      {% set bukti_list = bukti_map.get(pm.id, []) %}
+      <tr>
+        <td class="text-muted" style="font-size:12px; white-space:nowrap;">{{ pm.tanggal_bayar[:16] }}</td>
+        <td><span class="badge badge-info text-mono">{{ pm.nomor_kamar }}</span></td>
+        <td class="fw-bold">{{ pm.nama }}</td>
+        <td class="text-muted">{{ pm.bulan | nama_bulan }}</td>
+        <td class="text-mono">{{ pm.jumlah_tagihan | rupiah }}</td>
+        <td class="text-mono text-green fw-bold">{{ pm.jumlah_bayar | rupiah }}</td>
+        <td><span class="badge badge-secondary">{{ pm.metode }}</span></td>
+
+        <!-- Kolom Bukti: tampilkan semua file dari bukti_map -->
+        <td>
+          {% if bukti_list %}
+            <div class="bukti-thumb-row">
+              {% for b in bukti_list %}
+                {% if b.filename.endswith('.pdf') %}
+                  <a href="{{ url_for('static', filename='uploads/' ~ b.filename) }}"
+                     target="_blank"
+                     class="btn btn-outline btn-sm"
+                     title="{{ b.original_name or 'PDF' }}">📄</a>
+                {% else %}
+                  <img src="{{ url_for('static', filename='uploads/' ~ b.filename) }}"
+                       class="bukti-thumb"
+                       onclick="showImg('{{ url_for('static', filename='uploads/' ~ b.filename) }}')"
+                       title="{{ b.original_name or '' }}"
+                       alt="Bukti">
+                {% endif %}
+              {% endfor %}
+              <span class="bukti-count">{{ bukti_list | length }} file</span>
+            </div>
+          {% elif pm.bukti_file %}
+            {# Fallback: bukti lama (1 file di kolom bukti_file) #}
+            <div class="bukti-thumb-row">
+              {% if pm.bukti_file.endswith('.pdf') %}
+                <a href="{{ url_for('static', filename='uploads/' ~ pm.bukti_file) }}"
+                   target="_blank" class="btn btn-outline btn-sm">📄</a>
+              {% else %}
+                <img src="{{ url_for('static', filename='uploads/' ~ pm.bukti_file) }}"
+                     class="bukti-thumb"
+                     onclick="showImg('{{ url_for('static', filename='uploads/' ~ pm.bukti_file) }}')"
+                     alt="Bukti">
+              {% endif %}
+              <span class="bukti-count">1 file</span>
+            </div>
+          {% else %}
+            <span class="text-muted">—</span>
+          {% endif %}
+        </td>
+
+        <td>
+          {% if pm.verified %}
+            <span class="verified-chip yes">✓ Verified</span>
+          {% else %}
+            <span class="verified-chip no">⏳ Pending</span>
+          {% endif %}
+        </td>
+        <td>
+          <div class="flex gap-2">
+            {% if not pm.verified %}
+            <a href="{{ url_for('pembayaran.verifikasi', pid=pm.id, status=1) }}"
+               class="btn btn-success btn-sm" title="Verifikasi">✓</a>
+            {% else %}
+            <a href="{{ url_for('pembayaran.verifikasi', pid=pm.id, status=0) }}"
+               class="btn btn-outline btn-sm" title="Batal Verifikasi">✗</a>
+            {% endif %}
+            <a href="{{ url_for('pembayaran.hapus', pid=pm.id) }}"
+               class="btn btn-danger btn-sm"
+               onclick="return confirm('Hapus data pembayaran ini?')">🗑️</a>
+          </div>
+        </td>
+      </tr>
+      {% endfor %}
+      </tbody>
+    </table>
+    {% else %}
+    <div class="empty">
+      <div class="empty-icon">💳</div>
+      <div>Belum ada riwayat pembayaran.</div>
+    </div>
+    {% endif %}
+  </div>
+</div>
+
+<style>
+.bukti-thumb-row {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 4px;
+}
+.bukti-count {
+  font-size: 11px;
+  color: var(--muted);
+  white-space: nowrap;
+}
+</style>
+{% endblock %}

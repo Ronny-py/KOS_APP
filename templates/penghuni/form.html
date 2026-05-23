@@ -1,0 +1,166 @@
+{% extends 'base.html' %}
+{% block title %}{{ 'Edit' if mode=='edit' else 'Tambah' }} Penghuni{% endblock %}
+{% block page_title %}{{ 'Edit' if mode=='edit' else 'Tambah' }} Penghuni{% endblock %}
+{% block breadcrumb %}<a href="{{ url_for('penghuni.index') }}" style="color:var(--muted)">Penghuni</a> / {{ 'Edit' if mode=='edit' else 'Tambah' }}{% endblock %}
+
+{% block content %}
+<div class="card" style="max-width:680px;">
+  <form method="POST" enctype="multipart/form-data">
+
+    {# ── Data Diri ── #}
+    <div class="form-grid">
+      <div class="form-group">
+        <label>Nama Lengkap *</label>
+        <input type="text" name="nama" value="{{ data.get('nama','') }}" required>
+      </div>
+      <div class="form-group">
+        <label>Nomor Kamar *</label>
+        <input type="text" name="nomor_kamar" value="{{ data.get('nomor_kamar','') }}" required placeholder="misal: A1, 101">
+      </div>
+    </div>
+    <div class="form-grid">
+      <div class="form-group">
+        <label>No. HP / WhatsApp</label>
+        <input type="text" name="no_hp" value="{{ data.get('no_hp','') }}" placeholder="08xx-xxxx-xxxx">
+      </div>
+      <div class="form-group">
+        <label>Email</label>
+        <input type="email" name="email" value="{{ data.get('email','') }}">
+      </div>
+    </div>
+    <div class="form-grid">
+      <div class="form-group">
+        <label>Tanggal Masuk</label>
+        <input type="date" name="tanggal_masuk" value="{{ data.get('tanggal_masuk','') }}">
+      </div>
+      <div class="form-group">
+        <label>Harga Sewa / Bulan (Rp) *</label>
+        <input type="number" name="harga_sewa" value="{{ data.get('harga_sewa',0) }}" min="0" step="1000" required>
+      </div>
+    </div>
+
+    {# ── Tagihan bulan ini (edit only) ── #}
+    {% if mode == 'edit' %}
+    <div style="border-top:1px solid var(--border); margin:20px 0;"></div>
+    <div class="card-title mb-3" style="font-size:14px;">📅 Tagihan Bulan Ini
+      <span class="text-muted" style="font-weight:400; font-size:12px;">({{ bulan_ini }})</span>
+    </div>
+    {% if tagihan %}
+      {% set badge_color = 'success' if tagihan.status == 'lunas' else ('warning' if tagihan.status == 'sebagian' else 'danger') %}
+      <div class="form-grid">
+        <div class="form-group">
+          <label>Tanggal Jatuh Tempo</label>
+          <input type="date" name="tanggal_jatuh_tempo"
+                 value="{{ tagihan.tanggal_jatuh_tempo or '' }}">
+        </div>
+        <div class="form-group">
+          <label>Status Tagihan</label>
+          <div style="margin-top:8px;">
+            <span class="badge badge-{{ badge_color }}">
+              {% if tagihan.status == 'lunas' %}✓ Lunas
+              {% elif tagihan.status == 'sebagian' %}Sebagian Bayar
+              {% else %}Belum Bayar{% endif %}
+            </span>
+          </div>
+        </div>
+      </div>
+    {% else %}
+      <div class="text-muted" style="font-size:13px; padding:10px 0;">
+        Belum ada tagihan untuk bulan ini. Buat tagihan terlebih dahulu di menu
+        <a href="{{ url_for('tagihan.index') }}" style="color:var(--accent)">Tagihan</a>.
+      </div>
+      <input type="hidden" name="tanggal_jatuh_tempo" value="">
+    {% endif %}
+    {% endif %}
+
+    {# ── Dokumen ── #}
+    <div style="border-top:1px solid var(--border); margin:20px 0;"></div>
+    <div class="card-title mb-3" style="font-size:14px;">📄 Dokumen Penghuni</div>
+
+    {# KTP #}
+    <div class="form-group" style="margin-bottom:20px;">
+      <label>🪪 Foto KTP</label>
+      {% if mode == 'edit' and data.get('foto_ktp') %}
+        <div style="display:flex; align-items:center; gap:12px; margin-bottom:8px; flex-wrap:wrap;">
+          <a href="{{ url_for('penghuni.serve_dokumen', filename=data.foto_ktp) }}"
+             target="_blank" style="color:var(--accent); font-size:13px;">
+            🔍 Lihat KTP yang tersimpan
+          </a>
+          <a href="{{ url_for('penghuni.hapus_dokumen', pid=data.id, field='foto_ktp') }}"
+             onclick="return confirm('Hapus foto KTP ini?')"
+             style="color:var(--danger, #e55); font-size:12px;">✕ Hapus</a>
+        </div>
+        {% if data.foto_ktp.lower().endswith(('.png','.jpg','.jpeg','.webp','.gif')) %}
+          <img src="{{ url_for('penghuni.serve_dokumen', filename=data.foto_ktp) }}"
+               alt="KTP" style="max-width:260px; max-height:160px; border-radius:6px;
+               border:1px solid var(--border); margin-bottom:8px; object-fit:cover;">
+        {% endif %}
+        <div class="text-muted" style="font-size:12px; margin-bottom:6px;">Upload file baru untuk mengganti.</div>
+      {% endif %}
+      <input type="file" name="foto_ktp" accept="image/*,application/pdf"
+             style="display:block; font-size:13px;">
+      <div class="text-muted" style="font-size:11px; margin-top:4px;">Format: JPG, PNG, PDF. Maks 5 MB.</div>
+    </div>
+
+    {# Bukti Transfer Jaminan Masuk #}
+    <div class="form-group" style="margin-bottom:20px;">
+      <label>💰 Bukti Transfer Uang Jaminan (Masuk)</label>
+      {% if mode == 'edit' and data.get('bukti_transfer_jaminan') %}
+        <div style="display:flex; align-items:center; gap:12px; margin-bottom:8px; flex-wrap:wrap;">
+          <a href="{{ url_for('penghuni.serve_dokumen', filename=data.bukti_transfer_jaminan) }}"
+             target="_blank" style="color:var(--accent); font-size:13px;">
+            🔍 Lihat bukti transfer jaminan
+          </a>
+          <a href="{{ url_for('penghuni.hapus_dokumen', pid=data.id, field='bukti_transfer_jaminan') }}"
+             onclick="return confirm('Hapus bukti transfer ini?')"
+             style="color:var(--danger, #e55); font-size:12px;">✕ Hapus</a>
+        </div>
+        {% if data.bukti_transfer_jaminan.lower().endswith(('.png','.jpg','.jpeg','.webp','.gif')) %}
+          <img src="{{ url_for('penghuni.serve_dokumen', filename=data.bukti_transfer_jaminan) }}"
+               alt="Bukti Transfer Jaminan" style="max-width:260px; max-height:160px; border-radius:6px;
+               border:1px solid var(--border); margin-bottom:8px; object-fit:cover;">
+        {% endif %}
+        <div class="text-muted" style="font-size:12px; margin-bottom:6px;">Upload file baru untuk mengganti.</div>
+      {% endif %}
+      <input type="file" name="bukti_transfer_jaminan" accept="image/*,application/pdf"
+             style="display:block; font-size:13px;">
+      <div class="text-muted" style="font-size:11px; margin-top:4px;">Bukti pembayaran deposit/jaminan saat penghuni masuk.</div>
+    </div>
+
+    {# Bukti Pengembalian Jaminan Keluar — hanya tampil di mode edit #}
+    {% if mode == 'edit' %}
+    <div class="form-group" style="margin-bottom:20px;">
+      <label>🔄 Bukti Pengembalian Uang Jaminan (Keluar)</label>
+      {% if data.get('bukti_pengembalian_jaminan') %}
+        <div style="display:flex; align-items:center; gap:12px; margin-bottom:8px; flex-wrap:wrap;">
+          <a href="{{ url_for('penghuni.serve_dokumen', filename=data.bukti_pengembalian_jaminan) }}"
+             target="_blank" style="color:var(--accent); font-size:13px;">
+            🔍 Lihat bukti pengembalian jaminan
+          </a>
+          <a href="{{ url_for('penghuni.hapus_dokumen', pid=data.id, field='bukti_pengembalian_jaminan') }}"
+             onclick="return confirm('Hapus bukti pengembalian ini?')"
+             style="color:var(--danger, #e55); font-size:12px;">✕ Hapus</a>
+        </div>
+        {% if data.bukti_pengembalian_jaminan.lower().endswith(('.png','.jpg','.jpeg','.webp','.gif')) %}
+          <img src="{{ url_for('penghuni.serve_dokumen', filename=data.bukti_pengembalian_jaminan) }}"
+               alt="Bukti Pengembalian Jaminan" style="max-width:260px; max-height:160px; border-radius:6px;
+               border:1px solid var(--border); margin-bottom:8px; object-fit:cover;">
+        {% endif %}
+        <div class="text-muted" style="font-size:12px; margin-bottom:6px;">Upload file baru untuk mengganti.</div>
+      {% endif %}
+      <input type="file" name="bukti_pengembalian_jaminan" accept="image/*,application/pdf"
+             style="display:block; font-size:13px;">
+      <div class="text-muted" style="font-size:11px; margin-top:4px;">Bukti transfer kembali deposit saat penghuni keluar.</div>
+    </div>
+    {% endif %}
+
+    {# ── Tombol ── #}
+    <div class="flex gap-2 mt-3">
+      <button type="submit" class="btn btn-primary">
+        {{ '💾 Simpan Perubahan' if mode=='edit' else '➕ Tambah Penghuni' }}
+      </button>
+      <a href="{{ url_for('penghuni.index') }}" class="btn btn-outline">Batal</a>
+    </div>
+  </form>
+</div>
+{% endblock %}

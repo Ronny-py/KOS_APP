@@ -1,0 +1,87 @@
+{% extends 'base.html' %}
+{% block title %}{{ 'Tambah' if mode == 'tambah' else 'Edit' }} Pengeluaran{% endblock %}
+{% block page_title %}{{ 'Tambah' if mode == 'tambah' else 'Edit' }} Pengeluaran{% endblock %}
+{% block breadcrumb %}
+  <a href="{{ url_for('pengeluaran.index') }}">Pengeluaran</a> /
+  {{ 'Tambah' if mode == 'tambah' else 'Edit' }}
+{% endblock %}
+
+{% block content %}
+<div style="max-width: 640px;">
+  <div class="card">
+    <div class="card-header">
+      <div class="card-title">
+        {{ '➕ Catat Pengeluaran Baru' if mode == 'tambah' else '✏️ Edit Pengeluaran' }}
+      </div>
+    </div>
+
+    <form method="post">
+
+      <div class="form-grid">
+        {# Tanggal #}
+        <div class="form-group">
+          <label>Tanggal</label>
+          <input type="date" name="tanggal"
+                 value="{{ data.tanggal if data.tanggal else today }}"
+                 max="{{ today }}" required>
+        </div>
+
+        {# Kategori #}
+        <div class="form-group">
+          <label>Kategori</label>
+          <select name="kategori" required>
+            {% for k, label in kategori %}
+              <option value="{{ k }}" {{ 'selected' if data.get('kategori') == k else '' }}>
+                {{ label }}
+              </option>
+            {% endfor %}
+          </select>
+        </div>
+      </div>
+
+      {# Keterangan #}
+      <div class="form-group">
+        <label>Keterangan <span style="color:var(--red)">*</span></label>
+        <input type="text" name="keterangan"
+               value="{{ data.keterangan if data.keterangan else '' }}"
+               placeholder="Misal: Bayar tagihan listrik bulan ini"
+               required>
+      </div>
+
+      <div class="form-grid">
+        {# Jumlah #}
+        <div class="form-group">
+          <label>Jumlah (Rp) <span style="color:var(--red)">*</span></label>
+          <input type="number" name="jumlah" min="1" step="1"
+                 value="{{ data.jumlah | int if data.jumlah else '' }}"
+                 placeholder="0" required>
+        </div>
+
+        {# Dibayar ke #}
+        <div class="form-group">
+          <label>Dibayar ke <span style="color:var(--muted); font-weight:400;">(opsional)</span></label>
+          <input type="text" name="dibayar_ke"
+                 value="{{ data.dibayar_ke if data.dibayar_ke else '' }}"
+                 placeholder="Misal: PLN, Pak Budi, Toko Maju">
+        </div>
+      </div>
+
+      {# Catatan #}
+      <div class="form-group">
+        <label>Catatan <span style="color:var(--muted); font-weight:400;">(opsional)</span></label>
+        <textarea name="catatan" rows="3"
+                  placeholder="Keterangan tambahan jika perlu...">{{ data.catatan if data.catatan else '' }}</textarea>
+      </div>
+
+      {# Tombol aksi #}
+      <div class="flex gap-2" style="margin-top: 8px;">
+        <button type="submit" class="btn btn-primary">
+          {{ '➕ Simpan Pengeluaran' if mode == 'tambah' else '💾 Simpan Perubahan' }}
+        </button>
+        <a href="{{ url_for('pengeluaran.index') }}" class="btn btn-outline">Batal</a>
+      </div>
+
+    </form>
+  </div>
+</div>
+{% endblock %}

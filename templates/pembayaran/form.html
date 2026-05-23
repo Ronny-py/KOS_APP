@@ -1,0 +1,257 @@
+{% extends 'base.html' %}
+{% block title %}Catat Pembayaran{% endblock %}
+{% block page_title %}Catat Pembayaran{% endblock %}
+{% block breadcrumb %}<a href="{{ url_for('tagihan.index') }}" style="color:var(--muted)">Tagihan</a> / Pembayaran{% endblock %}
+
+{% block content %}
+<div class="flex gap-3" style="flex-wrap:wrap; align-items:flex-start;">
+
+  <!-- Info tagihan -->
+  <div class="card" style="min-width:260px; flex:0 0 260px;">
+    <div class="card-title mb-4">📋 Info Tagihan</div>
+    <div style="display:flex; flex-direction:column; gap:12px;">
+      <div>
+        <div class="text-muted" style="font-size:11px; text-transform:uppercase; letter-spacing:.5px;">Penghuni</div>
+        <div class="fw-bold" style="margin-top:3px;">{{ tagihan.nama }}</div>
+        <div class="text-muted">Kamar {{ tagihan.nomor_kamar }}</div>
+      </div>
+      <div>
+        <div class="text-muted" style="font-size:11px; text-transform:uppercase; letter-spacing:.5px;">Periode</div>
+        <div class="fw-bold" style="margin-top:3px;">{{ tagihan.bulan | nama_bulan }}</div>
+      </div>
+      <div>
+        <div class="text-muted" style="font-size:11px; text-transform:uppercase; letter-spacing:.5px;">Total Tagihan</div>
+        <div class="fw-bold text-mono text-green" style="font-size:22px; margin-top:3px;">{{ tagihan.jumlah | rupiah }}</div>
+      </div>
+      <div>
+        <div class="text-muted" style="font-size:11px; text-transform:uppercase; letter-spacing:.5px;">Sisa Tagihan</div>
+        <div class="fw-bold text-mono text-red" style="font-size:20px; margin-top:3px;">{{ sisa | rupiah }}</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Form pembayaran -->
+  <div class="card" style="flex:1; min-width:320px;">
+    <div class="card-title mb-4">💰 Form Pembayaran</div>
+
+    {#
+      PENTING: form ini menggunakan <input type="file" multiple> yang ter-hidden.
+      File dikelola lewat JavaScript (array fileList), lalu saat submit
+      disalin ke input tersembunyi via DataTransfer agar terkirim semua.
+    #}
+    <form method="POST" enctype="multipart/form-data" id="frmPay">
+      <div class="form-grid">
+        <div class="form-group">
+          <label>Jumlah Dibayar (Rp) *</label>
+          <input type="number" name="jumlah_bayar" min="1000" step="any"
+                 value="{{ sisa | int }}" required>
+        </div>
+        <div class="form-group">
+          <label>Metode Pembayaran *</label>
+          <select name="metode">
+            <option value="transfer">Transfer Bank</option>
+            <option value="tunai">Tunai / Cash</option>
+            <option value="qris">QRIS</option>
+            <option value="dompet_digital">Dompet Digital</option>
+          </select>
+        </div>
+      </div>
+
+      <!-- ── Upload area ── -->
+      <div class="form-group">
+        <label>📎 Upload Bukti Transfer
+          <span style="font-weight:400; font-size:12px; color:var(--muted);">— bisa lebih dari 1 file</span>
+        </label>
+
+        <!-- Zona klik/drop yang terlihat -->
+        <div id="zone" style="
+            border:2px dashed var(--border);
+            border-radius:10px;
+            padding:28px 20px;
+            text-align:center;
+            cursor:pointer;
+            background:var(--surface);
+            transition:border-color .2s,background .2s;">
+          <div style="font-size:32px;">📂</div>
+          <div style="font-weight:600; margin:8px 0 4px;">Klik di sini untuk memilih file</div>
+          <div style="font-size:12px; color:var(--muted);">
+            PNG · JPG · PDF · GIF · WEBP &nbsp;|&nbsp; Maks 5 MB per file<br>
+            Pilih banyak sekaligus dengan <kbd>Ctrl+klik</kbd>
+          </div>
+        </div>
+
+        <!-- Input file ASLI — multiple, tidak tersembunyi sepenuhnya agar browser treat sebagai normal -->
+        <input type="file" id="realInput" name="bukti_file"
+               accept="image/*,.pdf" multiple
+               style="opacity:0; width:1px; height:1px; position:absolute; left:-9999px;">
+
+        <!-- Preview -->
+        <div id="prevGrid" style="display:flex;flex-wrap:wrap;gap:10px;margin-top:14px;"></div>
+        <p id="countMsg" style="font-size:12px;color:var(--muted);margin:6px 0 0;"></p>
+      </div>
+      <!-- ── /Upload area ── -->
+
+      <div class="form-group">
+        <label>Catatan (opsional)</label>
+        <textarea name="catatan" rows="2" placeholder="Catatan tambahan..."></textarea>
+      </div>
+
+      <div class="flex gap-2 mt-3">
+        <button type="submit" class="btn btn-primary">💾 Simpan Pembayaran</button>
+        <a href="{{ url_for('tagihan.detail', tid=tagihan.id) }}" class="btn btn-outline">Batal</a>
+      </div>
+    </form>
+  </div>
+
+</div>
+
+<!-- ── Styles ── -->
+<style>
+#zone:hover            { border-color:var(--accent)!important; }
+#zone.dz-over          { border-color:var(--accent)!important; background:rgba(99,102,241,.08)!important; }
+.pi {
+  position:relative; width:90px; height:90px;
+  border-radius:8px; overflow:hidden;
+  border:1px solid var(--border); background:var(--surface);
+  display:flex; align-items:center; justify-content:center;
+  flex-direction:column; flex-shrink:0;
+}
+.pi img  { width:100%; height:100%; object-fit:cover; }
+.pi .ico { font-size:26px; }
+.pi .fn  {
+  font-size:9px; color:var(--muted); padding:2px 4px;
+  overflow:hidden; text-overflow:ellipsis; white-space:nowrap; max-width:86px;
+}
+.pi .x {
+  position:absolute; top:2px; right:2px;
+  background:rgba(0,0,0,.65); color:#fff;
+  border:none; border-radius:50%;
+  width:18px; height:18px; font-size:13px; line-height:18px;
+  cursor:pointer; text-align:center; padding:0;
+}
+.pi .x:hover { background:#e53e3e; }
+kbd {
+  display:inline-block; padding:1px 5px;
+  border:1px solid var(--border); border-radius:3px;
+  font-size:11px; background:var(--bg);
+}
+</style>
+
+<!-- ── Script ── -->
+<script>
+(function () {
+  'use strict';
+
+  var zone      = document.getElementById('zone');
+  var realInput = document.getElementById('realInput');
+  var prevGrid  = document.getElementById('prevGrid');
+  var countMsg  = document.getElementById('countMsg');
+  var form      = document.getElementById('frmPay');
+
+  /* Array yang menyimpan File object yang dipilih user */
+  var chosen = [];
+
+  /* ── 1. Klik zona → buka file picker ── */
+  zone.addEventListener('click', function () {
+    realInput.click();
+  });
+
+  /* ── 2. Setelah user pilih file dari dialog ── */
+  realInput.addEventListener('change', function () {
+    if (this.files && this.files.length > 0) {
+      addFiles(Array.prototype.slice.call(this.files));
+    }
+    /* Jangan reset .value di sini — biarkan browser pegang referensi */
+  });
+
+  /* ── 3. Drag & drop ── */
+  zone.addEventListener('dragover', function (e) {
+    e.preventDefault();
+    zone.classList.add('dz-over');
+  });
+  zone.addEventListener('dragleave', function () {
+    zone.classList.remove('dz-over');
+  });
+  zone.addEventListener('drop', function (e) {
+    e.preventDefault();
+    zone.classList.remove('dz-over');
+    if (e.dataTransfer && e.dataTransfer.files.length) {
+      addFiles(Array.prototype.slice.call(e.dataTransfer.files));
+    }
+  });
+
+  /* ── 4. Sebelum submit: sync chosen[] → realInput.files ── */
+  form.addEventListener('submit', function () {
+    syncToInput();
+  });
+
+  /* ── Helpers ── */
+  function okExt(f) {
+    var e = f.name.split('.').pop().toLowerCase();
+    return ['png','jpg','jpeg','gif','webp','pdf'].indexOf(e) !== -1;
+  }
+
+  function addFiles(newFiles) {
+    newFiles.forEach(function (f) {
+      if (okExt(f)) chosen.push(f);
+    });
+    render();
+  }
+
+  function removeFile(idx) {
+    chosen.splice(idx, 1);
+    render();
+  }
+
+  function syncToInput() {
+    try {
+      var dt = new DataTransfer();
+      chosen.forEach(function (f) { dt.items.add(f); });
+      realInput.files = dt.files;
+    } catch (err) { /* fallback: kirim apa adanya */ }
+  }
+
+  function render() {
+    prevGrid.innerHTML = '';
+    countMsg.textContent = chosen.length ? chosen.length + ' file dipilih' : '';
+
+    chosen.forEach(function (f, i) {
+      var div = document.createElement('div');
+      div.className = 'pi';
+
+      /* Tombol hapus */
+      var x = document.createElement('button');
+      x.type = 'button';
+      x.className = 'x';
+      x.textContent = '\u00D7';
+      x.title = 'Hapus';
+      x.addEventListener('click', (function (idx) {
+        return function (e) { e.stopPropagation(); removeFile(idx); };
+      })(i));
+
+      var isPdf = f.name.toLowerCase().endsWith('.pdf');
+      if (isPdf) {
+        var ico = document.createElement('div');
+        ico.className = 'ico';
+        ico.textContent = '📄';
+        var fn = document.createElement('div');
+        fn.className = 'fn';
+        fn.textContent = f.name;
+        div.appendChild(ico);
+        div.appendChild(fn);
+      } else {
+        var img = document.createElement('img');
+        img.alt = f.name;
+        img.src = URL.createObjectURL(f);
+        div.appendChild(img);
+      }
+
+      div.appendChild(x);
+      prevGrid.appendChild(div);
+    });
+  }
+
+}());
+</script>
+
+{% endblock %}

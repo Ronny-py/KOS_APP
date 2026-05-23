@@ -1,0 +1,277 @@
+<!-- templates/chatbot_widget.html -->
+<!-- Include di base.html sebelum </body> -->
+<!-- Contoh: {% include 'chatbot_widget.html' %} -->
+
+<style>
+/* ── Chat Widget ──────────────────────────────────────────── */
+#chat-fab {
+  position: fixed; bottom: 24px; right: 24px; z-index: 9999;
+  width: 56px; height: 56px; border-radius: 50%;
+  background: #25D366; color: #fff; border: none;
+  font-size: 26px; cursor: pointer;
+  box-shadow: 0 4px 16px rgba(0,0,0,.25);
+  display: flex; align-items: center; justify-content: center;
+  transition: transform .2s, background .2s;
+}
+#chat-fab:hover { background: #1ebe5d; transform: scale(1.08); }
+#chat-fab .chat-badge {
+  position: absolute; top: -4px; right: -4px;
+  background: #e74c3c; color: #fff; border-radius: 50%;
+  width: 20px; height: 20px; font-size: 11px; font-weight: 700;
+  display: none; align-items: center; justify-content: center;
+}
+
+#chat-box {
+  position: fixed; bottom: 92px; right: 24px; z-index: 9998;
+  width: 360px; max-width: calc(100vw - 32px);
+  background: #fff; border-radius: 16px;
+  box-shadow: 0 8px 32px rgba(0,0,0,.18);
+  display: none; flex-direction: column; overflow: hidden;
+  border: 1px solid #e0e0e0;
+  font-family: 'Segoe UI', sans-serif;
+}
+#chat-box.open { display: flex; }
+
+.chat-header {
+  background: #25D366; color: #fff;
+  padding: 14px 16px; display: flex; align-items: center; gap: 10px;
+}
+.chat-header .avatar {
+  width: 36px; height: 36px; border-radius: 50%;
+  background: rgba(255,255,255,.25);
+  display: flex; align-items: center; justify-content: center; font-size: 18px;
+}
+.chat-header .info { flex: 1; }
+.chat-header .info h6 { margin: 0; font-size: 14px; font-weight: 600; }
+.chat-header .info small { font-size: 11px; opacity: .85; }
+#chat-close { background: none; border: none; color: #fff; font-size: 20px; cursor: pointer; }
+
+#chat-messages {
+  flex: 1; overflow-y: auto; padding: 14px 12px;
+  background: #f0f4f8; min-height: 280px; max-height: 380px;
+  display: flex; flex-direction: column; gap: 8px;
+}
+.chat-bubble {
+  max-width: 82%; padding: 8px 12px; border-radius: 12px;
+  font-size: 13.5px; line-height: 1.5; word-break: break-word;
+}
+.chat-bubble.bot {
+  background: #fff; color: #222; border-bottom-left-radius: 4px;
+  box-shadow: 0 1px 3px rgba(0,0,0,.08); align-self: flex-start;
+}
+.chat-bubble.user {
+  background: #25D366; color: #fff; border-bottom-right-radius: 4px;
+  align-self: flex-end;
+}
+.chat-bubble.typing { background: #fff; align-self: flex-start; }
+.typing-dots { display: flex; gap: 4px; padding: 2px 4px; }
+.typing-dots span {
+  width: 7px; height: 7px; border-radius: 50%;
+  background: #aaa; animation: bounce .8s infinite;
+}
+.typing-dots span:nth-child(2) { animation-delay: .15s; }
+.typing-dots span:nth-child(3) { animation-delay: .3s; }
+@keyframes bounce { 0%,80%,100%{transform:translateY(0)} 40%{transform:translateY(-6px)} }
+
+.chat-footer {
+  padding: 10px 12px; background: #fff; border-top: 1px solid #eee;
+  display: flex; gap: 8px; align-items: flex-end;
+}
+#chat-input {
+  flex: 1; border: 1px solid #ddd; border-radius: 20px;
+  padding: 8px 14px; font-size: 13.5px; outline: none; resize: none;
+  max-height: 100px; overflow-y: auto; font-family: inherit;
+}
+#chat-input:focus { border-color: #25D366; }
+#chat-send {
+  background: #25D366; color: #fff; border: none;
+  border-radius: 50%; width: 38px; height: 38px; flex-shrink: 0;
+  cursor: pointer; font-size: 16px; display: flex;
+  align-items: center; justify-content: center; transition: background .2s;
+}
+#chat-send:hover { background: #1ebe5d; }
+#chat-send:disabled { background: #b2dfdb; cursor: not-allowed; }
+
+.quick-replies { display: flex; flex-wrap: wrap; gap: 6px; padding: 0 12px 10px; }
+.qr-btn {
+  background: #e8f5e9; color: #2e7d32; border: 1px solid #a5d6a7;
+  border-radius: 16px; padding: 5px 12px; font-size: 12px;
+  cursor: pointer; transition: background .2s;
+}
+.qr-btn:hover { background: #c8e6c9; }
+</style>
+
+<!-- FAB Button -->
+<button id="chat-fab" onclick="toggleChat()" title="Chat dengan kami">
+  💬
+  <span class="chat-badge" id="chat-badge">1</span>
+</button>
+
+<!-- Chat Box -->
+<div id="chat-box">
+  <div class="chat-header">
+    <div class="avatar">🏠</div>
+    <div class="info">
+      <h6>Asisten Kost</h6>
+      <small>🟢 Online – Balas otomatis</small>
+    </div>
+    <button id="chat-close" onclick="toggleChat()">✕</button>
+  </div>
+
+  <!-- Quick Replies (hanya awal) -->
+  <div class="quick-replies" id="quick-replies">
+    <button class="qr-btn" onclick="sendQuick('Ada kamar kosong?')">🛏️ Kamar kosong</button>
+    <button class="qr-btn" onclick="sendQuick('Berapa harga sewa?')">💰 Harga sewa</button>
+    <button class="qr-btn" onclick="sendQuick('Cek tagihan saya')">📋 Cek tagihan</button>
+    <button class="qr-btn" onclick="sendQuick('Fasilitas apa saja?')">✨ Fasilitas</button>
+    <button class="qr-btn" onclick="sendQuick('Cara bayar sewa?')">💳 Cara bayar</button>
+  </div>
+
+  <div id="chat-messages"></div>
+
+  <div class="chat-footer">
+    <textarea id="chat-input" rows="1" placeholder="Ketik pesan..."
+      onkeydown="handleKey(event)" oninput="autoResize(this)"></textarea>
+    <button id="chat-send" onclick="sendMessage()">➤</button>
+  </div>
+</div>
+
+<script>
+(function() {
+  const STORAGE_KEY = 'kost_chat_history';
+  let chatHistory = [];   // [{role, content}]
+  let isOpen = false;
+
+  // Load history dari sessionStorage
+  try {
+    const saved = sessionStorage.getItem(STORAGE_KEY);
+    if (saved) chatHistory = JSON.parse(saved);
+  } catch(e) {}
+
+  window.toggleChat = function() {
+    isOpen = !isOpen;
+    document.getElementById('chat-box').classList.toggle('open', isOpen);
+    document.getElementById('chat-badge').style.display = 'none';
+    if (isOpen) {
+      renderHistory();
+      setTimeout(() => document.getElementById('chat-input').focus(), 100);
+    }
+  };
+
+  window.sendQuick = function(text) {
+    document.getElementById('quick-replies').style.display = 'none';
+    addMessage('user', text);
+    callAPI(text);
+  };
+
+  window.sendMessage = function() {
+    const input = document.getElementById('chat-input');
+    const text  = input.value.trim();
+    if (!text) return;
+    input.value = '';
+    autoResize(input);
+    document.getElementById('quick-replies').style.display = 'none';
+    addMessage('user', text);
+    callAPI(text);
+  };
+
+  window.handleKey = function(e) {
+    if (e.key === 'Enter' && !e.shiftKey) {
+      e.preventDefault();
+      sendMessage();
+    }
+  };
+
+  window.autoResize = function(el) {
+    el.style.height = 'auto';
+    el.style.height = Math.min(el.scrollHeight, 100) + 'px';
+  };
+
+  function renderHistory() {
+    const box = document.getElementById('chat-messages');
+    box.innerHTML = '';
+    if (chatHistory.length === 0) {
+      appendBubble('bot', '👋 Halo! Saya asisten virtual Kost Kami.\nAda yang bisa saya bantu?');
+    } else {
+      chatHistory.forEach(h => appendBubble(h.role === 'user' ? 'user' : 'bot', h.content));
+    }
+    scrollBottom();
+  }
+
+  function addMessage(role, content) {
+    chatHistory.push({ role, content });
+    saveHistory();
+    appendBubble(role === 'user' ? 'user' : 'bot', content);
+    scrollBottom();
+  }
+
+  function appendBubble(cls, text) {
+    const box  = document.getElementById('chat-messages');
+    const div  = document.createElement('div');
+    div.className = 'chat-bubble ' + cls;
+    div.textContent = text;
+    box.appendChild(div);
+    return div;
+  }
+
+  function showTyping() {
+    const box = document.getElementById('chat-messages');
+    const div = document.createElement('div');
+    div.id        = 'typing-indicator';
+    div.className = 'chat-bubble typing';
+    div.innerHTML = '<div class="typing-dots"><span></span><span></span><span></span></div>';
+    box.appendChild(div);
+    scrollBottom();
+  }
+
+  function hideTyping() {
+    const el = document.getElementById('typing-indicator');
+    if (el) el.remove();
+  }
+
+  function scrollBottom() {
+    const box = document.getElementById('chat-messages');
+    setTimeout(() => box.scrollTop = box.scrollHeight, 50);
+  }
+
+  function saveHistory() {
+    try { sessionStorage.setItem(STORAGE_KEY, JSON.stringify(chatHistory.slice(-30))); }
+    catch(e) {}
+  }
+
+  async function callAPI(userMessage) {
+    const btn = document.getElementById('chat-send');
+    btn.disabled = true;
+    showTyping();
+
+    try {
+      const resp = await fetch('/api/chatbot', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          message: userMessage,
+          history: chatHistory.slice(0, -1)  // exclude message just added
+        })
+      });
+      const data = await resp.json();
+      hideTyping();
+      const reply = data.reply || 'Maaf, tidak ada respons.';
+      addMessage('assistant', reply);
+    } catch(e) {
+      hideTyping();
+      addMessage('assistant', '⚠️ Koneksi bermasalah. Coba lagi ya kak 😊');
+    } finally {
+      btn.disabled = false;
+    }
+  }
+
+  // Tampilkan badge saat pertama kali (belum buka chat)
+  if (!sessionStorage.getItem('chat_opened')) {
+    setTimeout(() => {
+      const badge = document.getElementById('chat-badge');
+      badge.style.display = 'flex';
+      sessionStorage.setItem('chat_opened', '1');
+    }, 2000);
+  }
+})();
+</script>

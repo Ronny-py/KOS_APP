@@ -1,0 +1,99 @@
+{% extends 'base.html' %}
+{% block title %}Komplain Penghuni{% endblock %}
+{% block page_title %}Komplain & Perbaikan{% endblock %}
+{% block breadcrumb %}Manajemen Komplain{% endblock %}
+{% block topbar_actions %}
+  <a href="{{ url_for('komplain.laporan') }}" class="btn btn-outline">📊 Laporan Bulanan</a>
+{% endblock %}
+
+{% block content %}
+
+{# ── Status filter tabs ── #}
+<div style="display:flex; gap:8px; flex-wrap:wrap; margin-bottom:20px;">
+  {% set tabs = [('', 'Semua', counts.semua), ('baru','🆕 Baru', counts.baru),
+                 ('diproses','🔧 Diproses', counts.diproses),
+                 ('selesai','✅ Selesai', counts.selesai),
+                 ('ditolak','❌ Ditolak', counts.ditolak)] %}
+  {% for val, label, cnt in tabs %}
+  <a href="{{ url_for('komplain.index', status=val, q=search) }}"
+     style="display:inline-flex; align-items:center; gap:6px; padding:7px 14px; border-radius:20px;
+            font-size:13px; font-weight:600; text-decoration:none; transition:all .15s;
+            {{ 'background:var(--accent); color:#fff;' if status_filter==val else 'background:var(--surface2); color:var(--muted); border:1px solid var(--border);' }}">
+    {{ label }}
+    <span style="background:rgba(255,255,255,.15); border-radius:10px; padding:1px 7px; font-size:11px;">{{ cnt }}</span>
+  </a>
+  {% endfor %}
+</div>
+
+{# ── Search bar ── #}
+<div class="card" style="padding:14px 18px; margin-bottom:16px;">
+  <form method="GET" style="display:flex; gap:10px; align-items:center; flex-wrap:wrap;">
+    <input type="hidden" name="status" value="{{ status_filter }}">
+    <input type="text" name="q" value="{{ search }}" placeholder="🔍 Cari nama, kamar, atau judul..."
+           style="max-width:320px; padding:8px 12px; font-size:13px;">
+    <button type="submit" class="btn btn-primary" style="padding:8px 16px;">Cari</button>
+    {% if search %}
+    <a href="{{ url_for('komplain.index', status=status_filter) }}" class="btn btn-outline" style="padding:8px 14px;">✕ Reset</a>
+    {% endif %}
+  </form>
+</div>
+
+{# ── Tabel ── #}
+<div class="card">
+  <div class="table-wrap">
+    {% if daftar %}
+    <table>
+      <thead>
+        <tr>
+          <th>#</th><th>Kamar</th><th>Pelapor</th><th>Kategori</th>
+          <th>Judul</th><th>Prioritas</th><th>Status</th>
+          <th>Tanggal</th><th>Aksi</th>
+        </tr>
+      </thead>
+      <tbody>
+      {% for r in daftar %}
+      {% set prio_color = {'urgent':'var(--red)','tinggi':'#f97316','normal':'var(--accent)','rendah':'var(--muted)'} %}
+      {% set stat_badge = {'baru':'badge-info','diproses':'badge-warning','selesai':'badge-success','ditolak':'badge-secondary'} %}
+      <tr>
+        <td class="text-muted" style="font-size:12px;">#{{ r.id }}</td>
+        <td><span class="badge badge-info text-mono">{{ r.nomor_kamar }}</span></td>
+        <td class="fw-bold">{{ r.nama_pelapor }}</td>
+        <td>
+          {% for k, label in KATEGORI_LIST %}{% if k==r.kategori %}
+            <span style="font-size:12px;">{{ label }}</span>
+          {% endif %}{% endfor %}
+        </td>
+        <td style="max-width:220px; overflow:hidden; text-overflow:ellipsis; white-space:nowrap;"
+            title="{{ r.judul }}">{{ r.judul }}</td>
+        <td>
+          <span style="font-size:12px; font-weight:700; color:{{ prio_color.get(r.prioritas,'var(--muted)') }};">
+            {{ r.prioritas | upper }}
+          </span>
+        </td>
+        <td><span class="badge {{ stat_badge.get(r.status,'badge-secondary') }}">{{ r.status }}</span></td>
+        <td class="text-muted" style="font-size:12px;">{{ r.created_at[:10] }}</td>
+        <td>
+          <div class="flex gap-2">
+            <a href="{{ url_for('komplain.detail', kid=r.id) }}" class="btn btn-outline btn-sm">👁️ Lihat</a>
+            <form method="POST" action="{{ url_for('komplain.hapus', kid=r.id) }}"
+                  onsubmit="return confirm('Hapus komplain ini?')" style="display:inline;">
+              <button type="submit" class="btn btn-danger btn-sm">🗑️</button>
+            </form>
+          </div>
+        </td>
+      </tr>
+      {% endfor %}
+      </tbody>
+    </table>
+    {% else %}
+    <div class="empty">
+      <div class="empty-icon">📋</div>
+      <div>Belum ada komplain
+        {% if search %} untuk pencarian "<strong>{{ search }}</strong>"{% endif %}
+        {% if status_filter %} dengan status <strong>{{ status_filter }}</strong>{% endif %}
+      </div>
+    </div>
+    {% endif %}
+  </div>
+</div>
+{% endblock %}
