@@ -1,0 +1,23 @@
+{#
+  TAMBAHKAN snippet ini ke sidebar di dalam base.html
+  Letakkan di antara menu Pembayaran dan penutup </ul>
+#}
+
+{# ── Laporan (menu group baru) ── #}
+<li class="nav-item mt-2">
+  <span class="nav-link text-uppercase text-muted small px-3" style="font-size:.7rem;letter-spacing:.08em;">
+    Laporan
+  </span>
+</li>
+<li class="nav-item">
+  <a class="nav-link {% if request.endpoint and request.endpoint.startswith('laporan.pembayaran') %}active{% endif %}"
+     href="{{ url_for('laporan.pembayaran') }}">
+    <i class="bi bi-file-earmark-bar-graph me-2"></i> Laporan Pembayaran
+  </a>
+</li>
+<li class="nav-item">
+  <a class="nav-link {% if request.endpoint and request.endpoint.startswith('laporan.tunggakan') %}active{% endif %}"
+     href="{{ url_for('laporan.tunggakan') }}">
+    <i class="bi bi-exclamation-triangle me-2"></i> Laporan Tunggakan
+  </a>
+</li>

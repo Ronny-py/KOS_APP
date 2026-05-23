@@ -1,0 +1,128 @@
+"""
+app.py
+Flask app factory – titik masuk utama.
+"""
+import os
+from flask import Flask, redirect, url_for
+from config import SECRET_KEY, UPLOAD_FOLDER, MAX_CONTENT_LENGTH
+from models.database import init_db
+from utils.format_helper import rupiah, nama_bulan, status_badge
+from utils.migrate_dokumen import migrate_dokumen_penghuni
+from utils.migrate_pengeluaran import migrate_pengeluaran
+from utils.migrate_admin_expiry import migrate_admin_expiry
+from utils.migrate_notif_wa import migrate_notif_wa          # ← BARU
+from utils.migrate_komplain import migrate_komplain           # ← KOMPLAIN
+
+# ── Blueprint imports ──────────────────────────────────────────────────────────
+from routes.auth_routes               import auth_bp
+from routes.dashboard_routes          import dashboard_bp
+from routes.penghuni_routes           import penghuni_bp
+from routes.tagihan_routes            import tagihan_bp
+from routes.pembayaran_routes         import pembayaran_bp
+from routes.laporan_routes            import laporan_bp
+from routes.pengeluaran_routes        import pengeluaran_bp
+from routes.inventaris_routes         import inventaris_bp
+from routes.laporan_inventaris_routes import laporan_inventaris_bp
+from routes.notif_wa_routes           import notif_wa_bp
+from routes.kirim_wa_routes           import kirim_wa_bp      # ← BARU
+from routes.wa_server_routes          import wa_server_bp     # ← BARU
+from routes.chatbot_routes            import chatbot_bp
+from routes.bukti_transfer_routes     import bukti_transfer_bp   # ← BARU
+from routes.wa_scheduler_routes      import wa_scheduler_bp     # ← BARU
+from routes.komplain_routes          import komplain_bp          # ← KOMPLAIN
+from routes.komplain_publik_routes   import komplain_publik_bp   # ← KOMPLAIN
+
+
+def create_app():
+    app = Flask(__name__)
+    app.secret_key                   = SECRET_KEY
+    app.config['UPLOAD_FOLDER']      = UPLOAD_FOLDER
+    app.config['MAX_CONTENT_LENGTH'] = MAX_CONTENT_LENGTH
+
+    os.makedirs(UPLOAD_FOLDER, exist_ok=True)
+
+    with app.app_context():
+        init_db()
+        migrate_dokumen_penghuni()
+        migrate_pengeluaran()
+        migrate_admin_expiry()
+        migrate_notif_wa()                                    # ← BARU
+        migrate_komplain()                                    # ← KOMPLAIN
+
+    # Register blueprints
+    app.register_blueprint(auth_bp)
+    app.register_blueprint(dashboard_bp,  url_prefix='/dashboard')
+    app.register_blueprint(penghuni_bp)
+    app.register_blueprint(tagihan_bp)
+    app.register_blueprint(pembayaran_bp)
+    app.register_blueprint(laporan_bp)
+    app.register_blueprint(pengeluaran_bp)
+    app.register_blueprint(inventaris_bp)
+    app.register_blueprint(laporan_inventaris_bp)
+    app.register_blueprint(notif_wa_bp)                      # ← BARU
+    app.register_blueprint(kirim_wa_bp)                      # ← BARU
+    app.register_blueprint(kirim_wa_bp, url_prefix='/wa', name='kirim_wa_wa')  # broadcast prefix
+    app.register_blueprint(wa_server_bp)                     # ← BARU
+    app.register_blueprint(chatbot_bp)
+    app.register_blueprint(bukti_transfer_bp)                    # ← BARU
+    app.register_blueprint(wa_scheduler_bp)                      # ← BARU
+    app.register_blueprint(komplain_bp)                          # ← KOMPLAIN
+    app.register_blueprint(komplain_publik_bp)                   # ← KOMPLAIN
+
+    # Context processors
+    from utils.context_processors import register_context_processors
+    register_context_processors(app)                             # ← KOMPLAIN badge
+
+    # Route root → redirect ke dashboard atau login
+    @app.route("/")
+    def root():
+        from flask import session
+        if session.get("admin_id"):
+            return redirect(url_for("dashboard.index"))
+        return redirect(url_for("auth.login"))
+
+    # Template filters
+    app.jinja_env.filters['rupiah']       = rupiah
+    app.jinja_env.filters['nama_bulan']   = nama_bulan
+    app.jinja_env.filters['status_badge'] = status_badge
+
+    # ── Scheduler notifikasi WA ────────────────────────────────────────────
+    import os as _os
+    if not app.testing and _os.environ.get("WERKZEUG_RUN_MAIN") != "false":
+        try:
+            from utils.scheduler import start_scheduler
+            start_scheduler(app)
+        except Exception as e:
+            app.logger.warning(f"Scheduler tidak bisa distart: {e}")
+
+    # ── Auto-start WA server (Node.js) saat Flask start ───────────────────
+    if not app.testing and _os.environ.get("WERKZEUG_RUN_MAIN") != "false":
+        try:
+            from routes.wa_server_routes import _is_running, WA_SERVER_DIR, _wa_process
+            import subprocess, sys
+            if not _is_running():
+                server_js = _os.path.join(WA_SERVER_DIR, 'server.js')
+                if _os.path.isfile(server_js):
+                    import routes.wa_server_routes as _wa_mod
+                    _wa_mod._wa_process = subprocess.Popen(
+                        ['node', 'server.js'],
+                        cwd=WA_SERVER_DIR,
+                        stdout=subprocess.PIPE,
+                        stderr=subprocess.STDOUT,
+                        text=True,
+                        creationflags=subprocess.CREATE_NO_WINDOW if sys.platform == 'win32' else 0,
+                    )
+                    app.logger.info("WA server auto-started saat Flask start.")
+                else:
+                    app.logger.warning(f"server.js tidak ditemukan di {WA_SERVER_DIR}")
+            else:
+                app.logger.info("WA server sudah berjalan, skip auto-start.")
+        except Exception as e:
+            app.logger.warning(f"WA server tidak bisa auto-start: {e}")
+
+    return app
+
+
+if __name__ == '__main__':
+    app = create_app()
+    app.run(debug=True, port=5000)

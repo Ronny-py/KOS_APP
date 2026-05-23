@@ -1,0 +1,142 @@
+{% extends 'base.html' %}
+{% block title %}Detail Komplain #{{ row.id }}{% endblock %}
+{% block page_title %}Detail Komplain{% endblock %}
+{% block breadcrumb %}
+  <a href="{{ url_for('komplain.index') }}" style="color:var(--muted)">Komplain</a> / #{{ row.id }}
+{% endblock %}
+
+{% block content %}
+{% set prio_color = {'urgent':'var(--red)','tinggi':'#f97316','normal':'var(--accent)','rendah':'var(--muted)'} %}
+{% set stat_badge = {'baru':'badge-info','diproses':'badge-warning','selesai':'badge-success','ditolak':'badge-secondary'} %}
+
+<div style="display:grid; grid-template-columns:1fr 340px; gap:20px; align-items:start;">
+
+  {# ── Kolom kiri: info komplain ── #}
+  <div>
+    <div class="card" style="margin-bottom:16px;">
+      <div style="display:flex; align-items:flex-start; justify-content:space-between; gap:12px; margin-bottom:20px;">
+        <div>
+          <div style="font-size:20px; font-weight:800; margin-bottom:6px;">{{ row.judul }}</div>
+          <div style="display:flex; gap:8px; flex-wrap:wrap; align-items:center;">
+            <span class="badge {{ stat_badge.get(row.status,'badge-secondary') }}" style="font-size:13px;">
+              {{ row.status | upper }}
+            </span>
+            <span style="font-size:12px; font-weight:700; color:{{ prio_color.get(row.prioritas,'var(--muted)') }};">
+              ● {{ row.prioritas | upper }}
+            </span>
+          </div>
+        </div>
+        <div style="text-align:right; font-size:12px; color:var(--muted);">
+          <div>#{{ row.id }}</div>
+          <div>{{ row.created_at[:10] }}</div>
+        </div>
+      </div>
+
+      <div class="form-grid" style="margin-bottom:16px;">
+        <div>
+          <div style="font-size:11px; font-weight:700; text-transform:uppercase; color:var(--muted); margin-bottom:4px;">Pelapor</div>
+          <div class="fw-bold">{{ row.nama_pelapor }}</div>
+          <div class="text-muted">Kamar <strong>{{ row.nomor_kamar }}</strong></div>
+          {% if row.no_hp %}
+          <a href="https://wa.me/62{{ row.no_hp | replace('0','',1) | replace('-','') | replace(' ','') }}"
+             target="_blank"
+             style="font-size:12px; color:#25D366; text-decoration:none;">📲 {{ row.no_hp }}</a>
+          {% endif %}
+        </div>
+        <div>
+          <div style="font-size:11px; font-weight:700; text-transform:uppercase; color:var(--muted); margin-bottom:4px;">Kategori</div>
+          {% for k, label in KATEGORI_LIST %}{% if k==row.kategori %}
+            <div style="font-size:14px;">{{ label }}</div>
+          {% endif %}{% endfor %}
+          {% if row.selesai_at %}
+          <div class="text-muted" style="margin-top:6px; font-size:12px;">
+            ✅ Selesai: {{ row.selesai_at[:10] }}
+          </div>
+          {% endif %}
+        </div>
+      </div>
+
+      <div style="border-top:1px solid var(--border); padding-top:16px;">
+        <div style="font-size:11px; font-weight:700; text-transform:uppercase; color:var(--muted); margin-bottom:8px;">Deskripsi Masalah</div>
+        <div style="font-size:14px; line-height:1.7; white-space:pre-wrap;">{{ row.deskripsi }}</div>
+      </div>
+
+      {% if row.foto_path %}
+      <div style="border-top:1px solid var(--border); padding-top:16px; margin-top:16px;">
+        <div style="font-size:11px; font-weight:700; text-transform:uppercase; color:var(--muted); margin-bottom:8px;">Foto / Bukti</div>
+        <img src="{{ url_for('komplain.serve_foto', filename=row.foto_path.split('/')[-1]) }}"
+             alt="Foto Komplain"
+             onclick="showImg(this.src)"
+             style="max-width:100%; max-height:300px; border-radius:10px; border:1px solid var(--border); cursor:zoom-in; object-fit:cover;">
+      </div>
+      {% endif %}
+
+      {% if row.catatan_admin %}
+      <div style="border-top:1px solid var(--border); padding-top:16px; margin-top:16px;
+                  background:rgba(79,110,247,.05); border-radius:10px; padding:14px;">
+        <div style="font-size:11px; font-weight:700; text-transform:uppercase; color:var(--accent); margin-bottom:6px;">
+          💬 Catatan Admin
+        </div>
+        <div style="font-size:14px; line-height:1.6; white-space:pre-wrap;">{{ row.catatan_admin }}</div>
+        <div class="text-muted" style="margin-top:6px; font-size:11px;">Diperbarui: {{ row.updated_at[:16] }}</div>
+      </div>
+      {% endif %}
+    </div>
+
+    <a href="{{ url_for('komplain.index') }}" class="btn btn-outline">← Kembali</a>
+  </div>
+
+  {# ── Kolom kanan: panel tanggapan & prioritas ── #}
+  <div>
+    {# Tanggapi #}
+    <div class="card" style="margin-bottom:16px;">
+      <div class="card-title" style="margin-bottom:16px;">💬 Beri Tanggapan</div>
+      <form method="POST" action="{{ url_for('komplain.tanggapi', kid=row.id) }}">
+        <div class="form-group">
+          <label>Status</label>
+          <select name="status">
+            {% for val, label in STATUS_LIST %}
+            <option value="{{ val }}" {{ 'selected' if val==row.status }}>{{ label }}</option>
+            {% endfor %}
+          </select>
+        </div>
+        <div class="form-group">
+          <label>Catatan untuk Penghuni</label>
+          <textarea name="catatan_admin" rows="4"
+                    placeholder="Contoh: Teknisi akan datang Senin 14.00. Mohon kamar dikosongkan dulu."
+                    style="resize:vertical;">{{ row.catatan_admin or '' }}</textarea>
+        </div>
+        <button type="submit" class="btn btn-primary" style="width:100%;">💾 Simpan Tanggapan</button>
+      </form>
+    </div>
+
+    {# Ubah Prioritas #}
+    <div class="card">
+      <div class="card-title" style="margin-bottom:12px;">🏷️ Prioritas</div>
+      <form method="POST" action="{{ url_for('komplain.set_prioritas', kid=row.id) }}">
+        <div style="display:grid; grid-template-columns:1fr 1fr; gap:8px;">
+          {% for val, label in PRIORITAS_LIST %}
+          <label style="display:flex; align-items:center; gap:8px; padding:8px 10px;
+                        border-radius:8px; cursor:pointer; border:1px solid var(--border);
+                        {{ 'background:rgba(79,110,247,.1); border-color:var(--accent);' if val==row.prioritas else '' }}">
+            <input type="radio" name="prioritas" value="{{ val }}"
+                   {{ 'checked' if val==row.prioritas }} style="width:auto;">
+            <span style="font-size:12px;">{{ label }}</span>
+          </label>
+          {% endfor %}
+        </div>
+        <button type="submit" class="btn btn-outline" style="width:100%; margin-top:10px;">Simpan Prioritas</button>
+      </form>
+
+      {# Hapus #}
+      <div style="border-top:1px solid var(--border); margin-top:16px; padding-top:12px;">
+        <form method="POST" action="{{ url_for('komplain.hapus', kid=row.id) }}"
+              onsubmit="return confirm('Hapus komplain ini permanen?')">
+          <button type="submit" class="btn btn-danger" style="width:100%;">🗑️ Hapus Komplain</button>
+        </form>
+      </div>
+    </div>
+  </div>
+
+</div>
+{% endblock %}

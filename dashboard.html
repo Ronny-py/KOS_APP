@@ -1,0 +1,96 @@
+{% extends 'base.html' %}
+{% block title %}Dashboard{% endblock %}
+{% block page_title %}Dashboard{% endblock %}
+{% block breadcrumb %}{{ bln | nama_bulan }}{% endblock %}
+
+{% block content %}
+<div class="stats-grid">
+  <div class="stat-card accent">
+    <div class="stat-label">👤 Penghuni Aktif</div>
+    <div class="stat-value">{{ total_penghuni }}</div>
+  </div>
+  <div class="stat-card green">
+    <div class="stat-label">💰 Pemasukan Bulan Ini</div>
+    <div class="stat-value" style="font-size:20px;">{{ pemasukan_bln }}</div>
+  </div>
+  <div class="stat-card green">
+    <div class="stat-label">✅ Lunas Bulan Ini</div>
+    <div class="stat-value">{{ lunas_bln }}</div>
+  </div>
+  <div class="stat-card red">
+    <div class="stat-label">⏳ Belum Bayar</div>
+    <div class="stat-value">{{ belum_bln }}</div>
+  </div>
+</div>
+
+<div class="flex gap-3" style="flex-wrap:wrap; align-items:flex-start;">
+
+  <!-- Pembayaran terbaru -->
+  <div class="card" style="flex:1; min-width:340px;">
+    <div class="card-header">
+      <div class="card-title">💳 Pembayaran Terbaru</div>
+      <a href="{{ url_for('pembayaran.index') }}" class="btn btn-outline btn-sm">Lihat Semua</a>
+    </div>
+    {% if pembayaran_terbaru %}
+    <div class="table-wrap">
+      <table>
+        <thead><tr><th>Penghuni</th><th>Bulan</th><th>Jumlah</th><th>Status</th></tr></thead>
+        <tbody>
+        {% for p in pembayaran_terbaru %}
+        <tr>
+          <td>
+            <div class="fw-bold">{{ p.nama }}</div>
+            <div class="text-muted">Kamar {{ p.nomor_kamar }}</div>
+          </td>
+          <td class="text-muted">{{ p.bulan | nama_bulan }}</td>
+          <td class="text-mono text-green">{{ p.jumlah_bayar | rupiah }}</td>
+          <td>
+            {% if p.verified %}
+              <span class="verified-chip yes">✓ Terverifikasi</span>
+            {% else %}
+              <span class="verified-chip no">⏳ Pending</span>
+            {% endif %}
+          </td>
+        </tr>
+        {% endfor %}
+        </tbody>
+      </table>
+    </div>
+    {% else %}
+    <div class="empty"><div class="empty-icon">💳</div>Belum ada pembayaran.</div>
+    {% endif %}
+  </div>
+
+  <!-- Tagihan belum lunas -->
+  <div class="card" style="flex:1; min-width:320px;">
+    <div class="card-header">
+      <div class="card-title">⚠️ Belum Lunas</div>
+      <a href="{{ url_for('tagihan.index') }}?status=belum" class="btn btn-outline btn-sm">Lihat Semua</a>
+    </div>
+    {% if tagihan_belum %}
+    <div class="table-wrap">
+      <table>
+        <thead><tr><th>Penghuni</th><th>Bulan</th><th>Tagihan</th><th>Status</th></tr></thead>
+        <tbody>
+        {% for t in tagihan_belum %}
+        {% set badge = t.status | status_badge %}
+        <tr>
+          <td>
+            <div class="fw-bold">{{ t.nama }}</div>
+            <div class="text-muted">Kamar {{ t.nomor_kamar }}</div>
+          </td>
+          <td class="text-muted">{{ t.bulan | nama_bulan }}</td>
+          <td class="text-mono">{{ t.jumlah | rupiah }}</td>
+          <td><span class="badge badge-{{ badge.color }}">{{ badge.label }}</span></td>
+        </tr>
+        {% endfor %}
+        </tbody>
+      </table>
+    </div>
+    {% else %}
+    <div class="empty"><div class="empty-icon">🎉</div>Semua tagihan bulan ini lunas!</div>
+    {% endif %}
+  </div>
+
+</div>
+{% endblock %}

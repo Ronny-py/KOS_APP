@@ -1,0 +1,137 @@
+{% extends 'base.html' %}
+{% block title %}{{ 'Tambah' if mode == 'tambah' else 'Edit' }} Inventaris{% endblock %}
+{% block page_title %}📦 {{ 'Tambah' if mode == 'tambah' else 'Edit' }} Barang{% endblock %}
+{% block breadcrumb %}
+  <a href="{{ url_for('inventaris.index') }}" style="color:var(--muted); text-decoration:none;">Inventaris</a>
+  → {{ 'Tambah Baru' if mode == 'tambah' else 'Edit: ' ~ (data.nama_barang or '') }}
+{% endblock %}
+
+{% block content %}
+<div style="max-width: 600px;">
+  <div class="card">
+
+    <form method="POST">
+
+      <!-- Nama Barang -->
+      <div class="form-group">
+        <label class="form-label">Nama Barang <span style="color:var(--red);">*</span></label>
+        <input type="text" name="nama_barang"
+               value="{{ data.nama_barang or '' }}"
+               placeholder="cth: Kipas angin, Kasur single, Kunci kamar…"
+               required autofocus>
+      </div>
+
+      <!-- Jumlah & Kategori dalam satu baris -->
+      <div style="display:grid; grid-template-columns:1fr 1fr; gap:16px;">
+        <div class="form-group">
+          <label class="form-label">Jumlah <span style="color:var(--red);">*</span></label>
+          <input type="number" name="jumlah" min="1"
+                 value="{{ data.jumlah or 1 }}"
+                 placeholder="1" required>
+        </div>
+        <div class="form-group">
+          <label class="form-label">Kategori</label>
+          <select name="kategori">
+            {% for k, label in kategori %}
+              <option value="{{ k }}"
+                {% if (data.kategori or 'lainnya') == k %}selected{% endif %}>
+                {{ label }}
+              </option>
+            {% endfor %}
+          </select>
+        </div>
+      </div>
+
+      <!-- Kondisi & Lokasi dalam satu baris -->
+      <div style="display:grid; grid-template-columns:1fr 1fr; gap:16px;">
+        <div class="form-group">
+          <label class="form-label">Kondisi</label>
+          <select name="kondisi" id="sel-kondisi">
+            {% for k, label in kondisi %}
+              <option value="{{ k }}"
+                {% if (data.kondisi or 'baik') == k %}selected{% endif %}>
+                {{ label }}
+              </option>
+            {% endfor %}
+          </select>
+          <!-- Indikator warna kondisi -->
+          <div id="kondisi-hint" style="margin-top:6px; font-size:12px;"></div>
+        </div>
+        <div class="form-group">
+          <label class="form-label">Lokasi</label>
+          <input type="text" name="lokasi"
+                 value="{{ data.lokasi or '' }}"
+                 placeholder="cth: Kamar 3, Dapur umum…">
+        </div>
+      </div>
+
+      <!-- Keterangan -->
+      <div class="form-group">
+        <label class="form-label">Keterangan</label>
+        <textarea name="keterangan" rows="3"
+                  placeholder="Catatan tambahan, nomor seri, merk, kondisi detail…"
+                  style="width:100%; background:var(--surface2); border:1px solid var(--border);
+                         border-radius:8px; padding:10px 14px; color:var(--text);
+                         font-family:var(--font); font-size:14px; resize:vertical; outline:none;">{{ data.keterangan or '' }}</textarea>
+      </div>
+
+      <!-- Tanggal pencatatan -->
+      <div class="form-group" style="max-width:220px;">
+        <label class="form-label">Tanggal Pencatatan</label>
+        <input type="date" name="tanggal"
+               value="{{ data.tanggal or today }}">
+      </div>
+
+      <!-- Tombol aksi -->
+      <div style="display:flex; gap:10px; margin-top:8px;">
+        <button type="submit" class="btn btn-primary">
+          {{ '💾 Simpan Barang' if mode == 'tambah' else '✏️ Perbarui Data' }}
+        </button>
+        <a href="{{ url_for('inventaris.index') }}" class="btn btn-outline">Batal</a>
+      </div>
+
+    </form>
+  </div>
+</div>
+
+<style>
+.form-group { margin-bottom: 18px; }
+.form-label {
+  display: block; font-size: 13px; font-weight: 600;
+  color: var(--muted); margin-bottom: 6px;
+}
+input[type=text], input[type=number], input[type=date],
+select, textarea {
+  width: 100%;
+  background: var(--surface2);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  padding: 10px 14px;
+  color: var(--text);
+  font-family: var(--font);
+  font-size: 14px;
+  outline: none;
+  transition: border-color .15s;
+}
+input:focus, select:focus, textarea:focus {
+  border-color: var(--accent);
+  box-shadow: 0 0 0 3px rgba(79,110,247,.12);
+}
+</style>
+
+<script>
+const sel = document.getElementById('sel-kondisi');
+const hint = document.getElementById('kondisi-hint');
+const hints = {
+  baik:   { color: 'var(--green)',  text: '✅ Barang dalam kondisi normal dan berfungsi baik.' },
+  sedang: { color: 'var(--yellow)', text: '⚠️ Barang masih bisa dipakai tapi perlu perhatian.' },
+  rusak:  { color: 'var(--red)',    text: '❌ Barang rusak dan perlu diperbaiki atau diganti.' },
+};
+function updateHint() {
+  const h = hints[sel.value];
+  if (h) { hint.style.color = h.color; hint.textContent = h.text; }
+}
+sel && sel.addEventListener('change', updateHint);
+updateHint();
+</script>
+{% endblock %}

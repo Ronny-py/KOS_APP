@@ -1,0 +1,313 @@
+{% extends 'base.html' %}
+{% block title %}Laporan Komplain {{ bulan_nama }} {{ tahun }}{% endblock %}
+{% block page_title %}Laporan Komplain{% endblock %}
+{% block breadcrumb %}
+  <a href="{{ url_for('komplain.index') }}" style="color:var(--muted)">Komplain</a> / Laporan
+{% endblock %}
+{% block topbar_actions %}
+  <button onclick="window.print()" class="btn btn-outline">🖨️ Cetak</button>
+{% endblock %}
+
+{% block content %}
+
+{# ── Filter bulan/tahun ── #}
+<div class="card" style="padding:14px 18px; margin-bottom:20px;">
+  <form method="GET" style="display:flex; gap:10px; align-items:center; flex-wrap:wrap;">
+    <select name="bulan" style="width:auto; min-width:130px;">
+      {% for i in range(1,13) %}
+      <option value="{{ i }}" {{ 'selected' if i==bulan }}>{{ BULAN_NAMA[i] }}</option>
+      {% endfor %}
+    </select>
+    <select name="tahun" style="width:auto; min-width:100px;">
+      {% for y in range(2023, 2030) %}
+      <option value="{{ y }}" {{ 'selected' if y==tahun }}>{{ y }}</option>
+      {% endfor %}
+    </select>
+    <button type="submit" class="btn btn-primary" style="padding:8px 16px;">Tampilkan</button>
+  </form>
+</div>
+
+{# ── Header laporan ── #}
+<div class="card" style="margin-bottom:20px; padding:32px; background:linear-gradient(135deg,rgba(79,110,247,.12),rgba(124,58,237,.08)); border-color:rgba(79,110,247,.25); text-align:center;">
+  <div style="font-size:36px; margin-bottom:10px;">📋</div>
+  <div style="font-size:22px; font-weight:800; letter-spacing:-.3px;">Laporan Komplain & Perbaikan</div>
+  <div style="font-size:15px; color:var(--muted); margin-top:6px; font-weight:600;">{{ bulan_nama }} {{ tahun }}</div>
+  <div style="display:flex; justify-content:center; gap:6px; margin-top:14px; flex-wrap:wrap;">
+    <span style="background:rgba(79,110,247,.15); color:var(--accent); border-radius:20px; padding:4px 14px; font-size:12px; font-weight:700;">
+      {{ stats.total or 0 }} Total
+    </span>
+    <span style="background:rgba(34,197,94,.12); color:var(--green); border-radius:20px; padding:4px 14px; font-size:12px; font-weight:700;">
+      {{ stats.selesai or 0 }} Selesai
+    </span>
+    {% if avg_hari %}
+    <span style="background:rgba(234,179,8,.12); color:var(--yellow); border-radius:20px; padding:4px 14px; font-size:12px; font-weight:700;">
+      ⏱ Avg {{ avg_hari }} hari
+    </span>
+    {% endif %}
+  </div>
+</div>
+
+{# ── Stats grid ── #}
+<div class="stats-grid" style="margin-bottom:20px;">
+  <div class="stat-card accent">
+    <div class="stat-label">Total Komplain</div>
+    <div class="stat-value">{{ stats.total or 0 }}</div>
+    <div style="font-size:11px; color:var(--muted); margin-top:6px;">Bulan ini</div>
+  </div>
+  <div class="stat-card" style="border-color:rgba(79,110,247,.2);">
+    <div class="stat-label">Masuk / Diproses</div>
+    <div class="stat-value" style="color:var(--accent);">{{ (stats.baru or 0) + (stats.diproses or 0) }}</div>
+    <div style="font-size:11px; color:var(--muted); margin-top:6px;">Baru: {{ stats.baru or 0 }} · Proses: {{ stats.diproses or 0 }}</div>
+  </div>
+  <div class="stat-card green">
+    <div class="stat-label">Selesai</div>
+    <div class="stat-value">{{ stats.selesai or 0 }}</div>
+    {% set total_nn = stats.total if stats.total else 1 %}
+    <div style="font-size:11px; color:var(--muted); margin-top:6px;">
+      {{ ((stats.selesai or 0) / total_nn * 100) | round(0) }}% resolution rate
+    </div>
+  </div>
+  <div class="stat-card red">
+    <div class="stat-label">Urgent</div>
+    <div class="stat-value">{{ stats.urgent or 0 }}</div>
+    <div style="font-size:11px; color:var(--muted); margin-top:6px;">Prioritas tinggi</div>
+  </div>
+</div>
+
+<div style="display:grid; grid-template-columns:1fr 1fr; gap:20px; margin-bottom:20px;">
+
+  {# ── Status breakdown + progress bars ── #}
+  <div class="card">
+    <div class="card-title" style="margin-bottom:20px;">📊 Breakdown Status</div>
+
+    {% set total_stat = stats.total or 1 %}
+    {% for val, label in STATUS_LIST %}
+      {% set cnt = stats[val] or 0 %}
+      {% set pct = (cnt / total_stat * 100) | round(1) %}
+      {% if val == 'selesai' %}{% set bar_color = 'var(--green)' %}{% set bg_color = 'rgba(34,197,94,.12)' %}
+      {% elif val == 'diproses' %}{% set bar_color = 'var(--yellow)' %}{% set bg_color = 'rgba(234,179,8,.12)' %}
+      {% elif val == 'baru' %}{% set bar_color = 'var(--accent)' %}{% set bg_color = 'rgba(79,110,247,.12)' %}
+      {% else %}{% set bar_color = 'var(--muted)' %}{% set bg_color = 'var(--surface2)' %}{% endif %}
+      <div style="margin-bottom:16px;">
+        <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:6px;">
+          <div style="display:flex; align-items:center; gap:8px;">
+            <div style="width:10px; height:10px; border-radius:50%; background:{{ bar_color }};"></div>
+            <span style="font-size:13px; font-weight:600;">{{ label }}</span>
+          </div>
+          <div style="display:flex; align-items:center; gap:10px;">
+            <span style="font-size:11px; color:var(--muted);">{{ pct }}%</span>
+            <span style="font-size:15px; font-weight:800; font-family:var(--mono); color:{{ bar_color }};">{{ cnt }}</span>
+          </div>
+        </div>
+        <div style="background:var(--surface2); border-radius:6px; height:8px; overflow:hidden;">
+          <div style="height:100%; border-radius:6px; width:{{ pct }}%; background:{{ bar_color }}; transition:width .5s;"></div>
+        </div>
+      </div>
+    {% endfor %}
+
+    {% if stats.ditolak is defined and stats.ditolak %}
+    <div style="border-top:1px solid var(--border); padding-top:12px; margin-top:4px; font-size:12px; color:var(--muted);">
+      ❌ Ditolak: <strong style="color:var(--text);">{{ stats.ditolak }}</strong>
+    </div>
+    {% endif %}
+
+    {% if avg_hari %}
+    <div style="border-top:1px solid var(--border); padding-top:16px; margin-top:8px;
+                background:rgba(34,197,94,.05); border-radius:10px; padding:14px; margin-top:12px;">
+      <div style="font-size:11px; color:var(--muted); font-weight:700; text-transform:uppercase; margin-bottom:4px;">
+        ⏱️ Rata-rata Penyelesaian
+      </div>
+      <div style="font-size:28px; font-weight:800; color:var(--green); font-family:var(--mono);">
+        {{ avg_hari }} <span style="font-size:14px; font-weight:600;">hari</span>
+      </div>
+    </div>
+    {% endif %}
+  </div>
+
+  {# ── Per kategori ── #}
+  <div class="card">
+    <div class="card-title" style="margin-bottom:20px;">🏷️ Per Kategori</div>
+    {% if per_kat %}
+      {% set max_kat = per_kat[0].jumlah %}
+      {% for r in per_kat %}
+        {% set label = namespace(val='') %}
+        {% for k, lbl in KATEGORI_LIST %}{% if k==r.kategori %}{% set label.val=lbl %}{% endif %}{% endfor %}
+
+        {% set pct_kat = (r.jumlah / max_kat * 100) | round %}
+        <div style="margin-bottom:14px; padding:10px 12px; background:var(--surface2); border-radius:10px;">
+          <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:7px;">
+            <span style="font-size:13px; font-weight:600;">{{ label.val or r.kategori }}</span>
+            <span style="font-size:15px; font-weight:800; font-family:var(--mono); color:var(--accent);">{{ r.jumlah }}</span>
+          </div>
+          <div style="background:var(--bg); border-radius:4px; height:6px; overflow:hidden;">
+            <div style="height:100%; border-radius:4px; background:linear-gradient(90deg,var(--accent),var(--accent2));
+                        width:{{ pct_kat }}%;"></div>
+          </div>
+        </div>
+      {% endfor %}
+    {% else %}
+      <div class="empty" style="padding:32px;">
+        <div class="empty-icon">📂</div>
+        <div>Tidak ada data kategori</div>
+      </div>
+    {% endif %}
+  </div>
+</div>
+
+{# ── Tabel prioritas ringkas ── #}
+{% set urgent_list = daftar | selectattr('prioritas','equalto','urgent') | list %}
+{% if urgent_list %}
+<div class="card" style="margin-bottom:20px; border-color:rgba(239,68,68,.25); background:rgba(239,68,68,.04);">
+  <div class="card-header">
+    <div class="card-title" style="color:var(--red);">🚨 Komplain Urgent ({{ urgent_list | length }})</div>
+  </div>
+  <div class="table-wrap">
+    <table>
+      <thead>
+        <tr>
+          <th>#</th><th>Kamar</th><th>Pelapor</th><th>Judul</th><th>Status</th><th>Tanggal</th>
+        </tr>
+      </thead>
+      <tbody>
+      {% set stat_badge = {'baru':'badge-info','diproses':'badge-warning','selesai':'badge-success','ditolak':'badge-secondary'} %}
+      {% for r in urgent_list %}
+      <tr>
+        <td class="text-muted" style="font-size:11px;">#{{ r.id }}</td>
+        <td><span class="badge badge-info text-mono">{{ r.nomor_kamar }}</span></td>
+        <td class="fw-bold">{{ r.nama_pelapor }}</td>
+        <td style="font-size:13px;">{{ r.judul }}</td>
+        <td><span class="badge {{ stat_badge.get(r.status,'badge-secondary') }}" style="font-size:11px;">{{ r.status }}</span></td>
+        <td class="text-muted" style="font-size:12px;">{{ r.created_at[:10] }}</td>
+      </tr>
+      {% endfor %}
+      </tbody>
+    </table>
+  </div>
+</div>
+{% endif %}
+
+{# ── Tabel lengkap ── #}
+<div class="card">
+  <div class="card-header">
+    <div class="card-title">📄 Rincian Lengkap — {{ bulan_nama }} {{ tahun }}</div>
+    <div class="text-muted" style="font-size:13px;">{{ daftar | length }} komplain</div>
+  </div>
+
+  {# mini filter tab di dalam card #}
+  {% if daftar %}
+  <div style="display:flex; gap:6px; flex-wrap:wrap; margin-bottom:16px;">
+    {% set tabs_detail = [('semua','Semua'), ('baru','Baru'), ('diproses','Diproses'), ('selesai','Selesai'), ('ditolak','Ditolak')] %}
+    {% for val, lbl in tabs_detail %}
+    <button onclick="filterTabel('{{ val }}')"
+            id="tab-{{ val }}"
+            style="padding:4px 12px; border-radius:16px; font-size:12px; font-weight:600; cursor:pointer;
+                   border:1px solid var(--border); background:var(--surface2); color:var(--muted);
+                   transition:all .15s;"
+            class="tab-btn">
+      {{ lbl }}
+      {% if val == 'semua' %}
+        ({{ daftar | length }})
+      {% else %}
+        ({{ daftar | selectattr('status','equalto',val) | list | length }})
+      {% endif %}
+    </button>
+    {% endfor %}
+  </div>
+  {% endif %}
+
+  <div class="table-wrap">
+    {% if daftar %}
+    <table id="tabelDetail">
+      <thead>
+        <tr>
+          <th>#</th><th>Tanggal</th><th>Kamar</th><th>Pelapor</th>
+          <th>Kategori</th><th>Judul</th><th>Prioritas</th><th>Status</th>
+          <th>Selesai</th><th>Catatan Admin</th>
+        </tr>
+      </thead>
+      <tbody>
+      {% set stat_badge = {'baru':'badge-info','diproses':'badge-warning','selesai':'badge-success','ditolak':'badge-secondary'} %}
+      {% set prio_color = {'urgent':'var(--red)','tinggi':'#f97316','normal':'var(--accent)','rendah':'var(--muted)'} %}
+      {% for r in daftar %}
+      <tr data-status="{{ r.status }}">
+        <td class="text-muted" style="font-size:11px;">
+          <a href="{{ url_for('komplain.detail', kid=r.id) }}" style="color:var(--muted); text-decoration:none;">#{{ r.id }}</a>
+        </td>
+        <td style="font-size:12px; white-space:nowrap;">{{ r.created_at[:10] }}</td>
+        <td><span class="badge badge-info text-mono">{{ r.nomor_kamar }}</span></td>
+        <td class="fw-bold" style="white-space:nowrap;">{{ r.nama_pelapor }}</td>
+        <td style="font-size:12px;">
+          {% for k, lbl in KATEGORI_LIST %}{% if k==r.kategori %}<span>{{ lbl }}</span>{% endif %}{% endfor %}
+        </td>
+        <td style="max-width:180px; overflow:hidden; text-overflow:ellipsis; white-space:nowrap;
+                   font-size:13px;" title="{{ r.judul }}">{{ r.judul }}</td>
+        <td>
+          <span style="font-size:11px; font-weight:800;
+                       color:{{ prio_color.get(r.prioritas,'var(--muted)') }};">
+            {% if r.prioritas == 'urgent' %}🔴{% elif r.prioritas == 'tinggi' %}🟠{% elif r.prioritas == 'normal' %}🔵{% else %}⚫{% endif %}
+            {{ r.prioritas | upper }}
+          </span>
+        </td>
+        <td>
+          <span class="badge {{ stat_badge.get(r.status,'badge-secondary') }}" style="font-size:11px;">
+            {{ r.status }}
+          </span>
+        </td>
+        <td style="font-size:11px; color:var(--muted); white-space:nowrap;">
+          {{ r.selesai_at[:10] if r.selesai_at else '—' }}
+        </td>
+        <td style="font-size:12px; max-width:200px; color:var(--muted);">
+          {{ r.catatan_admin or '—' }}
+        </td>
+      </tr>
+      {% endfor %}
+      </tbody>
+    </table>
+    {% else %}
+    <div class="empty">
+      <div class="empty-icon">📋</div>
+      <div>Tidak ada komplain pada {{ bulan_nama }} {{ tahun }}</div>
+    </div>
+    {% endif %}
+  </div>
+</div>
+
+<script>
+function filterTabel(status) {
+  // Update tombol aktif
+  document.querySelectorAll('.tab-btn').forEach(btn => {
+    btn.style.background    = 'var(--surface2)';
+    btn.style.color         = 'var(--muted)';
+    btn.style.borderColor   = 'var(--border)';
+  });
+  const active = document.getElementById('tab-' + status);
+  if (active) {
+    active.style.background  = 'var(--accent)';
+    active.style.color       = '#fff';
+    active.style.borderColor = 'var(--accent)';
+  }
+
+  // Filter baris tabel
+  document.querySelectorAll('#tabelDetail tbody tr').forEach(tr => {
+    tr.style.display = (status === 'semua' || tr.dataset.status === status) ? '' : 'none';
+  });
+}
+
+// Default: tab semua aktif
+filterTabel('semua');
+</script>
+
+<style>
+@media print {
+  .sidebar, .topbar, form, button, .tab-btn, script { display: none !important; }
+  .main { margin-left: 0 !important; }
+  .card { border: 1px solid #ccc !important; background: #fff !important; color: #000 !important;
+          break-inside: avoid; }
+  .stat-value { color: #000 !important; }
+  .badge { border: 1px solid #999; }
+  a { color: inherit !important; text-decoration: none; }
+  #tabelDetail tbody tr { display: table-row !important; }
+}
+</style>
+
+{% endblock %}

@@ -1,0 +1,131 @@
+{% extends "base.html" %}
+{% block title %}Laporan Tunggakan{% endblock %}
+
+{% block content %}
+<div class="d-flex justify-content-between align-items-center mb-4">
+  <h4 class="mb-0"><i class="bi bi-exclamation-triangle-fill text-danger"></i> Laporan Tunggakan</h4>
+  <div class="d-flex gap-2">
+    <a href="{{ url_for('laporan.export_tunggakan_csv') }}" class="btn btn-success btn-sm">
+      <i class="bi bi-filetype-csv"></i> Export CSV
+    </a>
+    <a href="{{ url_for('laporan.export_tunggakan_pdf') }}" class="btn btn-danger btn-sm">
+      <i class="bi bi-filetype-pdf"></i> Export PDF
+    </a>
+  </div>
+</div>
+
+{# ── Summary cards ──────────────────────────────────────────────────────── #}
+<div class="row g-3 mb-4">
+  <div class="col-6 col-md-4">
+    <div class="card text-bg-danger shadow-sm h-100">
+      <div class="card-body text-center">
+        <div class="fs-4 fw-bold">{{ total_penghuni }}</div>
+        <small>Penghuni Menunggak</small>
+      </div>
+    </div>
+  </div>
+  <div class="col-6 col-md-4">
+    <div class="card text-bg-warning shadow-sm h-100">
+      <div class="card-body text-center">
+        <div class="fs-4 fw-bold">{{ rows|length }}</div>
+        <small>Total Bulan Tunggakan</small>
+      </div>
+    </div>
+  </div>
+  <div class="col-12 col-md-4">
+    <div class="card text-bg-dark shadow-sm h-100">
+      <div class="card-body text-center">
+        <div class="fs-5 fw-bold">{{ grand_total | rupiah }}</div>
+        <small>Grand Total Tunggakan</small>
+      </div>
+    </div>
+  </div>
+</div>
+
+{# ── Rekap per penghuni ─────────────────────────────────────────────────── #}
+<div class="card shadow-sm mb-4">
+  <div class="card-header fw-semibold">
+    <i class="bi bi-person-x"></i> Rekap per Penghuni
+  </div>
+  <div class="table-responsive">
+    <table class="table table-hover align-middle mb-0">
+      <thead class="table-dark">
+        <tr>
+          <th>#</th>
+          <th>Kamar</th>
+          <th>Nama</th>
+          <th>Telepon</th>
+          <th class="text-center">Bulan Menunggak</th>
+          <th class="text-end">Total Tunggakan</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for r in rekap_list %}
+        <tr>
+          <td>{{ loop.index }}</td>
+          <td><span class="badge bg-secondary">{{ r.nomor_kamar }}</span></td>
+          <td class="fw-semibold">{{ r.nama }}</td>
+          <td>
+            {% if r.telepon %}
+              <a href="https://wa.me/62{{ r.telepon | replace('0','',1) }}" target="_blank"
+                 class="btn btn-sm btn-outline-success py-0">
+                <i class="bi bi-whatsapp"></i> {{ r.telepon }}
+              </a>
+            {% else %}–{% endif %}
+          </td>
+          <td class="text-center">
+            <span class="badge bg-warning text-dark">{{ r.jumlah_bulan }} bulan</span>
+          </td>
+          <td class="text-end text-danger fw-bold">{{ r.total_tunggakan | rupiah }}</td>
+        </tr>
+        {% else %}
+        <tr><td colspan="6" class="text-center text-muted py-4">Tidak ada tunggakan 🎉</td></tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+</div>
+
+{# ── Detail per tagihan ─────────────────────────────────────────────────── #}
+<div class="card shadow-sm">
+  <div class="card-header fw-semibold">
+    <i class="bi bi-list-ul"></i> Detail Tunggakan per Tagihan
+  </div>
+  <div class="table-responsive">
+    <table class="table table-hover table-striped align-middle mb-0">
+      <thead class="table-dark">
+        <tr>
+          <th>#</th>
+          <th>Kamar</th>
+          <th>Nama</th>
+          <th class="text-center">Periode</th>
+          <th class="text-end">Tagihan</th>
+          <th class="text-end">Terbayar</th>
+          <th class="text-end">Sisa</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for r in rows %}
+        <tr>
+          <td>{{ loop.index }}</td>
+          <td><span class="badge bg-secondary">{{ r.nomor_kamar }}</span></td>
+          <td>{{ r.nama }}</td>
+          <td class="text-center">{{ r.bulan | nama_bulan }} {{ r.tahun }}</td>
+          <td class="text-end">{{ r.jumlah_tagihan | rupiah }}</td>
+          <td class="text-end text-success">{{ r.total_bayar | rupiah }}</td>
+          <td class="text-end text-danger fw-semibold">{{ r.sisa_tunggakan | rupiah }}</td>
+        </tr>
+        {% else %}
+        <tr><td colspan="7" class="text-center text-muted py-4">Tidak ada data.</td></tr>
+        {% endfor %}
+      </tbody>
+      <tfoot class="table-light fw-bold">
+        <tr>
+          <td colspan="6" class="text-end">Grand Total</td>
+          <td class="text-end text-danger">{{ grand_total | rupiah }}</td>
+        </tr>
+      </tfoot>
+    </table>
+  </div>
+</div>
+{% endblock %}

@@ -1,0 +1,216 @@
+{% extends 'base.html' %}
+{% block title %}Laporan Inventaris{% endblock %}
+{% block page_title %}Laporan Inventaris Barang{% endblock %}
+{% block breadcrumb %}Laporan / Inventaris{% endblock %}
+
+{% block topbar_actions %}
+  <button onclick="window.print()" class="btn btn-outline">🖨️ Cetak</button>
+  <a href="{{ url_for('laporan_inventaris.export_excel', kategori=filter_kat, kondisi=filter_kond, lokasi=filter_lokasi) }}"
+     class="btn btn-success">📊 Export Excel</a>
+  <a href="{{ url_for('laporan_inventaris.export_pdf', kategori=filter_kat, kondisi=filter_kond, lokasi=filter_lokasi) }}"
+     class="btn btn-danger">📄 Export PDF</a>
+{% endblock %}
+
+{% block content %}
+
+{# ── Kartu Statistik ── #}
+<div style="display:grid; grid-template-columns:repeat(auto-fit, minmax(140px,1fr)); gap:12px; margin-bottom:20px;">
+  <div class="card" style="text-align:center; padding:16px;">
+    <div style="font-size:28px; font-weight:700; color:var(--accent);">{{ stats.total_jenis or 0 }}</div>
+    <div style="font-size:12px; color:var(--muted); margin-top:4px;">Jenis Barang</div>
+  </div>
+  <div class="card" style="text-align:center; padding:16px;">
+    <div style="font-size:28px; font-weight:700; color:var(--accent);">{{ stats.total_unit or 0 }}</div>
+    <div style="font-size:12px; color:var(--muted); margin-top:4px;">Total Unit</div>
+  </div>
+  <div class="card" style="text-align:center; padding:16px;">
+    <div style="font-size:28px; font-weight:700; color:#22c55e;">{{ stats.unit_baik or 0 }}</div>
+    <div style="font-size:12px; color:var(--muted); margin-top:4px;">Unit Baik</div>
+  </div>
+  <div class="card" style="text-align:center; padding:16px;">
+    <div style="font-size:28px; font-weight:700; color:#f59e0b;">{{ stats.unit_servis or 0 }}</div>
+    <div style="font-size:12px; color:var(--muted); margin-top:4px;">Perlu Servis</div>
+  </div>
+  <div class="card" style="text-align:center; padding:16px;">
+    <div style="font-size:28px; font-weight:700; color:#ef4444;">{{ stats.unit_rusak or 0 }}</div>
+    <div style="font-size:12px; color:var(--muted); margin-top:4px;">Rusak</div>
+  </div>
+  <div class="card" style="text-align:center; padding:16px;">
+    <div style="font-size:28px; font-weight:700; color:#8b5cf6;">{{ stats.unit_hilang or 0 }}</div>
+    <div style="font-size:12px; color:var(--muted); margin-top:4px;">Hilang</div>
+  </div>
+</div>
+
+{# ── Filter ── #}
+<div class="card" style="margin-bottom:16px;">
+  <form method="get" style="display:flex; gap:12px; align-items:flex-end; flex-wrap:wrap;">
+    <div class="form-group" style="margin:0;">
+      <label>Kategori</label>
+      <select name="kategori">
+        <option value="">Semua Kategori</option>
+        {% for k in kat_list %}
+          <option value="{{ k }}" {% if k == filter_kat %}selected{% endif %}>
+            {{ kategori_map.get(k, k) }}
+          </option>
+        {% endfor %}
+      </select>
+    </div>
+    <div class="form-group" style="margin:0;">
+      <label>Kondisi</label>
+      <select name="kondisi">
+        <option value="">Semua Kondisi</option>
+        {% for k in kond_list %}
+          <option value="{{ k }}" {% if k == filter_kond %}selected{% endif %}>
+            {{ kondisi_map.get(k, k) }}
+          </option>
+        {% endfor %}
+      </select>
+    </div>
+    <div class="form-group" style="margin:0;">
+      <label>Lokasi</label>
+      <input type="text" name="lokasi" value="{{ filter_lokasi }}"
+             placeholder="Cari lokasi..."
+             style="padding:6px 10px; border-radius:6px; border:1px solid var(--border); background:var(--surface); color:var(--text); width:160px;">
+    </div>
+    <button type="submit" class="btn btn-primary">🔍 Filter</button>
+    <a href="{{ url_for('laporan_inventaris.index') }}" class="btn btn-outline">Reset</a>
+  </form>
+</div>
+
+{# ── Layout dua kolom ── #}
+<div class="flex gap-3" style="flex-wrap:wrap; align-items:flex-start;">
+
+  {# Tabel utama #}
+  <div class="card" style="flex:1; min-width:340px;">
+    <div class="card-header">
+      <div class="card-title">📋 Daftar Inventaris</div>
+      <div style="font-size:13px; color:var(--muted);">
+        {{ daftar | length }} jenis &nbsp;·&nbsp;
+        <span class="fw-bold">{{ daftar | sum(attribute='jumlah') }} unit</span>
+      </div>
+    </div>
+    <div class="table-wrap">
+      {% if daftar %}
+      <table>
+        <thead>
+          <tr>
+            <th>No</th>
+            <th>Nama Barang</th>
+            <th>Kategori</th>
+            <th style="text-align:center;">Jml</th>
+            <th>Kondisi</th>
+            <th>Lokasi</th>
+            <th>Keterangan</th>
+            <th>Tanggal</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for p in daftar %}
+          <tr>
+            <td class="text-muted" style="font-size:12px;">{{ loop.index }}</td>
+            <td class="fw-bold">{{ p.nama_barang }}</td>
+            <td>
+              <span class="badge badge-secondary" style="font-size:11px; white-space:nowrap;">
+                {{ kategori_map.get(p.kategori, p.kategori) }}
+              </span>
+            </td>
+            <td style="text-align:center; font-weight:700; font-size:15px;">{{ p.jumlah }}</td>
+            <td>
+              {% set kond = p.kondisi %}
+              {% if kond == 'baik' %}
+                <span class="badge" style="background:color-mix(in srgb,#22c55e 15%,transparent);color:#22c55e;font-size:11px;">✅ Baik</span>
+              {% elif kond == 'rusak' %}
+                <span class="badge" style="background:color-mix(in srgb,#ef4444 15%,transparent);color:#ef4444;font-size:11px;">❌ Rusak</span>
+              {% elif kond == 'perlu_servis' %}
+                <span class="badge" style="background:color-mix(in srgb,#f59e0b 15%,transparent);color:#f59e0b;font-size:11px;">⚠️ Perlu Servis</span>
+              {% elif kond == 'hilang' %}
+                <span class="badge" style="background:color-mix(in srgb,#8b5cf6 15%,transparent);color:#8b5cf6;font-size:11px;">🔍 Hilang</span>
+              {% else %}
+                <span class="badge badge-secondary" style="font-size:11px;">{{ kond }}</span>
+              {% endif %}
+            </td>
+            <td class="text-muted" style="font-size:12px;">{{ p.lokasi or '—' }}</td>
+            <td class="text-muted" style="font-size:12px; max-width:180px;">{{ p.keterangan or '—' }}</td>
+            <td class="text-muted" style="font-size:12px; white-space:nowrap;">{{ p.tanggal or '—' }}</td>
+          </tr>
+          {% endfor %}
+        </tbody>
+        <tfoot>
+          <tr style="font-weight:600; border-top:2px solid var(--border);">
+            <td colspan="3">Total</td>
+            <td style="text-align:center;">{{ daftar | sum(attribute='jumlah') }}</td>
+            <td colspan="4"></td>
+          </tr>
+        </tfoot>
+      </table>
+      {% else %}
+      <div class="empty">
+        <div class="empty-icon">📦</div>
+        <div>Belum ada data inventaris.</div>
+      </div>
+      {% endif %}
+    </div>
+  </div>
+
+  {# Sidebar rekap #}
+  <div style="min-width:220px; flex:0 0 220px; display:flex; flex-direction:column; gap:12px;">
+
+    <div class="card">
+      <div class="card-title mb-3">📂 Per Kategori</div>
+      {% if rekap_kat %}
+        {% set grand = rekap_kat | sum(attribute='total') %}
+        {% for r in rekap_kat %}
+        <div style="margin-bottom:10px;">
+          <div style="display:flex; justify-content:space-between; font-size:13px; margin-bottom:4px;">
+            <span>{{ kategori_map.get(r.kategori, r.kategori) }}</span>
+            <span class="fw-bold">{{ r.total }} unit</span>
+          </div>
+          {% if grand > 0 %}
+          {% set pct = (r.total / grand * 100) | round(0) | int %}
+          <div style="height:5px; background:var(--border); border-radius:99px; overflow:hidden;">
+            <div style="height:100%; width:{{ pct }}%; background:var(--accent); border-radius:99px;"></div>
+          </div>
+          {% endif %}
+        </div>
+        {% endfor %}
+      {% else %}
+        <div class="text-muted" style="font-size:13px;">Belum ada data.</div>
+      {% endif %}
+    </div>
+
+    <div class="card">
+      <div class="card-title mb-3">🔧 Per Kondisi</div>
+      {% if rekap_kond %}
+        {% for r in rekap_kond %}
+        <div style="display:flex; justify-content:space-between; align-items:center;
+                    padding:6px 0; border-bottom:1px solid var(--border); font-size:13px;">
+          <span>{{ kondisi_map.get(r.kondisi, r.kondisi) }}</span>
+          <span class="fw-bold">{{ r.total }} unit</span>
+        </div>
+        {% endfor %}
+      {% else %}
+        <div class="text-muted" style="font-size:13px;">Belum ada data.</div>
+      {% endif %}
+    </div>
+
+    <div class="card" style="background:color-mix(in srgb, var(--accent) 6%, transparent);
+         border-color:color-mix(in srgb, var(--accent) 25%, transparent);">
+      <div style="font-size:13px; line-height:1.8; color:var(--muted);">
+        <div class="fw-bold" style="color:var(--text); margin-bottom:6px;">📥 Export Data</div>
+        <div>• Excel: format rapi + rekap kategori</div>
+        <div>• PDF: siap cetak landscape A4</div>
+        <div style="margin-top:6px; font-size:11px;">Filter aktif ikut ter-export</div>
+      </div>
+    </div>
+
+  </div>
+</div>
+
+<style>
+@media print {
+  .sidebar, nav, .topbar, .btn, form { display: none !important; }
+  .card { box-shadow: none !important; border: 1px solid #ccc !important; }
+}
+</style>
+
+{% endblock %}

@@ -1,0 +1,115 @@
+{% extends 'base.html' %}
+{% block title %}Laporan Pembayaran{% endblock %}
+{% block page_title %}Laporan Pembayaran{% endblock %}
+{% block breadcrumb %}Laporan / Pembayaran{% endblock %}
+
+{% block content %}
+
+{# ── Filter ── #}
+<div class="card mb-3">
+  <form method="get" style="display:flex; gap:12px; align-items:flex-end; flex-wrap:wrap;">
+    <div class="form-group" style="margin:0;">
+      <label>Bulan</label>
+      <select name="bulan">
+        {% for b in range(1,13) %}
+          <option value="{{ b }}" {% if b == bulan %}selected{% endif %}>{{ b | nama_bulan }}</option>
+        {% endfor %}
+      </select>
+    </div>
+    <div class="form-group" style="margin:0;">
+      <label>Tahun</label>
+      <select name="tahun">
+        {% for t in tahun_list %}
+          <option value="{{ t }}" {% if t == tahun %}selected{% endif %}>{{ t }}</option>
+        {% endfor %}
+      </select>
+    </div>
+    <button type="submit" class="btn btn-primary">🔍 Filter</button>
+  </form>
+</div>
+
+{# ── Summary cards ── #}
+<div class="stats-grid" style="margin-bottom:20px;">
+  <div class="stat-card accent">
+    <div class="stat-label">📋 Total Tagihan</div>
+    <div class="stat-value">{{ rows | length }}</div>
+  </div>
+  <div class="stat-card green">
+    <div class="stat-label">✅ Sudah Lunas</div>
+    <div class="stat-value">{{ jumlah_lunas }}</div>
+  </div>
+  <div class="stat-card red">
+    <div class="stat-label">⏳ Belum Lunas</div>
+    <div class="stat-value">{{ jumlah_belum }}</div>
+  </div>
+  <div class="stat-card red">
+    <div class="stat-label">💸 Total Sisa</div>
+    <div class="stat-value" style="font-size:18px;">{{ total_sisa | rupiah }}</div>
+  </div>
+</div>
+
+{# ── Tabel ── #}
+<div class="card">
+  <div class="card-header">
+    <div class="card-title">Periode: {{ bulan | nama_bulan }} {{ tahun }}</div>
+    <div style="display:flex; gap:8px;">
+      <a href="{{ url_for('laporan.export_pembayaran_csv', bulan=bulan, tahun=tahun) }}"
+         class="btn btn-outline btn-sm">📥 CSV</a>
+      <a href="{{ url_for('laporan.export_pembayaran_pdf', bulan=bulan, tahun=tahun) }}"
+         class="btn btn-outline btn-sm">📄 PDF</a>
+    </div>
+  </div>
+  <div class="table-wrap">
+    <table>
+      <thead>
+        <tr>
+          <th>#</th>
+          <th>Kamar</th>
+          <th>Nama Penghuni</th>
+          <th>Tagihan</th>
+          <th>Terbayar</th>
+          <th>Sisa</th>
+          <th>Status</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for r in rows %}
+        {% set badge = r.status | status_badge %}
+        {% set sisa_row = r.jumlah_tagihan - r.total_bayar %}
+        <tr>
+          <td class="text-muted">{{ loop.index }}</td>
+          <td><span class="badge badge-info text-mono">{{ r.nomor_kamar }}</span></td>
+          <td class="fw-bold">{{ r.nama_penghuni }}</td>
+          <td class="text-mono">{{ r.jumlah_tagihan | rupiah }}</td>
+          <td class="text-mono text-green fw-bold">{{ r.total_bayar | rupiah }}</td>
+          <td class="text-mono {% if sisa_row > 0 %}text-red fw-bold{% endif %}">
+            {{ sisa_row | rupiah }}
+          </td>
+          <td>
+            <span class="badge badge-{{ badge.color }}">{{ badge.label }}</span>
+          </td>
+        </tr>
+        {% else %}
+        <tr>
+          <td colspan="7" style="text-align:center; padding:32px; color:var(--muted);">
+            Tidak ada data untuk periode ini.
+          </td>
+        </tr>
+        {% endfor %}
+      </tbody>
+      {% if rows %}
+      <tfoot>
+        <tr style="font-weight:600; border-top:2px solid var(--border);">
+          <td colspan="3">Total</td>
+          <td class="text-mono">{{ total_tagihan | rupiah }}</td>
+          <td class="text-mono text-green">{{ total_terbayar | rupiah }}</td>
+          <td class="text-mono text-red">{{ total_sisa | rupiah }}</td>
+          <td></td>
+        </tr>
+      </tfoot>
+      {% endif %}
+    </table>
+  </div>
+</div>
+
+{% endblock %}

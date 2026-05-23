@@ -1,0 +1,153 @@
+{% extends "base.html" %}
+{% block title %}Laporan Pengeluaran{% endblock %}
+{% block page_title %}Laporan Pengeluaran{% endblock %}
+{% block breadcrumb %}Laporan / Pengeluaran{% endblock %}
+
+{% block content %}
+
+{# ── Filter ── #}
+<div class="card mb-3">
+  <form method="get" style="display:flex; gap:12px; align-items:flex-end; flex-wrap:wrap;">
+    <div class="form-group" style="margin:0;">
+      <label>Bulan</label>
+      <select name="bulan">
+        {% for b in range(1,13) %}
+          <option value="{{ b }}" {% if b == bulan %}selected{% endif %}>{{ b | nama_bulan }}</option>
+        {% endfor %}
+      </select>
+    </div>
+    <div class="form-group" style="margin:0;">
+      <label>Tahun</label>
+      <select name="tahun">
+        {% for t in tahun_list %}
+          <option value="{{ t }}" {% if t == tahun %}selected{% endif %}>{{ t }}</option>
+        {% endfor %}
+      </select>
+    </div>
+    <div class="form-group" style="margin:0;">
+      <label>Kategori</label>
+      <select name="kategori">
+        <option value="">Semua Kategori</option>
+        {% for k in kategori_list %}
+          <option value="{{ k }}" {% if k == filter_kategori %}selected{% endif %}>{{ k }}</option>
+        {% endfor %}
+      </select>
+    </div>
+    <button type="submit" class="btn btn-primary">🔍 Filter</button>
+  </form>
+</div>
+
+{# ── Summary cards ── #}
+<div class="stats-grid" style="margin-bottom:20px;">
+  <div class="stat-card red">
+    <div class="stat-label">💸 Total Pengeluaran</div>
+    <div class="stat-value" style="font-size:18px;">{{ total_pengeluaran | rupiah }}</div>
+  </div>
+  <div class="stat-card accent">
+    <div class="stat-label">📋 Jumlah Transaksi</div>
+    <div class="stat-value">{{ rows | length }}</div>
+  </div>
+  <div class="stat-card yellow">
+    <div class="stat-label">📂 Kategori Terbanyak</div>
+    <div class="stat-value" style="font-size:18px;">{{ kategori_terbanyak or '—' }}</div>
+  </div>
+  <div class="stat-card green">
+    <div class="stat-label">💰 Pemasukan Bulan Ini</div>
+    <div class="stat-value" style="font-size:18px;">{{ pemasukan_bln | rupiah }}</div>
+  </div>
+</div>
+
+{# ── Grafik per Kategori ── #}
+{% if kategori_summary %}
+<div class="card mb-3">
+  <div class="card-header">
+    <div class="card-title">📊 Pengeluaran per Kategori</div>
+  </div>
+  <div style="display:flex; flex-wrap:wrap; gap:10px; padding:4px 0 8px;">
+    {% for ks in kategori_summary %}
+    <div style="
+      flex:1; min-width:140px;
+      background:var(--surface2); border:1px solid var(--border);
+      border-radius:10px; padding:14px 16px;
+    ">
+      <div style="font-size:12px; color:var(--muted); font-weight:700; text-transform:uppercase; letter-spacing:.5px; margin-bottom:6px;">
+        {{ ks.kategori or 'Lainnya' }}
+      </div>
+      <div style="font-size:16px; font-weight:800; color:var(--red); font-family:var(--mono);">
+        {{ ks.total | rupiah }}
+      </div>
+      <div style="
+        margin-top:8px; height:4px; border-radius:2px;
+        background:var(--border);
+      ">
+        <div style="
+          height:4px; border-radius:2px;
+          background:linear-gradient(90deg, var(--accent), var(--accent2));
+          width:{{ ((ks.total / total_pengeluaran) * 100) | round(1) if total_pengeluaran else 0 }}%;
+        "></div>
+      </div>
+      <div style="font-size:11px; color:var(--muted); margin-top:4px;">
+        {{ ((ks.total / total_pengeluaran) * 100) | round(1) if total_pengeluaran else 0 }}%
+      </div>
+    </div>
+    {% endfor %}
+  </div>
+</div>
+{% endif %}
+
+{# ── Tabel Detail ── #}
+<div class="card">
+  <div class="card-header">
+    <div class="card-title">Periode: {{ bulan | nama_bulan }} {{ tahun }}</div>
+    <div style="display:flex; gap:8px;">
+      <a href="{{ url_for('laporan.export_pengeluaran_csv', bulan=bulan, tahun=tahun) }}"
+         class="btn btn-outline btn-sm">📥 CSV</a>
+      <a href="{{ url_for('laporan.export_pengeluaran_pdf', bulan=bulan, tahun=tahun) }}"
+         class="btn btn-outline btn-sm">📄 PDF</a>
+    </div>
+  </div>
+  <div class="table-wrap">
+    <table>
+      <thead>
+        <tr>
+          <th>#</th>
+          <th>Tanggal</th>
+          <th>Kategori</th>
+          <th>Keterangan</th>
+          <th style="text-align:right;">Jumlah</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for r in rows %}
+        <tr>
+          <td class="text-muted">{{ loop.index }}</td>
+          <td class="text-muted" style="font-size:13px;">{{ r.tanggal }}</td>
+          <td>
+            <span class="badge badge-info">{{ r.kategori or 'Lainnya' }}</span>
+          </td>
+          <td>{{ r.keterangan or '—' }}</td>
+          <td class="text-mono text-red fw-bold" style="text-align:right;">
+            {{ r.jumlah | rupiah }}
+          </td>
+        </tr>
+        {% else %}
+        <tr>
+          <td colspan="5" style="text-align:center; padding:32px; color:var(--muted);">
+            Tidak ada data pengeluaran untuk periode ini.
+          </td>
+        </tr>
+        {% endfor %}
+      </tbody>
+      {% if rows %}
+      <tfoot>
+        <tr style="font-weight:700; border-top:2px solid var(--border);">
+          <td colspan="4">Total Pengeluaran</td>
+          <td class="text-mono text-red" style="text-align:right;">{{ total_pengeluaran | rupiah }}</td>
+        </tr>
+      </tfoot>
+      {% endif %}
+    </table>
+  </div>
+</div>
+
+{% endblock %}

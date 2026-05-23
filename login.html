@@ -1,0 +1,737 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Login — KostPay</title>
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;600;800&display=swap" rel="stylesheet">
+  <style>
+    :root { --accent:#4f6ef7; --accent2:#7c3aed; --yellow:#eab308; --red:#ef4444; --green:#22c55e; }
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      font-family: 'Plus Jakarta Sans', sans-serif;
+      background: #0f1117; color: #e2e8f0;
+      min-height: 100vh; display: flex; align-items: center; justify-content: center;
+      padding: 24px 0;
+    }
+    .login-box {
+      background: #1a1d27; border: 1px solid #2e3347;
+      border-radius: 20px; padding: 44px 40px; width: 420px;
+    }
+
+    /* ── Logo ── */
+    .logo { text-align: center; margin-bottom: 28px; }
+    .logo .icon {
+      width: 56px; height: 56px;
+      background: linear-gradient(135deg, var(--accent), var(--accent2));
+      border-radius: 16px; display: flex; align-items: center; justify-content: center;
+      font-size: 28px; margin: 0 auto 12px;
+    }
+    .logo h1 { font-size: 24px; font-weight: 800; }
+    .logo p   { font-size: 13px; color: #8892a4; margin-top: 4px; }
+
+    /* ── Form inputs ── */
+    .form-group { margin-bottom: 16px; }
+    label { display: block; font-size: 13px; font-weight: 600; color: #8892a4; margin-bottom: 6px; }
+    input {
+      width: 100%; background: #222535; border: 1px solid #2e3347;
+      border-radius: 10px; padding: 12px 16px; color: #e2e8f0;
+      font-family: inherit; font-size: 14px; outline: none;
+      transition: border-color .15s;
+    }
+    input:focus { border-color: var(--accent); }
+
+    /* ── Buttons ── */
+    .btn {
+      width: 100%; padding: 13px; background: var(--accent); color: #fff;
+      border: none; border-radius: 10px; font-size: 15px; font-weight: 700;
+      cursor: pointer; transition: background .15s; margin-top: 8px;
+      display: flex; align-items: center; justify-content: center; gap: 6px;
+    }
+    .btn:hover { background: #3b55e0; }
+    .btn-yellow { background: var(--yellow); color: #000; }
+    .btn-yellow:hover { background: #ca9a06; }
+
+    /* ── Alerts ── */
+    .alert { padding: 10px 14px; border-radius: 8px; font-size: 13px; margin-bottom: 16px; }
+    .alert-danger  { background: rgba(239,68,68,.12);  border: 1px solid rgba(239,68,68,.25);  color: var(--red); }
+    .alert-warning { background: rgba(234,179,8,.12);  border: 1px solid rgba(234,179,8,.25);  color: var(--yellow); }
+    .alert-success { background: rgba(34,197,94,.12);  border: 1px solid rgba(34,197,94,.25);  color: var(--green); }
+
+    .hint { text-align: center; font-size: 12px; color: #8892a4; margin-top: 20px; }
+
+    /* ══════════════════════════════════════════════
+       SECTION KODE KHUSUS
+       Muncul di bawah form login saat show_kode=True
+    ══════════════════════════════════════════════ */
+    .divider-kode {
+      display: flex; align-items: center; gap: 12px;
+      margin: 28px 0 20px; color: #8892a4; font-size: 12px;
+    }
+    .divider-kode::before, .divider-kode::after {
+      content: ''; flex: 1; height: 1px; background: #2e3347;
+    }
+
+    /* Backdate warning banner */
+    .backdate-banner {
+      background: rgba(239,68,68,.10);
+      border: 1px solid rgba(239,68,68,.30);
+      border-radius: 12px; padding: 14px 16px; margin-bottom: 20px;
+    }
+    .backdate-banner .bd-title {
+      font-size: 13px; font-weight: 700; color: var(--red);
+      display: flex; align-items: center; gap: 6px; margin-bottom: 5px;
+    }
+    .backdate-banner .bd-sub { font-size: 12px; color: #fca5a5; line-height: 1.6; }
+
+    /* Expired banner */
+    .expired-banner {
+      background: rgba(234,179,8,.10); border: 1px solid rgba(234,179,8,.3);
+      border-radius: 12px; padding: 16px; margin-bottom: 20px; text-align: center;
+    }
+    .expired-banner .exp-icon { font-size: 28px; margin-bottom: 6px; }
+    .expired-banner p { font-size: 13px; color: var(--yellow); line-height: 1.5; }
+
+    /* Kode input */
+    .kode-dots {
+      display: flex; gap: 10px; justify-content: center; margin: 4px 0 14px;
+    }
+    .kode-dots .dot {
+      width: 13px; height: 13px; border-radius: 50%;
+      background: #222535; border: 1.5px solid #3e4560;
+      transition: all .2s;
+    }
+    .kode-dots .dot.filled { background: var(--yellow); border-color: var(--yellow); }
+    .kode-dots .dot.error  { background: var(--red);    border-color: var(--red); }
+
+    input.kode-input {
+      border-color: rgba(234,179,8,.5);
+      background: rgba(234,179,8,.06);
+      font-size: 22px; font-weight: 800; letter-spacing: 8px;
+      text-align: center; padding: 14px 16px;
+    }
+    input.kode-input:focus {
+      border-color: var(--yellow);
+      box-shadow: 0 0 0 3px rgba(234,179,8,.15);
+    }
+    input.kode-input.shake {
+      animation: shake .35s ease;
+      border-color: var(--red) !important;
+      box-shadow: 0 0 0 3px rgba(239,68,68,.15) !important;
+    }
+    @keyframes shake {
+      0%,100% { transform: translateX(0); }
+      20%      { transform: translateX(-7px); }
+      40%      { transform: translateX(7px); }
+      60%      { transform: translateX(-4px); }
+      80%      { transform: translateX(4px); }
+    }
+
+    /* Disabled state untuk form login saat kode mode aktif */
+    .login-fields-disabled input {
+      opacity: .5; pointer-events: none;
+    }
+    .login-fields-disabled .btn-masuk {
+      opacity: .4; pointer-events: none; cursor: default;
+    }
+  </style>
+</head>
+<body>
+<div class="login-box">
+
+  <div class="logo">
+    <div class="icon">🏠</div>
+    <h1>KostPay</h1>
+    <p>Sistem Manajemen Pembayaran Kost</p>
+  </div>
+
+  {# Flash hanya untuk screen login biasa (bukan kode salah) #}
+  {% if not show_kode %}
+    {% for msg in get_flashed_messages(category_filter=['danger']) %}
+      <div class="alert alert-danger">{{ msg }}</div>
+    {% endfor %}
+    {% for msg in get_flashed_messages(category_filter=['warning']) %}
+      <div class="alert alert-warning">{{ msg }}</div>
+    {% endfor %}
+  {% endif %}
+  {% for msg in get_flashed_messages(category_filter=['success']) %}
+    <div class="alert alert-success">{{ msg }}</div>
+  {% endfor %}
+
+  {# ══════════════════════════════════
+     FORM LOGIN — selalu tampil
+  ══════════════════════════════════ #}
+  <div id="login-fields" class="{{ 'login-fields-disabled' if show_kode else '' }}">
+    <div class="form-group">
+      <label>Username</label>
+      <input type="text" id="inp-username"
+             value="{{ username or '' }}"
+             placeholder="admin"
+             {% if not show_kode %}autofocus{% endif %}>
+    </div>
+    <div class="form-group">
+      <label>Password</label>
+      <input type="password" id="inp-password" placeholder="••••••••">
+    </div>
+    <button type="button" class="btn btn-masuk" id="btn-masuk" onclick="submitLogin()">
+      🔐 Masuk
+    </button>
+  </div>
+
+  {# Form login tersembunyi — dikirim via JS #}
+  <form method="POST" id="form-login" style="display:none;">
+    <input type="hidden" name="_screen" value="login">
+    <input type="hidden" name="username" id="fhid-username">
+    <input type="hidden" name="password" id="fhid-password">
+  </form>
+
+  <div class="hint">Default: admin / admin123</div>
+
+  {# ══════════════════════════════════════════════════════
+     SECTION KODE KHUSUS
+     Muncul di bawah form login saat show_kode = True.
+     Server mengirimkan:
+       backdate_info  → timestamp login terakhir (backdate)
+       backdate_forced=True → user wajib pakai kode, tidak ada bypass
+  ══════════════════════════════════════════════════════ #}
+  <div id="section-kode" style="{{ '' if show_kode else 'display:none;' }}">
+
+    <div class="divider-kode">
+      {{ '⚠️ verifikasi diperlukan' if backdate_info else '🔒 masa aktif habis' }}
+    </div>
+
+    {# Alert kode salah #}
+    {% if show_kode %}
+      {% for msg in get_flashed_messages(category_filter=['danger']) %}
+        <div class="alert alert-danger" id="kode-error-alert">{{ msg }}</div>
+      {% endfor %}
+    {% endif %}
+
+    {% if backdate_info %}
+      <div class="backdate-banner">
+        <div class="bd-title">⚠️ Waktu sistem tidak valid (jam dimundurkan)</div>
+        <div class="bd-sub">
+          Login terakhir: <strong>{{ backdate_info }}</strong><br>
+          Masukkan kode khusus untuk melanjutkan.
+        </div>
+      </div>
+    {% else %}
+      <div class="expired-banner">
+        <div class="exp-icon">⏰</div>
+        <p>Akun sudah tidak aktif.<br>
+           Masukkan <strong>kode khusus</strong> untuk mengaktifkan kembali.</p>
+      </div>
+    {% endif %}
+
+    <form method="POST" id="form-kode">
+      <input type="hidden" name="_screen" value="kode">
+      <input type="hidden" name="username" id="khid-username" value="{{ username or '' }}">
+      <input type="hidden" name="password" id="khid-password" value="">
+
+      <label>Kode Khusus</label>
+      <div class="kode-dots" id="kode-dots">
+        <div class="dot"></div>
+        <div class="dot"></div>
+        <div class="dot"></div>
+        <div class="dot"></div>
+        <div class="dot"></div>
+        <div class="dot"></div>
+      </div>
+      <div class="form-group">
+        <input type="text" name="kode_khusus" id="inp-kode"
+               class="kode-input"
+               placeholder="_ _ _ _ _ _"
+               maxlength="30"
+               autocomplete="off"
+               {% if show_kode %}autofocus{% endif %}>
+      </div>
+
+      <button type="submit" class="btn btn-yellow">🔓 Aktifkan &amp; Masuk</button>
+    </form>
+
+  </div>
+</div>
+
+<script>
+/* ── Submit form login via hidden form ── */
+function submitLogin() {
+  var u = document.getElementById('inp-username').value.trim();
+  var p = document.getElementById('inp-password').value;
+  if (!u || !p) {
+    document.getElementById('inp-username').focus();
+    return;
+  }
+  document.getElementById('fhid-username').value = u;
+  document.getElementById('fhid-password').value = p;
+  document.getElementById('form-login').submit();
+}
+
+/* Enter key di field login juga submit */
+['inp-username', 'inp-password'].forEach(function(id) {
+  var el = document.getElementById(id);
+  if (el) el.addEventListener('keydown', function(e) {
+    if (e.key === 'Enter') submitLogin();
+  });
+});
+
+/* ── Salin username+password ke hidden field form-kode saat submit ── */
+document.getElementById('form-kode').addEventListener('submit', function() {
+  var u = document.getElementById('inp-username');
+  var p = document.getElementById('inp-password');
+  if (u) document.getElementById('khid-username').value = u.value;
+  if (p) document.getElementById('khid-password').value = p.value;
+});
+
+/* ── Dot indicator ── */
+var inpKode = document.getElementById('inp-kode');
+var dots    = document.querySelectorAll('#kode-dots .dot');
+
+function updateDots(state) {
+  if (!inpKode) return;
+  var len = inpKode.value.length;
+  dots.forEach(function(d, i) {
+    d.classList.remove('filled', 'error');
+    if (state === 'error')  d.classList.add('error');
+    else if (i < len)       d.classList.add('filled');
+  });
+}
+
+if (inpKode) {
+  inpKode.addEventListener('input', function() { updateDots(); });
+}
+
+/* ── Shake jika kode salah (flash danger di screen kode) ── */
+{% if show_kode %}
+  var errAlert = document.getElementById('kode-error-alert');
+  if (errAlert && inpKode) {
+    inpKode.classList.add('shake');
+    updateDots('error');
+    setTimeout(function() {
+      inpKode.classList.remove('shake');
+      inpKode.value = '';
+      updateDots();
+      inpKode.focus();
+    }, 600);
+  }
+{% endif %}
+</script>
+
+<!-- ── Chatbot Widget ──────────────────────────────────────────────────── -->
+<style>
+  #cb-fab {
+    position: fixed; bottom: 24px; right: 24px; z-index: 9997;
+    width: 52px; height: 52px; border-radius: 50%;
+    background: linear-gradient(135deg, var(--accent), var(--accent2));
+    color: #fff; border: none; font-size: 22px; cursor: pointer;
+    box-shadow: 0 4px 16px rgba(79,110,247,.4);
+    display: flex; align-items: center; justify-content: center;
+    transition: transform .2s, box-shadow .2s;
+  }
+  #cb-fab:hover { transform: scale(1.1); box-shadow: 0 6px 22px rgba(79,110,247,.55); }
+  #cb-fab .cb-badge {
+    position: absolute; top: -3px; right: -3px;
+    background: #ef4444; color: #fff; border-radius: 50%;
+    width: 18px; height: 18px; font-size: 10px; font-weight: 700;
+    display: none; align-items: center; justify-content: center;
+  }
+  #cb-box {
+    position: fixed; bottom: 88px; right: 24px; z-index: 9996;
+    width: 350px; max-width: calc(100vw - 32px);
+    background: #1a1d27; border: 1px solid #2e3347;
+    border-radius: 16px; box-shadow: 0 8px 32px rgba(0,0,0,.45);
+    display: none; flex-direction: column; overflow: hidden;
+    font-family: 'Plus Jakarta Sans', sans-serif;
+  }
+  #cb-box.open { display: flex; }
+  .cb-header {
+    background: linear-gradient(135deg, var(--accent), var(--accent2));
+    padding: 13px 16px; display: flex; align-items: center; gap: 10px;
+  }
+  .cb-header .cb-avatar {
+    width: 34px; height: 34px; border-radius: 50%;
+    background: rgba(255,255,255,.2);
+    display: flex; align-items: center; justify-content: center; font-size: 16px;
+  }
+  .cb-header .cb-info { flex: 1; }
+  .cb-header .cb-info h6 { margin: 0; font-size: 13px; font-weight: 700; color: #fff; }
+  .cb-header .cb-info small { font-size: 11px; color: rgba(255,255,255,.8); }
+  #cb-close { background: none; border: none; color: rgba(255,255,255,.8); font-size: 18px; cursor: pointer; }
+  #cb-messages {
+    flex: 1; overflow-y: auto; padding: 14px 12px;
+    background: #0f1117; min-height: 260px; max-height: 340px;
+    display: flex; flex-direction: column; gap: 8px;
+  }
+  .cb-bubble {
+    max-width: 84%; padding: 8px 12px; border-radius: 12px;
+    font-size: 13px; line-height: 1.55; word-break: break-word;
+  }
+  .cb-bubble.bot {
+    background: #222535; color: #e2e8f0;
+    border-bottom-left-radius: 3px; align-self: flex-start;
+    border: 1px solid #2e3347;
+  }
+  .cb-bubble.user {
+    background: linear-gradient(135deg, var(--accent), var(--accent2));
+    color: #fff; border-bottom-right-radius: 3px; align-self: flex-end;
+  }
+  .cb-bubble.typing { background: #222535; align-self: flex-start; border: 1px solid #2e3347; }
+  .cb-dots { display: flex; gap: 4px; padding: 2px 4px; }
+  .cb-dots span {
+    width: 6px; height: 6px; border-radius: 50%;
+    background: #8892a4; animation: cbBounce .8s infinite;
+  }
+  .cb-dots span:nth-child(2) { animation-delay: .15s; }
+  .cb-dots span:nth-child(3) { animation-delay: .3s; }
+  @keyframes cbBounce { 0%,80%,100%{transform:translateY(0)} 40%{transform:translateY(-5px)} }
+  .cb-quick { display: flex; flex-wrap: wrap; gap: 6px; padding: 8px 12px 4px; background: #1a1d27; }
+  .cb-qr {
+    background: rgba(79,110,247,.12); color: var(--accent);
+    border: 1px solid rgba(79,110,247,.25); border-radius: 14px;
+    padding: 4px 11px; font-size: 12px; cursor: pointer; transition: background .15s;
+    font-family: 'Plus Jakarta Sans', sans-serif;
+  }
+  .cb-qr:hover { background: rgba(79,110,247,.22); }
+  .cb-footer {
+    padding: 10px 12px; background: #1a1d27;
+    border-top: 1px solid #2e3347; display: flex; gap: 8px; align-items: flex-end;
+  }
+  #cb-input {
+    flex: 1; border: 1px solid #2e3347; border-radius: 18px;
+    padding: 8px 13px; font-size: 13px; outline: none; resize: none;
+    max-height: 90px; overflow-y: auto; font-family: 'Plus Jakarta Sans', sans-serif;
+    background: #222535; color: #e2e8f0; transition: border-color .15s;
+  }
+  #cb-input:focus { border-color: var(--accent); }
+  #cb-send {
+    background: linear-gradient(135deg, var(--accent), var(--accent2));
+    color: #fff; border: none; border-radius: 50%; width: 36px; height: 36px;
+    flex-shrink: 0; cursor: pointer; font-size: 14px;
+    display: flex; align-items: center; justify-content: center; transition: opacity .15s;
+  }
+  #cb-send:disabled { opacity: .4; cursor: not-allowed; }
+  #cb-upload-btn {
+    background: none; border: 1px solid #2e3347; border-radius: 50%;
+    width: 36px; height: 36px; flex-shrink: 0; cursor: pointer;
+    font-size: 15px; display: flex; align-items: center; justify-content: center;
+    color: #8892a4; transition: background .15s, border-color .15s;
+  }
+  #cb-upload-btn:hover { background: rgba(79,110,247,.12); border-color: var(--accent); color: var(--accent); }
+</style>
+
+<button id="cb-fab" onclick="cbToggle()" title="Tanya Asisten Kost">
+  🤖<span class="cb-badge" id="cb-badge">1</span>
+</button>
+
+<div id="cb-box">
+  <div class="cb-header">
+    <div class="cb-avatar">🏠</div>
+    <div class="cb-info">
+      <h6>Asisten KostPay</h6>
+      <small>🟢 Online – Tanya atau ajukan komplain</small>
+    </div>
+    <button id="cb-close" onclick="cbToggle()">✕</button>
+  </div>
+  <div class="cb-quick" id="cb-quick">
+    <button class="cb-qr" style="background:rgba(34,197,94,.12);color:#22c55e;border-color:rgba(34,197,94,.25);" onclick="cbTriggerUpload()">📤 Kirim bukti bayar</button>
+    <button class="cb-qr" style="background:rgba(239,68,68,.12);color:#ef4444;border-color:rgba(239,68,68,.25);" onclick="cbTriggerKomplain()">🔧 Ajukan Komplain</button>
+    <button class="cb-qr" style="background:rgba(234,179,8,.12);color:#eab308;border-color:rgba(234,179,8,.25);" onclick="cbCekStatusKomplain()">📋 Cek Status Komplain</button>
+    <button class="cb-qr" onclick="cbQuick('Ada kamar kosong?')">🛏️ Kamar kosong</button>
+    <button class="cb-qr" onclick="cbQuick('Berapa harga sewa?')">💰 Harga sewa</button>
+    <button class="cb-qr" onclick="cbQuick('Fasilitas apa saja?')">✨ Fasilitas</button>
+    <button class="cb-qr" onclick="cbQuick('Cara pembayaran?')">💳 Cara bayar</button>
+    <button class="cb-qr" onclick="cbQuick('Kontak admin?')">📞 Kontak</button>
+  </div>
+
+  <!-- Form Komplain Inline (tersembunyi, muncul saat dipilih) -->
+  <div id="cb-komplain-form" style="display:none; padding:10px 12px; background:#1a1d27; border-top:1px solid #2e3347;">
+    <div style="font-size:12px; color:#eab308; font-weight:700; margin-bottom:8px;">🔧 Form Pengajuan Komplain</div>
+    <div style="display:flex; flex-direction:column; gap:6px;">
+      <input type="text" id="kf-nama" placeholder="Nama lengkap *"
+        style="background:#222535;border:1px solid #2e3347;border-radius:8px;padding:7px 10px;color:#e2e8f0;font-size:12px;font-family:inherit;outline:none;">
+      <input type="text" id="kf-kamar" placeholder="Nomor kamar * (contoh: A1, 101)"
+        style="background:#222535;border:1px solid #2e3347;border-radius:8px;padding:7px 10px;color:#e2e8f0;font-size:12px;font-family:inherit;outline:none;">
+      <input type="text" id="kf-hp" placeholder="No. HP / WhatsApp (opsional)"
+        style="background:#222535;border:1px solid #2e3347;border-radius:8px;padding:7px 10px;color:#e2e8f0;font-size:12px;font-family:inherit;outline:none;">
+      <select id="kf-kategori"
+        style="background:#222535;border:1px solid #2e3347;border-radius:8px;padding:7px 10px;color:#e2e8f0;font-size:12px;font-family:inherit;outline:none;">
+        <option value="listrik">⚡ Listrik / Kelistrikan</option>
+        <option value="air">🚿 Air / Plumbing</option>
+        <option value="ac">❄️ AC / Kipas</option>
+        <option value="internet">📶 Internet / WiFi</option>
+        <option value="pintu_kunci">🔐 Pintu / Kunci</option>
+        <option value="kebersihan">🧹 Kebersihan</option>
+        <option value="keamanan">🔒 Keamanan</option>
+        <option value="furnitur">🪑 Furnitur / Perabot</option>
+        <option value="lainnya" selected>📝 Lainnya</option>
+      </select>
+      <input type="text" id="kf-judul" placeholder="Judul singkat masalah *"
+        style="background:#222535;border:1px solid #2e3347;border-radius:8px;padding:7px 10px;color:#e2e8f0;font-size:12px;font-family:inherit;outline:none;">
+      <textarea id="kf-deskripsi" rows="3" placeholder="Jelaskan masalahnya secara detail *"
+        style="background:#222535;border:1px solid #2e3347;border-radius:8px;padding:7px 10px;color:#e2e8f0;font-size:12px;font-family:inherit;outline:none;resize:vertical;"></textarea>
+      <div style="display:flex; gap:6px; align-items:center;">
+        <label style="font-size:11px; color:#8892a4; flex-shrink:0;">Foto (opsional):</label>
+        <input type="file" id="kf-foto" accept="image/*"
+          style="font-size:11px; color:#8892a4; flex:1;">
+      </div>
+      <div style="display:flex; gap:6px;">
+        <button onclick="cbKirimKomplain()" id="kf-submit"
+          style="flex:1;background:linear-gradient(135deg,#ef4444,#b91c1c);color:#fff;border:none;border-radius:8px;padding:8px;font-size:12px;font-weight:700;cursor:pointer;font-family:inherit;">
+          🔧 Kirim Komplain
+        </button>
+        <button onclick="cbBatalKomplain()"
+          style="background:#222535;color:#8892a4;border:1px solid #2e3347;border-radius:8px;padding:8px 12px;font-size:12px;cursor:pointer;font-family:inherit;">
+          ✕
+        </button>
+      </div>
+    </div>
+  </div>
+  <div id="cb-messages"></div>
+  <div class="cb-footer">
+    <button id="cb-upload-btn" onclick="document.getElementById('cb-file-input').click()" title="Kirim bukti transfer">📎</button>
+    <input type="file" id="cb-file-input" accept="image/*" style="display:none" onchange="cbUploadFile(this)">
+    <textarea id="cb-input" rows="1" placeholder="Ketik pertanyaan..."
+      onkeydown="cbKey(event)" oninput="cbResize(this)"></textarea>
+    <button id="cb-send" onclick="cbSend()">➤</button>
+  </div>
+  <!-- Upload Preview Panel -->
+  <div id="cb-upload-preview" style="display:none; padding:10px 12px; background:#1a1d27; border-top:1px solid #2e3347;">
+    <div style="font-size:12px; color:#8892a4; margin-bottom:6px;">📸 Bukti Transfer</div>
+    <div style="display:flex; gap:10px; align-items:center;">
+      <img id="cb-preview-img" style="width:64px;height:64px;object-fit:cover;border-radius:8px;border:1px solid #2e3347;" src="" alt="">
+      <div style="flex:1;">
+        <input type="text" id="cb-nama-input" placeholder="Nama / No. Kamar (contoh: Budi / A1)"
+          style="width:100%;background:#222535;border:1px solid #2e3347;border-radius:8px;padding:7px 10px;color:#e2e8f0;font-size:12px;font-family:inherit;outline:none;margin-bottom:6px;">
+        <div style="display:flex;gap:6px;">
+          <button onclick="cbSendUpload()" id="cb-send-upload"
+            style="flex:1;background:linear-gradient(135deg,#22c55e,#16a34a);color:#fff;border:none;border-radius:8px;padding:7px;font-size:12px;font-weight:700;cursor:pointer;font-family:inherit;">
+            ✅ Kirim Bukti
+          </button>
+          <button onclick="cbCancelUpload()"
+            style="background:#222535;color:#8892a4;border:1px solid #2e3347;border-radius:8px;padding:7px 10px;font-size:12px;cursor:pointer;font-family:inherit;">
+            ✕
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+(function () {
+  const SK = 'kp_chat_hist';
+  let hist = [], open = false;
+  try { const s = sessionStorage.getItem(SK); if (s) hist = JSON.parse(s); } catch(e) {}
+
+  window.cbTriggerUpload = function () {
+    _addMsg('bot', '📸 Silakan pilih foto bukti transfer kamu.\nKlik tombol 📎 atau tombol di bawah ini 👇');
+    // Directly open file picker
+    setTimeout(() => document.getElementById('cb-file-input').click(), 200);
+  };
+
+  // ── Komplain Form ──────────────────────────────────────────────────────────
+  window.cbTriggerKomplain = function () {
+    document.getElementById('cb-komplain-form').style.display = 'block';
+    document.getElementById('cb-upload-preview').style.display = 'none';
+    _addMsg('bot', '🔧 Silakan isi form komplain/perbaikan di bawah ini ya 👇\n\nAdmin akan segera menindaklanjuti!');
+    document.getElementById('kf-nama').focus();
+  };
+  window.cbBatalKomplain = function () {
+    document.getElementById('cb-komplain-form').style.display = 'none';
+  };
+  window.cbKirimKomplain = async function () {
+    const nama     = document.getElementById('kf-nama').value.trim();
+    const kamar    = document.getElementById('kf-kamar').value.trim();
+    const hp       = document.getElementById('kf-hp').value.trim();
+    const kategori = document.getElementById('kf-kategori').value;
+    const judul    = document.getElementById('kf-judul').value.trim();
+    const desk     = document.getElementById('kf-deskripsi').value.trim();
+    const fotoEl   = document.getElementById('kf-foto');
+    if (!nama || !kamar || !judul || !desk) {
+      _addMsg('bot', '⚠️ Nama, nomor kamar, judul, dan deskripsi wajib diisi.');
+      return;
+    }
+    const btn = document.getElementById('kf-submit');
+    btn.disabled = true; btn.textContent = '⏳ Mengirim...';
+    document.getElementById('cb-komplain-form').style.display = 'none';
+    _addMsg('user', `🔧 Komplain: ${judul}\n🏠 Kamar ${kamar} — ${nama}`);
+    _typing();
+    const fd = new FormData();
+    fd.append('nama', nama); fd.append('kamar', kamar); fd.append('no_hp', hp);
+    fd.append('kategori', kategori); fd.append('judul', judul); fd.append('deskripsi', desk);
+    if (fotoEl.files && fotoEl.files[0]) fd.append('foto', fotoEl.files[0]);
+    try {
+      const r = await fetch('/api/komplain', { method: 'POST', body: fd });
+      const d = await r.json(); _rmTyping();
+      _addMsg('assistant', d.reply || '✅ Komplain diterima!');
+    } catch(e) {
+      _rmTyping();
+      _addMsg('assistant', '✅ Komplain kamu sudah diterima! Admin akan segera merespons 🙏');
+    } finally {
+      btn.disabled = false; btn.textContent = '🔧 Kirim Komplain';
+      ['kf-nama','kf-kamar','kf-hp','kf-judul','kf-deskripsi'].forEach(id => document.getElementById(id).value = '');
+      document.getElementById('kf-foto').value = '';
+    }
+  };
+  window.cbCekStatusKomplain = function () {
+    _addMsg('bot', '📋 Ketik pesan dengan format:\n\ncek komplain [nama] kamar [nomor]\n\nContoh:\n→ cek komplain Budi kamar A1');
+  };
+
+  let _uploadFile = null;
+  window.cbUploadFile = function (input) {
+    if (!input.files || !input.files[0]) return;
+    _uploadFile = input.files[0];
+    const url = URL.createObjectURL(_uploadFile);
+    document.getElementById('cb-preview-img').src = url;
+    document.getElementById('cb-upload-preview').style.display = 'block';
+    document.getElementById('cb-nama-input').focus();
+    // Reset input so same file can be picked again
+    input.value = '';
+  };
+
+  window.cbCancelUpload = function () {
+    _uploadFile = null;
+    document.getElementById('cb-upload-preview').style.display = 'none';
+    document.getElementById('cb-nama-input').value = '';
+  };
+
+  window.cbSendUpload = async function () {
+    const nama = document.getElementById('cb-nama-input').value.trim();
+    if (!nama) { document.getElementById('cb-nama-input').focus(); return; }
+    if (!_uploadFile) return;
+
+    document.getElementById('cb-send-upload').disabled = true;
+    document.getElementById('cb-upload-preview').style.display = 'none';
+
+    // Show user bubble with thumbnail
+    const thumbUrl = URL.createObjectURL(_uploadFile);
+    const box = document.getElementById('cb-messages');
+    const d = document.createElement('div');
+    d.className = 'cb-bubble user';
+    d.innerHTML = `<div style="font-size:12px;margin-bottom:4px;">📤 Bukti transfer — <strong>${nama}</strong></div><img src="${thumbUrl}" style="max-width:160px;border-radius:8px;display:block;">`;
+    box.appendChild(d);
+    _scroll();
+
+    hist.push({ role: 'user', content: `[Bukti transfer dari: ${nama}]` }); _save();
+
+    _typing();
+    try {
+      const fd = new FormData();
+      fd.append('bukti', _uploadFile);
+      fd.append('nama', nama);
+      const r = await fetch('/api/bukti-transfer', { method: 'POST', body: fd });
+      const data = await r.json(); _rmTyping();
+      _addMsg('assistant', data.reply || '✅ Bukti transfer diterima! Admin akan segera memverifikasi. Terima kasih 🙏');
+    } catch(e) {
+      _rmTyping();
+      _addMsg('assistant', '✅ Bukti transfer kamu sudah diterima!\nAdmin akan memverifikasi dalam waktu dekat.\nAda pertanyaan lain? Hubungi admin: 08159959605 🙏');
+    } finally {
+      _uploadFile = null;
+      document.getElementById('cb-nama-input').value = '';
+      document.getElementById('cb-send-upload').disabled = false;
+    }
+  };
+
+
+  window.cbToggle = function () {
+    open = !open;
+    document.getElementById('cb-box').classList.toggle('open', open);
+    document.getElementById('cb-badge').style.display = 'none';
+    if (open) { _render(); setTimeout(() => document.getElementById('cb-input').focus(), 80); }
+  };
+  window.cbQuick = function (t) {
+    _addMsg('user', t); _call(t);
+  };
+  window.cbSend = function () {
+    const el = document.getElementById('cb-input');
+    const t = el.value.trim(); if (!t) return;
+    el.value = ''; cbResize(el);
+    _addMsg('user', t);
+    // Intercept: cek status komplain
+    const m = t.toLowerCase().match(/cek\s+komplain\s+(.+?)\s+kamar\s+(\S+)/);
+    if (m) { _callCekKomplain(m[1].trim(), m[2].trim()); }
+    else { _call(t); }
+  };
+  window.cbKey = function (e) {
+    if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); cbSend(); }
+  };
+  window.cbResize = function (el) {
+    el.style.height = 'auto';
+    el.style.height = Math.min(el.scrollHeight, 90) + 'px';
+  };
+
+  function _render() {
+    const box = document.getElementById('cb-messages'); box.innerHTML = '';
+    if (!hist.length) _bubble('bot', '👋 Halo! Saya asisten virtual KostPay.\nSilakan tanya seputar kamar, harga, atau fasilitas kost 😊');
+    else hist.forEach(h => _bubble(h.role === 'user' ? 'user' : 'bot', h.content));
+    _scroll();
+  }
+  function _addMsg(role, content) {
+    hist.push({ role, content }); _save();
+    _bubble(role === 'user' ? 'user' : 'bot', content); _scroll();
+  }
+  function _bubble(cls, text) {
+    const box = document.getElementById('cb-messages');
+    const d = document.createElement('div');
+    d.className = 'cb-bubble ' + cls;
+    d.style.whiteSpace = 'pre-wrap';
+    d.innerHTML = text;
+    box.appendChild(d); return d;
+  }
+  function _typing() {
+    const box = document.getElementById('cb-messages');
+    const d = document.createElement('div');
+    d.id = 'cb-typing'; d.className = 'cb-bubble typing';
+    d.innerHTML = '<div class="cb-dots"><span></span><span></span><span></span></div>';
+    box.appendChild(d); _scroll();
+  }
+  function _rmTyping() { const e = document.getElementById('cb-typing'); if (e) e.remove(); }
+  function _scroll() {
+    const b = document.getElementById('cb-messages');
+    setTimeout(() => b && (b.scrollTop = b.scrollHeight), 40);
+  }
+  function _save() {
+    try { sessionStorage.setItem(SK, JSON.stringify(hist.slice(-30))); } catch(e) {}
+  }
+
+  async function _callCekKomplain(nama, kamar) {
+    const btn = document.getElementById('cb-send'); btn.disabled = true;
+    _typing();
+    try {
+      const r = await fetch(`/api/komplain/status?nama=${encodeURIComponent(nama)}&kamar=${encodeURIComponent(kamar)}`);
+      const d = await r.json(); _rmTyping();
+      _addMsg('assistant', d.reply || 'Tidak ditemukan data komplain.');
+    } catch(e) {
+      _rmTyping();
+      _addMsg('assistant', '⚠️ Koneksi bermasalah. Coba lagi nanti.');
+    } finally { btn.disabled = false; }
+  }
+
+  async function _call(msg) {
+    const btn = document.getElementById('cb-send'); btn.disabled = true;
+    _typing();
+    try {
+      const r = await fetch('/api/chatbot', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ message: msg, history: hist.slice(0, -1) })
+      });
+      const d = await r.json(); _rmTyping();
+      _addMsg('assistant', d.reply || 'Maaf, tidak ada respons.');
+    } catch(e) {
+      _rmTyping();
+      _addMsg('assistant', '⚠️ Koneksi bermasalah. Hubungi admin: 08159959605');
+    } finally { btn.disabled = false; }
+  }
+
+  // Badge muncul 2 detik setelah halaman load
+  if (!sessionStorage.getItem('cb_seen')) {
+    setTimeout(() => {
+      const b = document.getElementById('cb-badge');
+      if (b) b.style.display = 'flex';
+    }, 2000);
+    sessionStorage.setItem('cb_seen', '1');
+  }
+})();
+</script>
+</body>
+</html>
