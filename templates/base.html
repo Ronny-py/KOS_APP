@@ -435,16 +435,14 @@
     <div class="wa-panel-header" onclick="toggleWaPanel()">
       <div class="wa-panel-title">
         <span class="wa-dot" id="waSideDot"></span>
-        📲 WA Server
+        📲 Fonnte WA
       </div>
       <span class="wa-panel-toggle" id="waPanelToggle">▼</span>
     </div>
     <div class="wa-panel-body" id="waPanelBody">
-      <div class="wa-status-text" id="waSideStatus">Mengecek status...</div>
-      <div class="wa-log" id="waSideLog"></div>
-      <div class="wa-btn-row">
-        <button class="wa-btn wa-btn-start" id="waBtnStart" onclick="waStart()">▶ Start</button>
-        <button class="wa-btn wa-btn-stop"  id="waBtnStop"  onclick="waStop()">■ Stop</button>
+      <div class="wa-status-text" id="waSideStatus">Mengecek Fonnte...</div>
+      <div style="font-size:11px; color:var(--muted); margin-top:6px;">
+        Powered by <b>Fonnte API</b>
       </div>
     </div>
   </div>
@@ -541,14 +539,10 @@
   <span id="waFloatLabel">WA Server</span>
 </div>
 <div class="wa-float-popup" id="waFloatPopup">
-  <h4>📲 WhatsApp Server</h4>
+  <h4>📲 Fonnte WA</h4>
   <div class="wa-status-text" id="waFloatStatus">Mengecek status...</div>
-  <div class="wa-btn-row" style="margin-top:10px;">
-    <button class="wa-btn wa-btn-start" id="waFloatBtnStart" onclick="waStart()">▶ Start</button>
-    <button class="wa-btn wa-btn-stop"  id="waFloatBtnStop"  onclick="waStop()">■ Stop</button>
-  </div>
   <div style="font-size:11px; color:var(--muted); margin-top:8px;">
-    Login diperlukan untuk start/stop server.
+    Notifikasi WA via <b>Fonnte API</b>
   </div>
 </div>
 
@@ -599,7 +593,7 @@ function _updateUI(running, ready) {
   // Float dot + label
   _setFloatDot(running, ready);
   const lbl = document.getElementById('waFloatLabel');
-  if (lbl) lbl.textContent = ready ? '✅ WA Siap' : running ? '⏳ WA Starting...' : '⭕ WA Server';
+  if (lbl) lbl.textContent = ready ? '✅ Fonnte' : running ? '⏳ Fonnte...' : '⭕ Fonnte';
 
   // Status text (sidebar)
   const sideStatus = document.getElementById('waSideStatus');
@@ -621,9 +615,9 @@ function _updateUI(running, ready) {
 }
 
 function _statusHtml(running, ready) {
-  if (ready)   return '<b style="color:var(--green)">✅ Terhubung & siap kirim WA</b>';
-  if (running) return '<b style="color:var(--yellow)">⏳ Server berjalan — scan QR di CMD</b>';
-  return '<b style="color:var(--muted)">⭕ Server tidak aktif</b>';
+  if (ready)   return '<b style="color:var(--green)">✅ Fonnte terhubung</b>';
+  if (running) return '<b style="color:var(--yellow)">⏳ Mengecek Fonnte...</b>';
+  return '<b style="color:var(--muted)">⭕ Fonnte tidak aktif</b>';
 }
 
 async function waCheckStatus() {
