@@ -54,6 +54,13 @@ def login():
             session["supervisor_id"]       = sv["id"]
             session["supervisor_username"] = sv["username"]
             session["supervisor_nama"]     = sv["nama"] or sv["username"]
+            # Supervisor juga bisa akses semua menu admin
+            # Set admin_id dummy agar login_required lolos
+            db2 = get_db()
+            admin = db2.execute("SELECT id, username, nama FROM admin LIMIT 1").fetchone()
+            if admin:
+                session["admin_id"]   = admin["id"]
+                session["admin_nama"] = "[Supervisor] " + (sv["nama"] or sv["username"])
             return redirect(url_for("supervisor_bp.dashboard"))
         else:
             flash("Username atau password supervisor salah.", "danger")
