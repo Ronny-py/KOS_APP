@@ -22,8 +22,9 @@
     .sidebar {
       width: var(--sidebar-w); background: var(--surface); border-right: 1px solid var(--border);
       display: flex; flex-direction: column; position: fixed; height: 100vh; z-index: 100;
+      overflow-y: auto;
     }
-    .sidebar-brand { padding: 24px 20px 16px; border-bottom: 1px solid var(--border); }
+    .sidebar-brand { padding: 24px 20px 16px; border-bottom: 1px solid var(--border); flex-shrink: 0; }
     .brand-logo {
       display: flex; align-items: center; gap: 10px; font-size: 18px; font-weight: 800;
       color: var(--text); text-decoration: none;
@@ -39,7 +40,7 @@
       color: #a78bfa; border-radius: 20px; padding: 2px 10px;
       font-size: 10px; font-weight: 700; margin-top: 6px; letter-spacing: .4px;
     }
-    .sidebar-nav { padding: 16px 12px; flex: 1; overflow-y: auto; }
+    .sidebar-nav { padding: 16px 12px; flex: 1; }
     .nav-section { margin-bottom: 24px; }
     .nav-label {
       font-size: 10px; font-weight: 700; letter-spacing: 1.2px;
@@ -53,7 +54,13 @@
     .nav-link:hover  { background: var(--surface2); color: var(--text); }
     .nav-link.active { background: rgba(124,58,237,.15); color: var(--accent); }
     .nav-icon { width: 18px; text-align: center; font-size: 16px; }
-    .sidebar-footer { padding: 16px; border-top: 1px solid var(--border); }
+
+    /* Divider antar seksi nav */
+    .nav-divider {
+      height: 1px; background: var(--border); margin: 8px 8px 16px;
+    }
+
+    .sidebar-footer { padding: 16px; border-top: 1px solid var(--border); flex-shrink: 0; }
     .user-info { display: flex; align-items: center; gap: 10px; }
     .user-avatar {
       width: 34px; height: 34px;
@@ -116,6 +123,10 @@
     .btn { display: inline-flex; align-items: center; gap: 6px; padding: 9px 18px; border-radius: 8px; font-size: 14px; font-weight: 600; cursor: pointer; border: none; text-decoration: none; transition: all .15s; font-family: var(--font); }
     .btn-primary { background: var(--accent); color: #fff; }
     .btn-primary:hover { opacity: .88; }
+    .btn-success { background: rgba(34,197,94,.2); color: var(--green); border: 1px solid rgba(34,197,94,.3); }
+    .btn-success:hover { background: rgba(34,197,94,.3); }
+    .btn-danger  { background: rgba(239,68,68,.15); color: var(--red); border: 1px solid rgba(239,68,68,.2); }
+    .btn-danger:hover  { background: rgba(239,68,68,.25); }
     .btn-sm { padding: 5px 12px; font-size: 12px; }
     .btn-outline { background: none; border: 1px solid var(--border); color: var(--muted); }
     .btn-outline:hover { border-color: var(--accent); color: var(--accent); }
@@ -124,19 +135,21 @@
     .filter-bar { display: flex; gap: 12px; align-items: flex-end; flex-wrap: wrap; margin-bottom: 20px; }
     .filter-bar input, .filter-bar select { min-width: 160px; }
     .form-group { margin-bottom: 18px; }
+    .form-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
     label { display: block; font-size: 13px; font-weight: 600; margin-bottom: 6px; color: var(--muted); }
     input, select, textarea {
       width: 100%; background: var(--surface2); border: 1px solid var(--border);
       border-radius: 8px; padding: 10px 14px; color: var(--text); font-family: var(--font);
       font-size: 14px; outline: none; transition: border-color .15s;
     }
-    input:focus, select:focus { border-color: var(--accent); }
+    input:focus, select:focus, textarea:focus { border-color: var(--accent); }
 
     /* ── Alert ── */
     .alert { padding: 12px 18px; border-radius: 8px; font-size: 14px; margin-bottom: 16px; }
     .alert-success { background: rgba(34,197,94,.12); border: 1px solid rgba(34,197,94,.25); color: var(--green); }
     .alert-danger  { background: rgba(239,68,68,.12);  border: 1px solid rgba(239,68,68,.25);  color: var(--red); }
     .alert-warning { background: rgba(234,179,8,.12);  border: 1px solid rgba(234,179,8,.25);  color: var(--yellow); }
+    .alert-info    { background: rgba(79,110,247,.12); border: 1px solid rgba(79,110,247,.25); color: var(--accent2); }
 
     /* ── Pagination ── */
     .pagination { display: flex; gap: 6px; align-items: center; margin-top: 20px; }
@@ -145,15 +158,27 @@
     .page-btn.active { background: var(--accent); color: #fff; border-color: var(--accent); }
     .page-btn.disabled { opacity: .4; pointer-events: none; }
 
+    /* ── Image viewer ── */
+    .bukti-thumb { width: 48px; height: 48px; border-radius: 6px; object-fit: cover; cursor: pointer; border: 1px solid var(--border); }
+    .modal-overlay { display: none; position: fixed; inset: 0; background: rgba(0,0,0,.85); z-index: 999; align-items: center; justify-content: center; }
+    .modal-overlay.show { display: flex; }
+    .modal-img { max-width: 90vw; max-height: 90vh; border-radius: 12px; }
+    .modal-close { position: absolute; top: 20px; right: 20px; background: rgba(255,255,255,.1); border: none; color: #fff; font-size: 24px; cursor: pointer; width: 40px; height: 40px; border-radius: 50%; display: flex; align-items: center; justify-content: center; }
+
     /* ── Utility ── */
     .flex { display: flex; } .gap-2 { gap: 8px; } .gap-3 { gap: 12px; }
     .items-center { align-items: center; } .justify-between { justify-content: space-between; }
-    .mt-3 { margin-top: 12px; } .mb-4 { margin-bottom: 16px; }
+    .mt-1 { margin-top: 4px; } .mt-2 { margin-top: 8px; } .mt-3 { margin-top: 12px; } .mb-4 { margin-bottom: 16px; }
     .text-muted { color: var(--muted); font-size: 13px; }
     .text-mono { font-family: var(--mono); font-size: 12px; }
+    .fw-bold { font-weight: 700; }
+    .text-green { color: var(--green); } .text-red { color: var(--red); } .text-accent { color: var(--accent); }
     .grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; }
     .empty { text-align: center; padding: 48px; color: var(--muted); }
     .empty .empty-icon { font-size: 48px; margin-bottom: 12px; }
+    .verified-chip { display: inline-flex; align-items: center; gap: 4px; font-size: 11px; padding: 2px 8px; border-radius: 10px; }
+    .verified-chip.yes { background: rgba(34,197,94,.12); color: var(--green); }
+    .verified-chip.no  { background: rgba(234,179,8,.12);  color: var(--yellow); }
   </style>
 </head>
 <body>
@@ -167,7 +192,10 @@
     </a>
     <div class="sv-chip">🛡️ SUPERVISOR</div>
   </div>
+
   <nav class="sidebar-nav">
+
+    <!-- ══ MENU SUPERVISOR (khusus) ══ -->
     <div class="nav-section">
       <div class="nav-label">Supervisor</div>
       <a href="{{ url_for('supervisor_bp.dashboard') }}"
@@ -183,6 +211,74 @@
         <span class="nav-icon">📋</span> Log Aktivitas Menu
       </a>
     </div>
+
+    <div class="nav-divider"></div>
+
+    <!-- ══ MENU ADMIN (akses penuh) ══ -->
+    <div class="nav-section">
+      <div class="nav-label">Menu Admin</div>
+      <a href="{{ url_for('dashboard.index') }}"
+         class="nav-link {% if request.endpoint == 'dashboard.index' %}active{% endif %}">
+        <span class="nav-icon">🏠</span> Dashboard Admin
+      </a>
+      <a href="{{ url_for('penghuni.index') }}"
+         class="nav-link {% if request.blueprint == 'penghuni' %}active{% endif %}">
+        <span class="nav-icon">👤</span> Penghuni
+      </a>
+      <a href="{{ url_for('tagihan.index') }}"
+         class="nav-link {% if request.blueprint == 'tagihan' %}active{% endif %}">
+        <span class="nav-icon">🧾</span> Tagihan
+      </a>
+      <a href="{{ url_for('pembayaran.index') }}"
+         class="nav-link {% if request.blueprint == 'pembayaran' %}active{% endif %}">
+        <span class="nav-icon">💳</span> Pembayaran
+      </a>
+      <a href="{{ url_for('pengeluaran.index') }}"
+         class="nav-link {% if request.blueprint == 'pengeluaran' %}active{% endif %}">
+        <span class="nav-icon">💸</span> Pengeluaran
+      </a>
+      <a href="{{ url_for('inventaris.index') }}"
+         class="nav-link {% if request.blueprint == 'inventaris' %}active{% endif %}">
+        <span class="nav-icon">📦</span> Inventaris
+      </a>
+      <a href="{{ url_for('wa_scheduler.status') }}"
+         class="nav-link {% if request.blueprint == 'wa_scheduler' %}active{% endif %}">
+        <span class="nav-icon">📲</span> Status WA
+      </a>
+      <a href="{{ url_for('komplain.index') }}"
+         class="nav-link {% if request.blueprint == 'komplain' %}active{% endif %}"
+         style="position:relative;">
+        <span class="nav-icon">🔧</span> Komplain
+        {% if komplain_baru_count is defined and komplain_baru_count %}
+        <span style="margin-left:auto; background:var(--red); color:#fff; border-radius:10px;
+                     padding:1px 7px; font-size:10px; font-weight:700;">{{ komplain_baru_count }}</span>
+        {% endif %}
+      </a>
+    </div>
+
+    <div class="nav-section">
+      <div class="nav-label">Laporan</div>
+      <a href="{{ url_for('laporan.pembayaran') }}"
+         class="nav-link {% if request.endpoint == 'laporan.pembayaran' %}active{% endif %}">
+        <span class="nav-icon">📄</span> Laporan Pembayaran
+      </a>
+      <a href="{{ url_for('laporan.pengeluaran') }}"
+         class="nav-link {% if request.endpoint == 'laporan.pengeluaran' %}active{% endif %}">
+        <span class="nav-icon">📊</span> Laporan Pengeluaran
+      </a>
+      <a href="{{ url_for('laporan_inventaris.index') }}"
+         class="nav-link {% if request.blueprint == 'laporan_inventaris' %}active{% endif %}">
+        <span class="nav-icon">📦</span> Laporan Inventaris
+      </a>
+      <a href="{{ url_for('komplain.laporan') }}"
+         class="nav-link {% if request.endpoint == 'komplain.laporan' %}active{% endif %}">
+        <span class="nav-icon">🔧</span> Laporan Komplain
+      </a>
+    </div>
+
+    <div class="nav-divider"></div>
+
+    <!-- ══ AKUN SUPERVISOR ══ -->
     <div class="nav-section">
       <div class="nav-label">Akun</div>
       <a href="{{ url_for('supervisor_bp.ganti_password') }}"
@@ -190,7 +286,9 @@
         <span class="nav-icon">🔑</span> Ganti Password
       </a>
     </div>
+
   </nav>
+
   <div class="sidebar-footer">
     <div class="user-info">
       <div class="user-avatar">{{ (session.supervisor_nama or 'S')[0] }}</div>
@@ -212,7 +310,7 @@
     </div>
   </div>
   <div class="content">
-    {% for cat in ['success','danger','warning'] %}
+    {% for cat in ['success','danger','info','warning'] %}
       {% for msg in get_flashed_messages(category_filter=[cat]) %}
         <div class="alert alert-{{ cat }}">{{ msg }}</div>
       {% endfor %}
@@ -220,6 +318,25 @@
     {% block content %}{% endblock %}
   </div>
 </div>
+
+<!-- Image modal -->
+<div class="modal-overlay" id="imgModal">
+  <button class="modal-close" onclick="closeModal()">✕</button>
+  <img id="modalImg" class="modal-img" src="" alt="Bukti Transfer">
+</div>
+
+<script>
+function showImg(src) {
+  document.getElementById('modalImg').src = src;
+  document.getElementById('imgModal').classList.add('show');
+}
+function closeModal() {
+  document.getElementById('imgModal').classList.remove('show');
+}
+document.getElementById('imgModal').addEventListener('click', function(e) {
+  if (e.target === this) closeModal();
+});
+</script>
 
 </body>
 </html>
