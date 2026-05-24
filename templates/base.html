@@ -629,7 +629,9 @@ function _statusHtml(running, ready) {
 async function waCheckStatus() {
   try {
     const r = await fetch('/wa-server/status');
-    const d = await r.json();
+    if (!r.ok) { _updateUI(false, false); return; }
+    let d;
+    try { d = await r.json(); } catch { _updateUI(false, false); return; }
     _updateUI(d.running, d.ready);
   } catch { _updateUI(false, false); }
 }
@@ -639,8 +641,9 @@ async function waStart() {
   btns.forEach(b => { b.disabled = true; b.textContent = '...'; });
   try {
     const r = await fetch('/wa-server/start', { method: 'POST' });
-    const d = await r.json();
-    if (!d.success) alert('Gagal: ' + d.message);
+    let d;
+    try { d = await r.json(); } catch { setTimeout(waCheckStatus, 500); return; }
+    if (!d.success) console.warn('WA start: ' + d.message);
     else {
       // Mulai polling status sampai running
       let tries = 0;
@@ -649,7 +652,7 @@ async function waStart() {
         if (_waRunning || ++tries > 15) clearInterval(poll);
       }, 1500);
     }
-  } catch(e) { alert('Error: ' + e); }
+  } catch(e) { console.warn('WA start error:', e); }
   setTimeout(waCheckStatus, 500);
 }
 
@@ -658,7 +661,7 @@ async function waStop() {
   try {
     await fetch('/wa-server/stop', { method: 'POST' });
     setTimeout(waCheckStatus, 800);
-  } catch(e) { alert('Error: ' + e); }
+  } catch(e) { console.warn('WA stop error:', e); }
 }
 
 async function waFetchLogs() {
