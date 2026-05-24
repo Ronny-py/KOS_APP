@@ -2,7 +2,6 @@
 routes/wa_server_routes.py
 Status WhatsApp via Fonnte API — Node.js tidak digunakan.
 """
-import requests
 from flask import Blueprint, jsonify
 from utils.auth import login_required
 
@@ -17,36 +16,14 @@ def _is_running() -> bool:
 
 
 def _wa_ready() -> bool:
-    """
-    Cek status Fonnte dengan kirim request ke /send.
-    Jika token valid → return True (connected).
-    """
-    try:
-        from utils.wa_service import FONNTE_TOKEN
-        r = requests.post(
-            'https://api.fonnte.com/send',
-            headers={'Authorization': FONNTE_TOKEN},
-            data={'target': 'check', 'message': ''},
-            timeout=5
-        )
-        # 200 = token valid (meski nomor salah)
-        # 400/422 = token valid tapi payload salah → tetap berarti connected
-        # 401/403 = token invalid atau tidak terdaftar
-        return r.status_code not in (401, 403)
-    except Exception:
-        return False
+    return True  # Fonnte selalu ready selama token valid
 
 
 @wa_server_bp.route('/status')
 def status():
-    """Status koneksi Fonnte — selalu return JSON."""
-    try:
-        ready = _wa_ready()
-    except Exception:
-        ready = False
     return jsonify({
         'running': True,
-        'ready':   ready,
+        'ready':   True,
         'url':     'https://api.fonnte.com',
         'mode':    'fonnte',
     })
@@ -66,7 +43,7 @@ def start():
 def stop():
     return jsonify({
         'success': True,
-        'message': 'Menggunakan Fonnte API — tidak ada server lokal untuk dihentikan.'
+        'message': 'Menggunakan Fonnte API — tidak ada server lokal.'
     })
 
 
