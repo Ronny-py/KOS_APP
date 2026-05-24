@@ -280,6 +280,14 @@
 
     <!-- ══ AKUN SUPERVISOR ══ -->
     <div class="nav-section">
+      <div class="nav-label">Sistem</div>
+      <a href="{{ url_for('backup.index') }}"
+         class="nav-link {% if request.blueprint == 'backup' %}active{% endif %}">
+        <span class="nav-icon">🗄️</span> Backup & Restore
+      </a>
+    </div>
+
+    <div class="nav-section">
       <div class="nav-label">Akun</div>
       <a href="{{ url_for('supervisor_bp.ganti_password') }}"
          class="nav-link {% if request.endpoint == 'supervisor_bp.ganti_password' %}active{% endif %}">
