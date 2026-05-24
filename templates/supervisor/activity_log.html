@@ -1,0 +1,120 @@
+{% extends "supervisor/base_supervisor.html" %}
+{% block title %}Log Aktivitas Menu{% endblock %}
+{% block page_title %}Log Aktivitas Menu{% endblock %}
+{% block breadcrumb %}Halaman dan menu apa saja yang diakses admin{% endblock %}
+
+{% block content %}
+
+<div style="display:grid; grid-template-columns:1fr 2fr; gap:20px; align-items:start;">
+
+  <!-- Rekap per Menu -->
+  <div class="card">
+    <div class="card-header">
+      <div class="card-title">📊 Rekap per Menu</div>
+    </div>
+    {% if menu_recap %}
+    <div class="table-wrap">
+      <table>
+        <thead><tr><th>Menu</th><th style="text-align:right;">Akses</th></tr></thead>
+        <tbody>
+          {% for m in menu_recap %}
+          <tr>
+            <td style="font-size:13px;">{{ m.menu_label }}</td>
+            <td style="text-align:right;">
+              <span class="text-mono" style="color:var(--accent); font-weight:700;">{{ m.cnt }}</span>
+            </td>
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+    {% else %}
+    <div class="empty"><div class="empty-icon">📊</div>Belum ada data.</div>
+    {% endif %}
+  </div>
+
+  <!-- Detail Log -->
+  <div class="card">
+    <div class="card-header">
+      <div class="card-title">📋 Detail Aktivitas ({{ total }} entri)</div>
+    </div>
+
+    <form method="GET" class="filter-bar">
+      <div>
+        <label>Username</label>
+        <input type="text" name="username" value="{{ username_filter }}" placeholder="Cari username...">
+      </div>
+      <div>
+        <label>Menu / Halaman</label>
+        <input type="text" name="menu" value="{{ menu_filter }}" placeholder="Cari menu...">
+      </div>
+      <div style="align-self:flex-end;">
+        <button type="submit" class="btn btn-primary btn-sm">🔍 Filter</button>
+        <a href="{{ url_for('supervisor_bp.activity_log') }}" class="btn btn-outline btn-sm">Reset</a>
+      </div>
+    </form>
+
+    {% if logs %}
+    <div class="table-wrap">
+      <table>
+        <thead>
+          <tr>
+            <th>Waktu</th>
+            <th>Username</th>
+            <th>Menu / Halaman</th>
+            <th>Method</th>
+            <th>IP</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for a in logs %}
+          <tr>
+            <td class="text-mono" style="font-size:12px; white-space:nowrap;">{{ a.created_at }}</td>
+            <td><strong>{{ a.username }}</strong></td>
+            <td>
+              <div style="font-size:13px;">{{ a.menu_label or a.endpoint }}</div>
+              {% if a.endpoint and a.menu_label != a.endpoint %}
+              <div class="text-mono text-muted" style="font-size:10px;">{{ a.endpoint }}</div>
+              {% endif %}
+            </td>
+            <td>
+              {% if a.method == 'POST' %}
+                <span class="badge badge-warning">POST</span>
+              {% else %}
+                <span class="badge badge-secondary">GET</span>
+              {% endif %}
+            </td>
+            <td class="text-mono" style="font-size:12px;">{{ a.ip_address or '-' }}</td>
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+
+    <!-- Pagination -->
+    {% if total_pages > 1 %}
+    <div class="pagination">
+      <a href="?page={{ page-1 }}&username={{ username_filter }}&menu={{ menu_filter }}"
+         class="page-btn {% if page == 1 %}disabled{% endif %}">← Prev</a>
+      {% for p in range(1, total_pages+1) %}
+        {% if p == page %}
+          <span class="page-btn active">{{ p }}</span>
+        {% elif p <= 3 or p >= total_pages-2 or (p >= page-2 and p <= page+2) %}
+          <a href="?page={{ p }}&username={{ username_filter }}&menu={{ menu_filter }}"
+             class="page-btn">{{ p }}</a>
+        {% elif p == 4 or p == total_pages-3 %}
+          <span class="text-muted" style="padding:0 4px;">…</span>
+        {% endif %}
+      {% endfor %}
+      <a href="?page={{ page+1 }}&username={{ username_filter }}&menu={{ menu_filter }}"
+         class="page-btn {% if page == total_pages %}disabled{% endif %}">Next →</a>
+    </div>
+    {% endif %}
+
+    {% else %}
+    <div class="empty"><div class="empty-icon">📋</div>Tidak ada aktivitas yang cocok.</div>
+    {% endif %}
+  </div>
+
+</div>
+{% endblock %}

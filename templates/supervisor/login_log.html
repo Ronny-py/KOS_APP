@@ -1,0 +1,146 @@
+{% extends "supervisor/base_supervisor.html" %}
+{% block title %}Log Login Admin{% endblock %}
+{% block page_title %}Log Login Admin{% endblock %}
+{% block breadcrumb %}Riwayat login, IP address, lokasi{% endblock %}
+
+{% block content %}
+
+<!-- Rekap per User -->
+<div class="card mb-4">
+  <div class="card-header">
+    <div class="card-title">👤 Rekap Login per Akun Admin</div>
+  </div>
+  {% if per_user %}
+  <div class="table-wrap">
+    <table>
+      <thead>
+        <tr>
+          <th>Username</th>
+          <th>Total Login</th>
+          <th>Berhasil</th>
+          <th>Gagal</th>
+          <th>Login Terakhir</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for u in per_user %}
+        <tr>
+          <td><strong>{{ u.username }}</strong></td>
+          <td class="text-mono" style="color:var(--accent);">{{ u.total }}</td>
+          <td><span class="badge badge-success">{{ u.sukses }}</span></td>
+          <td>
+            {% if u.gagal > 0 %}
+              <span class="badge badge-danger">{{ u.gagal }}</span>
+            {% else %}
+              <span class="text-muted">0</span>
+            {% endif %}
+          </td>
+          <td class="text-mono text-muted">{{ u.terakhir or '-' }}</td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+  {% else %}
+  <div class="empty"><div class="empty-icon">👤</div>Belum ada data.</div>
+  {% endif %}
+</div>
+
+<!-- Filter -->
+<div class="card">
+  <div class="card-header">
+    <div class="card-title">🔐 Detail Log Login ({{ total }} entri)</div>
+  </div>
+
+  <form method="GET" class="filter-bar">
+    <div>
+      <label>Username</label>
+      <input type="text" name="username" value="{{ username_filter }}" placeholder="Cari username...">
+    </div>
+    <div>
+      <label>Status</label>
+      <select name="status">
+        <option value="">Semua</option>
+        <option value="success" {% if status_filter=='success' %}selected{% endif %}>Berhasil</option>
+        <option value="failed"  {% if status_filter=='failed'  %}selected{% endif %}>Gagal</option>
+      </select>
+    </div>
+    <div style="align-self:flex-end;">
+      <button type="submit" class="btn btn-primary btn-sm">🔍 Filter</button>
+      <a href="{{ url_for('supervisor_bp.login_log') }}" class="btn btn-outline btn-sm">Reset</a>
+    </div>
+  </form>
+
+  {% if logs %}
+  <div class="table-wrap">
+    <table>
+      <thead>
+        <tr>
+          <th>#</th>
+          <th>Waktu</th>
+          <th>Username</th>
+          <th>Status</th>
+          <th>IP Address</th>
+          <th>Kota</th>
+          <th>Provinsi</th>
+          <th>Negara</th>
+          <th>Koordinat</th>
+          <th>User Agent</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for l in logs %}
+        <tr>
+          <td class="text-muted">{{ l.id }}</td>
+          <td class="text-mono" style="white-space:nowrap; font-size:12px;">{{ l.created_at }}</td>
+          <td><strong>{{ l.username }}</strong></td>
+          <td>
+            {% if l.status == 'success' %}
+              <span class="badge badge-success">✅ Berhasil</span>
+            {% else %}
+              <span class="badge badge-danger">❌ Gagal</span>
+            {% endif %}
+          </td>
+          <td class="text-mono">{{ l.ip_address or '-' }}</td>
+          <td>{{ l.city or '-' }}</td>
+          <td>{{ l.region or '-' }}</td>
+          <td>{{ l.country or '-' }}</td>
+          <td class="text-mono" style="font-size:11px;">
+            {% if l.latitude and l.latitude != '-' %}
+              {{ l.latitude }}, {{ l.longitude }}
+            {% else %}–{% endif %}
+          </td>
+          <td class="text-muted" style="font-size:11px; max-width:200px; overflow:hidden; text-overflow:ellipsis; white-space:nowrap;">
+            {{ l.user_agent or '-' }}
+          </td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+
+  <!-- Pagination -->
+  {% if total_pages > 1 %}
+  <div class="pagination">
+    <a href="?page={{ page-1 }}&username={{ username_filter }}&status={{ status_filter }}"
+       class="page-btn {% if page == 1 %}disabled{% endif %}">← Prev</a>
+    {% for p in range(1, total_pages+1) %}
+      {% if p == page %}
+        <span class="page-btn active">{{ p }}</span>
+      {% elif p <= 3 or p >= total_pages-2 or (p >= page-2 and p <= page+2) %}
+        <a href="?page={{ p }}&username={{ username_filter }}&status={{ status_filter }}"
+           class="page-btn">{{ p }}</a>
+      {% elif p == 4 or p == total_pages-3 %}
+        <span class="text-muted" style="padding:0 4px;">…</span>
+      {% endif %}
+    {% endfor %}
+    <a href="?page={{ page+1 }}&username={{ username_filter }}&status={{ status_filter }}"
+       class="page-btn {% if page == total_pages %}disabled{% endif %}">Next →</a>
+  </div>
+  {% endif %}
+
+  {% else %}
+  <div class="empty"><div class="empty-icon">🔐</div>Tidak ada data login yang cocok.</div>
+  {% endif %}
+</div>
+{% endblock %}

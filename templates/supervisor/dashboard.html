@@ -1,0 +1,149 @@
+{% extends "supervisor/base_supervisor.html" %}
+{% block title %}Dashboard Supervisor{% endblock %}
+{% block page_title %}Dashboard Supervisor{% endblock %}
+{% block breadcrumb %}Ringkasan aktivitas admin{% endblock %}
+
+{% block content %}
+<!-- Stat Cards -->
+<div class="stats-grid">
+  <div class="stat-card accent">
+    <div class="stat-label">Total Login</div>
+    <div class="stat-value">{{ total_login }}</div>
+  </div>
+  <div class="stat-card green">
+    <div class="stat-label">Login Berhasil</div>
+    <div class="stat-value">{{ login_sukses }}</div>
+  </div>
+  <div class="stat-card red">
+    <div class="stat-label">Login Gagal</div>
+    <div class="stat-value">{{ login_gagal }}</div>
+  </div>
+  <div class="stat-card yellow">
+    <div class="stat-label">Total Aksi Menu</div>
+    <div class="stat-value">{{ total_aksi }}</div>
+  </div>
+</div>
+
+<div class="grid-2">
+  <!-- Log Login Terakhir -->
+  <div class="card">
+    <div class="card-header">
+      <div class="card-title">🔐 10 Login Terakhir</div>
+      <a href="{{ url_for('supervisor_bp.login_log') }}" class="btn btn-outline btn-sm">Lihat Semua</a>
+    </div>
+    {% if recent_logins %}
+    <div class="table-wrap">
+      <table>
+        <thead>
+          <tr>
+            <th>Waktu</th>
+            <th>Username</th>
+            <th>IP</th>
+            <th>Lokasi</th>
+            <th>Status</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for l in recent_logins %}
+          <tr>
+            <td class="text-mono" style="white-space:nowrap;">{{ l.created_at }}</td>
+            <td><strong>{{ l.username }}</strong></td>
+            <td class="text-mono">{{ l.ip_address or '-' }}</td>
+            <td class="text-muted">
+              {% if l.city and l.city != '-' %}
+                {{ l.city }}, {{ l.country }}
+              {% else %}–{% endif %}
+            </td>
+            <td>
+              {% if l.status == 'success' %}
+                <span class="badge badge-success">✅ Berhasil</span>
+              {% else %}
+                <span class="badge badge-danger">❌ Gagal</span>
+              {% endif %}
+            </td>
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+    {% else %}
+    <div class="empty"><div class="empty-icon">🔐</div>Belum ada data login.</div>
+    {% endif %}
+  </div>
+
+  <!-- Top Menu -->
+  <div class="card">
+    <div class="card-header">
+      <div class="card-title">📋 Menu Paling Sering Diakses</div>
+      <a href="{{ url_for('supervisor_bp.activity_log') }}" class="btn btn-outline btn-sm">Detail</a>
+    </div>
+    {% if top_menu %}
+    <div class="table-wrap">
+      <table>
+        <thead><tr><th>Menu</th><th>Jumlah Akses</th></tr></thead>
+        <tbody>
+          {% for m in top_menu %}
+          <tr>
+            <td>{{ m.menu_label }}</td>
+            <td>
+              <div style="display:flex; align-items:center; gap:10px;">
+                <span class="text-mono" style="color:var(--accent); font-weight:700;">{{ m.cnt }}</span>
+                <div style="flex:1; background:var(--surface2); border-radius:4px; height:6px;">
+                  <div style="background:var(--accent); height:6px; border-radius:4px;
+                              width:{{ [(m.cnt / top_menu[0].cnt * 100)|int, 100]|min }}%"></div>
+                </div>
+              </div>
+            </td>
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+    {% else %}
+    <div class="empty"><div class="empty-icon">📋</div>Belum ada aktivitas tercatat.</div>
+    {% endif %}
+  </div>
+</div>
+
+<!-- Aktivitas Terakhir -->
+<div class="card" style="margin-top:20px;">
+  <div class="card-header">
+    <div class="card-title">⚡ 10 Aktivitas Menu Terakhir</div>
+    <a href="{{ url_for('supervisor_bp.activity_log') }}" class="btn btn-outline btn-sm">Lihat Semua</a>
+  </div>
+  {% if recent_activity %}
+  <div class="table-wrap">
+    <table>
+      <thead>
+        <tr>
+          <th>Waktu</th>
+          <th>Username</th>
+          <th>Menu / Halaman</th>
+          <th>Method</th>
+          <th>IP</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for a in recent_activity %}
+        <tr>
+          <td class="text-mono" style="white-space:nowrap;">{{ a.created_at }}</td>
+          <td><strong>{{ a.username }}</strong></td>
+          <td>{{ a.menu_label or a.endpoint }}</td>
+          <td>
+            {% if a.method == 'POST' %}
+              <span class="badge badge-warning">POST</span>
+            {% else %}
+              <span class="badge badge-secondary">GET</span>
+            {% endif %}
+          </td>
+          <td class="text-mono">{{ a.ip_address or '-' }}</td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+  {% else %}
+  <div class="empty"><div class="empty-icon">⚡</div>Belum ada aktivitas tercatat.</div>
+  {% endif %}
+</div>
+{% endblock %}

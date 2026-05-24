@@ -1,0 +1,225 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>{% block title %}Supervisor{% endblock %} — KostPay</title>
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --bg: #0f1117; --surface: #1a1d27; --surface2: #222535;
+      --border: #2e3347; --accent: #7c3aed; --accent2: #4f6ef7;
+      --green: #22c55e; --yellow: #eab308; --red: #ef4444;
+      --text: #e2e8f0; --muted: #8892a4;
+      --font: 'Plus Jakarta Sans', sans-serif;
+      --mono: 'JetBrains Mono', monospace;
+      --radius: 12px; --sidebar-w: 240px;
+    }
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body { font-family: var(--font); background: var(--bg); color: var(--text); min-height: 100vh; display: flex; }
+
+    /* ── Sidebar ── */
+    .sidebar {
+      width: var(--sidebar-w); background: var(--surface); border-right: 1px solid var(--border);
+      display: flex; flex-direction: column; position: fixed; height: 100vh; z-index: 100;
+    }
+    .sidebar-brand { padding: 24px 20px 16px; border-bottom: 1px solid var(--border); }
+    .brand-logo {
+      display: flex; align-items: center; gap: 10px; font-size: 18px; font-weight: 800;
+      color: var(--text); text-decoration: none;
+    }
+    .brand-logo .icon {
+      width: 36px; height: 36px;
+      background: linear-gradient(135deg, var(--accent), var(--accent2));
+      border-radius: 10px; display: flex; align-items: center; justify-content: center; font-size: 18px;
+    }
+    .sv-chip {
+      display: inline-flex; align-items: center; gap: 4px;
+      background: rgba(124,58,237,.15); border: 1px solid rgba(124,58,237,.3);
+      color: #a78bfa; border-radius: 20px; padding: 2px 10px;
+      font-size: 10px; font-weight: 700; margin-top: 6px; letter-spacing: .4px;
+    }
+    .sidebar-nav { padding: 16px 12px; flex: 1; overflow-y: auto; }
+    .nav-section { margin-bottom: 24px; }
+    .nav-label {
+      font-size: 10px; font-weight: 700; letter-spacing: 1.2px;
+      text-transform: uppercase; color: var(--muted); padding: 0 8px 8px;
+    }
+    .nav-link {
+      display: flex; align-items: center; gap: 10px; padding: 10px 12px;
+      border-radius: 8px; text-decoration: none; color: var(--muted);
+      font-size: 14px; font-weight: 500; transition: all .15s; margin-bottom: 2px;
+    }
+    .nav-link:hover  { background: var(--surface2); color: var(--text); }
+    .nav-link.active { background: rgba(124,58,237,.15); color: var(--accent); }
+    .nav-icon { width: 18px; text-align: center; font-size: 16px; }
+    .sidebar-footer { padding: 16px; border-top: 1px solid var(--border); }
+    .user-info { display: flex; align-items: center; gap: 10px; }
+    .user-avatar {
+      width: 34px; height: 34px;
+      background: linear-gradient(135deg, var(--accent), var(--accent2));
+      border-radius: 50%; display: flex; align-items: center; justify-content: center;
+      font-weight: 700; font-size: 14px;
+    }
+    .user-name { font-size: 13px; font-weight: 600; }
+    .logout-btn {
+      margin-left: auto; background: none; border: 1px solid var(--border);
+      color: var(--muted); padding: 4px 10px; border-radius: 6px;
+      cursor: pointer; font-size: 12px; text-decoration: none; transition: all .15s;
+    }
+    .logout-btn:hover { border-color: var(--red); color: var(--red); }
+
+    /* ── Main ── */
+    .main { margin-left: var(--sidebar-w); flex: 1; min-height: 100vh; }
+    .topbar {
+      height: 60px; background: var(--surface); border-bottom: 1px solid var(--border);
+      display: flex; align-items: center; padding: 0 28px; gap: 16px;
+    }
+    .topbar h1 { font-size: 18px; font-weight: 700; }
+    .topbar .breadcrumb { font-size: 13px; color: var(--muted); }
+    .content { padding: 28px; }
+
+    /* ── Cards ── */
+    .card { background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius); padding: 24px; }
+    .card-header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 20px; }
+    .card-title { font-size: 16px; font-weight: 700; }
+
+    /* ── Stats ── */
+    .stats-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px,1fr)); gap: 16px; margin-bottom: 24px; }
+    .stat-card { background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius); padding: 20px; }
+    .stat-label { font-size: 12px; color: var(--muted); font-weight: 600; text-transform: uppercase; letter-spacing: .5px; margin-bottom: 8px; }
+    .stat-value { font-size: 28px; font-weight: 800; font-family: var(--mono); }
+    .stat-card.accent .stat-value { color: var(--accent); }
+    .stat-card.green  .stat-value { color: var(--green); }
+    .stat-card.yellow .stat-value { color: var(--yellow); }
+    .stat-card.red    .stat-value { color: var(--red); }
+
+    /* ── Table ── */
+    .table-wrap { overflow-x: auto; }
+    table { width: 100%; border-collapse: collapse; font-size: 14px; }
+    th { background: var(--surface2); color: var(--muted); font-size: 11px; font-weight: 700;
+         text-transform: uppercase; letter-spacing: .6px; padding: 10px 14px; text-align: left; }
+    td { padding: 12px 14px; border-bottom: 1px solid var(--border); }
+    tr:hover td { background: rgba(255,255,255,.02); }
+    tr:last-child td { border-bottom: none; }
+
+    /* ── Badge ── */
+    .badge { display: inline-flex; align-items: center; padding: 3px 10px; border-radius: 20px; font-size: 12px; font-weight: 600; }
+    .badge-success  { background: rgba(34,197,94,.15);  color: var(--green); }
+    .badge-danger   { background: rgba(239,68,68,.15);  color: var(--red); }
+    .badge-warning  { background: rgba(234,179,8,.15);  color: var(--yellow); }
+    .badge-info     { background: rgba(79,110,247,.15); color: var(--accent2); }
+    .badge-purple   { background: rgba(124,58,237,.15); color: #a78bfa; }
+    .badge-secondary{ background: var(--surface2); color: var(--muted); }
+
+    /* ── Btn ── */
+    .btn { display: inline-flex; align-items: center; gap: 6px; padding: 9px 18px; border-radius: 8px; font-size: 14px; font-weight: 600; cursor: pointer; border: none; text-decoration: none; transition: all .15s; font-family: var(--font); }
+    .btn-primary { background: var(--accent); color: #fff; }
+    .btn-primary:hover { opacity: .88; }
+    .btn-sm { padding: 5px 12px; font-size: 12px; }
+    .btn-outline { background: none; border: 1px solid var(--border); color: var(--muted); }
+    .btn-outline:hover { border-color: var(--accent); color: var(--accent); }
+
+    /* ── Form ── */
+    .filter-bar { display: flex; gap: 12px; align-items: flex-end; flex-wrap: wrap; margin-bottom: 20px; }
+    .filter-bar input, .filter-bar select { min-width: 160px; }
+    .form-group { margin-bottom: 18px; }
+    label { display: block; font-size: 13px; font-weight: 600; margin-bottom: 6px; color: var(--muted); }
+    input, select, textarea {
+      width: 100%; background: var(--surface2); border: 1px solid var(--border);
+      border-radius: 8px; padding: 10px 14px; color: var(--text); font-family: var(--font);
+      font-size: 14px; outline: none; transition: border-color .15s;
+    }
+    input:focus, select:focus { border-color: var(--accent); }
+
+    /* ── Alert ── */
+    .alert { padding: 12px 18px; border-radius: 8px; font-size: 14px; margin-bottom: 16px; }
+    .alert-success { background: rgba(34,197,94,.12); border: 1px solid rgba(34,197,94,.25); color: var(--green); }
+    .alert-danger  { background: rgba(239,68,68,.12);  border: 1px solid rgba(239,68,68,.25);  color: var(--red); }
+    .alert-warning { background: rgba(234,179,8,.12);  border: 1px solid rgba(234,179,8,.25);  color: var(--yellow); }
+
+    /* ── Pagination ── */
+    .pagination { display: flex; gap: 6px; align-items: center; margin-top: 20px; }
+    .page-btn { padding: 6px 14px; border-radius: 6px; font-size: 13px; font-weight: 600; text-decoration: none; border: 1px solid var(--border); color: var(--muted); background: var(--surface2); }
+    .page-btn:hover { border-color: var(--accent); color: var(--accent); }
+    .page-btn.active { background: var(--accent); color: #fff; border-color: var(--accent); }
+    .page-btn.disabled { opacity: .4; pointer-events: none; }
+
+    /* ── Utility ── */
+    .flex { display: flex; } .gap-2 { gap: 8px; } .gap-3 { gap: 12px; }
+    .items-center { align-items: center; } .justify-between { justify-content: space-between; }
+    .mt-3 { margin-top: 12px; } .mb-4 { margin-bottom: 16px; }
+    .text-muted { color: var(--muted); font-size: 13px; }
+    .text-mono { font-family: var(--mono); font-size: 12px; }
+    .grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; }
+    .empty { text-align: center; padding: 48px; color: var(--muted); }
+    .empty .empty-icon { font-size: 48px; margin-bottom: 12px; }
+  </style>
+</head>
+<body>
+
+<!-- Sidebar Supervisor -->
+<aside class="sidebar">
+  <div class="sidebar-brand">
+    <a href="{{ url_for('supervisor_bp.dashboard') }}" class="brand-logo">
+      <div class="icon">🔍</div>
+      KostPay
+    </a>
+    <div class="sv-chip">🛡️ SUPERVISOR</div>
+  </div>
+  <nav class="sidebar-nav">
+    <div class="nav-section">
+      <div class="nav-label">Supervisor</div>
+      <a href="{{ url_for('supervisor_bp.dashboard') }}"
+         class="nav-link {% if request.endpoint == 'supervisor_bp.dashboard' %}active{% endif %}">
+        <span class="nav-icon">📊</span> Dashboard
+      </a>
+      <a href="{{ url_for('supervisor_bp.login_log') }}"
+         class="nav-link {% if request.endpoint == 'supervisor_bp.login_log' %}active{% endif %}">
+        <span class="nav-icon">🔐</span> Log Login Admin
+      </a>
+      <a href="{{ url_for('supervisor_bp.activity_log') }}"
+         class="nav-link {% if request.endpoint == 'supervisor_bp.activity_log' %}active{% endif %}">
+        <span class="nav-icon">📋</span> Log Aktivitas Menu
+      </a>
+    </div>
+    <div class="nav-section">
+      <div class="nav-label">Akun</div>
+      <a href="{{ url_for('supervisor_bp.ganti_password') }}"
+         class="nav-link {% if request.endpoint == 'supervisor_bp.ganti_password' %}active{% endif %}">
+        <span class="nav-icon">🔑</span> Ganti Password
+      </a>
+    </div>
+  </nav>
+  <div class="sidebar-footer">
+    <div class="user-info">
+      <div class="user-avatar">{{ (session.supervisor_nama or 'S')[0] }}</div>
+      <div class="user-name">{{ session.supervisor_nama or 'Supervisor' }}</div>
+      <a href="{{ url_for('supervisor_bp.logout') }}" class="logout-btn">Keluar</a>
+    </div>
+  </div>
+</aside>
+
+<!-- Main -->
+<div class="main">
+  <div class="topbar">
+    <div>
+      <h1>{% block page_title %}Supervisor{% endblock %}</h1>
+      <div class="breadcrumb">{% block breadcrumb %}{% endblock %}</div>
+    </div>
+    <div style="margin-left:auto; display:flex; gap:10px; align-items:center;">
+      {% block topbar_actions %}{% endblock %}
+    </div>
+  </div>
+  <div class="content">
+    {% for cat in ['success','danger','warning'] %}
+      {% for msg in get_flashed_messages(category_filter=[cat]) %}
+        <div class="alert alert-{{ cat }}">{{ msg }}</div>
+      {% endfor %}
+    {% endfor %}
+    {% block content %}{% endblock %}
+  </div>
+</div>
+
+</body>
+</html>
