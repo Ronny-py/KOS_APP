@@ -25,7 +25,6 @@ from routes.inventaris_routes         import inventaris_bp
 from routes.laporan_inventaris_routes import laporan_inventaris_bp
 from routes.notif_wa_routes           import notif_wa_bp
 from routes.kirim_wa_routes           import kirim_wa_bp      # ← BARU
-from routes.wa_server_routes          import wa_server_bp     # ← BARU
 from routes.chatbot_routes            import chatbot_bp
 from routes.bukti_transfer_routes     import bukti_transfer_bp   # ← BARU
 from routes.wa_scheduler_routes      import wa_scheduler_bp     # ← BARU
@@ -62,7 +61,6 @@ def create_app():
     app.register_blueprint(notif_wa_bp)                      # ← BARU
     app.register_blueprint(kirim_wa_bp)                      # ← BARU
     app.register_blueprint(kirim_wa_bp, url_prefix='/wa', name='kirim_wa_wa')  # broadcast prefix
-    app.register_blueprint(wa_server_bp)                     # ← BARU
     app.register_blueprint(chatbot_bp)
     app.register_blueprint(bukti_transfer_bp)                    # ← BARU
     app.register_blueprint(wa_scheduler_bp)                      # ← BARU
@@ -95,30 +93,6 @@ def create_app():
         except Exception as e:
             app.logger.warning(f"Scheduler tidak bisa distart: {e}")
 
-    # ── Auto-start WA server (Node.js) saat Flask start ───────────────────
-    if not app.testing and _os.environ.get("WERKZEUG_RUN_MAIN") != "false":
-        try:
-            from routes.wa_server_routes import _is_running, WA_SERVER_DIR, _wa_process
-            import subprocess, sys
-            if not _is_running():
-                server_js = _os.path.join(WA_SERVER_DIR, 'server.js')
-                if _os.path.isfile(server_js):
-                    import routes.wa_server_routes as _wa_mod
-                    _wa_mod._wa_process = subprocess.Popen(
-                        ['node', 'server.js'],
-                        cwd=WA_SERVER_DIR,
-                        stdout=subprocess.PIPE,
-                        stderr=subprocess.STDOUT,
-                        text=True,
-                        creationflags=subprocess.CREATE_NO_WINDOW if sys.platform == 'win32' else 0,
-                    )
-                    app.logger.info("WA server auto-started saat Flask start.")
-                else:
-                    app.logger.warning(f"server.js tidak ditemukan di {WA_SERVER_DIR}")
-            else:
-                app.logger.info("WA server sudah berjalan, skip auto-start.")
-        except Exception as e:
-            app.logger.warning(f"WA server tidak bisa auto-start: {e}")
 
     return app
 
