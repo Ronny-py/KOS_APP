@@ -1,0 +1,168 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Cek Status Komplain — Thalib Residence</title>
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;600;800&display=swap" rel="stylesheet">
+  <style>
+    :root { --accent:#4f6ef7; --accent2:#7c3aed; --yellow:#eab308; --green:#22c55e; --red:#ef4444; }
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      font-family: 'Plus Jakarta Sans', sans-serif;
+      background: #0f1117; color: #e2e8f0;
+      min-height: 100vh; padding: 24px 16px;
+    }
+    .container { max-width: 480px; margin: 0 auto; }
+    .back-btn {
+      display: inline-flex; align-items: center; gap: 6px;
+      color: #8892a4; font-size: 13px; text-decoration: none;
+      margin-bottom: 20px; transition: color .15s;
+    }
+    .back-btn:hover { color: var(--accent); }
+    .page-header { text-align: center; margin-bottom: 28px; }
+    .page-header .icon { font-size: 36px; margin-bottom: 8px; }
+    .page-header h1 { font-size: 22px; font-weight: 800; }
+    .page-header p { font-size: 13px; color: #8892a4; margin-top: 4px; }
+
+    .card {
+      background: #1a1d27; border: 1px solid #2e3347;
+      border-radius: 16px; padding: 20px; margin-bottom: 16px;
+    }
+    .form-group { margin-bottom: 14px; }
+    label { display: block; font-size: 12px; font-weight: 700; color: #8892a4; margin-bottom: 6px; }
+    input {
+      width: 100%; background: #222535; border: 1px solid #2e3347;
+      border-radius: 10px; padding: 12px 14px; color: #e2e8f0;
+      font-family: inherit; font-size: 14px; outline: none;
+      transition: border-color .15s;
+    }
+    input:focus { border-color: var(--accent); }
+
+    .btn-cek {
+      width: 100%; padding: 13px;
+      background: linear-gradient(135deg, var(--yellow), #ca9a06);
+      color: #000; border: none; border-radius: 10px;
+      font-size: 14px; font-weight: 800; cursor: pointer;
+      font-family: inherit; transition: opacity .15s;
+      display: flex; align-items: center; justify-content: center; gap: 6px;
+    }
+    .btn-cek:hover { opacity: .9; }
+    .btn-cek:disabled { opacity: .5; cursor: not-allowed; }
+
+    .alert-err {
+      background: rgba(239,68,68,.1); border: 1px solid rgba(239,68,68,.25);
+      border-radius: 10px; padding: 12px 14px;
+      font-size: 13px; color: #f87171; margin-bottom: 14px; display: none;
+    }
+
+    /* Hasil — bubble chat style */
+    #hasil { display: none; }
+    .hasil-label {
+      font-size: 11px; font-weight: 700; color: #8892a4;
+      text-transform: uppercase; letter-spacing: 1px;
+      margin-bottom: 10px;
+    }
+    .reply-bubble {
+      background: #222535; border: 1px solid #2e3347;
+      border-radius: 4px 14px 14px 14px;
+      padding: 16px 18px;
+      font-size: 13px; line-height: 1.8;
+      white-space: pre-wrap; word-break: break-word;
+    }
+    /* Bold teks antara * * */
+    .reply-bubble b { color: #e2e8f0; font-weight: 800; }
+
+    .spinner {
+      display: inline-block; width: 16px; height: 16px;
+      border: 2px solid rgba(0,0,0,.3); border-top-color: #000;
+      border-radius: 50%; animation: spin .6s linear infinite;
+    }
+    @keyframes spin { to { transform: rotate(360deg); } }
+  </style>
+</head>
+<body>
+<div class="container">
+  <a href="/login" class="back-btn">← Kembali</a>
+
+  <div class="page-header">
+    <div class="icon">📋</div>
+    <h1>Cek Status Komplain</h1>
+    <p>Thalib Residence — Masukkan nama & nomor kamar kamu</p>
+  </div>
+
+  <div class="card">
+    <div id="alert-err" class="alert-err"></div>
+    <div class="form-group">
+      <label>NAMA LENGKAP</label>
+      <input type="text" id="inp-nama" placeholder="Contoh: Budi Santoso" autocomplete="off">
+    </div>
+    <div class="form-group">
+      <label>NOMOR KAMAR</label>
+      <input type="text" id="inp-kamar" placeholder="Contoh: 101 atau M201" autocomplete="off">
+    </div>
+    <button class="btn-cek" id="btn-cek" onclick="cekStatus()">
+      🔍 Cek Status Komplain
+    </button>
+  </div>
+
+  <div id="hasil">
+    <div class="hasil-label">📬 Hasil Pencarian</div>
+    <div class="reply-bubble" id="res-text"></div>
+  </div>
+</div>
+
+<script>
+async function cekStatus() {
+  var nama  = document.getElementById('inp-nama').value.trim();
+  var kamar = document.getElementById('inp-kamar').value.trim();
+  var errEl = document.getElementById('alert-err');
+  var btn   = document.getElementById('btn-cek');
+
+  errEl.style.display = 'none';
+  document.getElementById('hasil').style.display = 'none';
+
+  if (!nama || !kamar) {
+    errEl.textContent = '⚠️ Nama dan nomor kamar wajib diisi.';
+    errEl.style.display = 'block';
+    return;
+  }
+
+  btn.disabled = true;
+  btn.innerHTML = '<span class="spinner"></span> Mengecek...';
+
+  try {
+    var url = '/api/komplain/status?nama=' + encodeURIComponent(nama) +
+              '&kamar=' + encodeURIComponent(kamar);
+    var res  = await fetch(url);
+    var data = await res.json();
+
+    var teks = data.reply || data.message || JSON.stringify(data);
+
+    // Render *bold* markdown sederhana
+    var html = esc(teks).replace(/\*([^*]+)\*/g, '<b>$1</b>');
+    document.getElementById('res-text').innerHTML = html;
+    document.getElementById('hasil').style.display = 'block';
+  } catch(e) {
+    errEl.textContent = '❌ Gagal menghubungi server. Coba lagi.';
+    errEl.style.display = 'block';
+  }
+
+  btn.disabled = false;
+  btn.innerHTML = '🔍 Cek Status Komplain';
+}
+
+function esc(s) {
+  return String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+}
+
+document.addEventListener('DOMContentLoaded', function() {
+  ['inp-nama','inp-kamar'].forEach(function(id) {
+    document.getElementById(id).addEventListener('keydown', function(e) {
+      if (e.key === 'Enter') cekStatus();
+    });
+  });
+});
+</script>
+</body>
+</html>

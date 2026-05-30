@@ -1,0 +1,348 @@
+{% extends "base.html" %}
+{% block title %}Statistik Kamar{% endblock %}
+{% block page_title %}Statistik Kamar{% endblock %}
+{% block breadcrumb %}{{ bulan_ini | nama_bulan }} &mdash; {{ kamar_list | length }} kamar{% endblock %}
+
+{% block content %}
+<style>
+/* ── Reset & vars tambahan ── */
+.km-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
+  gap: 16px;
+  margin-top: 4px;
+}
+
+/* Summary pills */
+.km-summary {
+  display: flex;
+  gap: 12px;
+  flex-wrap: wrap;
+  margin-bottom: 20px;
+}
+.km-pill {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  padding: 10px 18px;
+  min-width: 120px;
+}
+.km-pill .kp-num {
+  font-size: 22px;
+  font-weight: 800;
+  font-family: var(--mono);
+  line-height: 1.2;
+  color: var(--text);
+}
+.km-pill .kp-num.green  { color: var(--green); }
+.km-pill .kp-num.red    { color: var(--red); }
+.km-pill .kp-num.accent { color: var(--accent); }
+.km-pill .kp-lbl {
+  font-size: 11px;
+  font-weight: 600;
+  color: var(--muted);
+  text-transform: uppercase;
+  letter-spacing: .06em;
+}
+
+/* Filter bar override */
+.km-filter { display: flex; gap: 8px; margin-bottom: 20px; flex-wrap: wrap; }
+.km-fbtn {
+  font-size: 12px;
+  font-weight: 600;
+  padding: 6px 16px;
+  border-radius: 20px;
+  border: 1.5px solid var(--border);
+  background: transparent;
+  color: var(--muted);
+  cursor: pointer;
+  transition: all .15s;
+}
+.km-fbtn:hover, .km-fbtn.active {
+  background: var(--surface2);
+  color: var(--text);
+  border-color: var(--accent);
+}
+
+/* Kartu kamar */
+.km-card {
+  background: var(--surface);
+  border: 1.5px solid var(--border);
+  border-radius: 14px;
+  overflow: hidden;
+  text-decoration: none !important;
+  display: block;
+  transition: transform .18s ease, box-shadow .18s ease;
+  animation: kmFadeUp .3s ease both;
+}
+.km-card:hover {
+  transform: translateY(-3px);
+  box-shadow: 0 10px 28px rgba(0,0,0,.45);
+}
+.km-card.lunas    { border-color: #16a34a66; background: #0d2b1a; }
+.km-card.belum    { border-color: #dc262666; background: #2b1010; }
+.km-card.sebagian { border-color: #d9770666; background: #2b2010; }
+
+/* Kartu header */
+.km-card-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 13px 15px 10px;
+  border-bottom: 1px solid rgba(255,255,255,.06);
+}
+.km-room-label { font-size: 10px; font-weight: 700; color: var(--muted); letter-spacing: .1em; text-transform: uppercase; }
+.km-room-num   { font-size: 21px; font-weight: 800; color: var(--text); line-height: 1.1; letter-spacing: -.01em; }
+
+/* Status chip */
+.km-chip {
+  font-size: 10px;
+  font-weight: 700;
+  padding: 3px 10px;
+  border-radius: 20px;
+  text-transform: uppercase;
+  letter-spacing: .04em;
+  white-space: nowrap;
+}
+.km-chip.lunas    { background: rgba(34,197,94,.15);  color: var(--green);  border: 1px solid rgba(34,197,94,.3); }
+.km-chip.belum    { background: rgba(239,68,68,.15);  color: var(--red);    border: 1px solid rgba(239,68,68,.3); }
+.km-chip.sebagian { background: rgba(234,179,8,.15);  color: var(--yellow); border: 1px solid rgba(234,179,8,.3); }
+.km-chip.notagihan{ background: var(--surface2);      color: var(--muted);  border: 1px solid var(--border); }
+
+/* Body */
+.km-card-body { padding: 13px 15px 14px; }
+.km-nama  { font-size: 15px; font-weight: 700; color: var(--text); margin: 0 0 3px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.km-hp    { font-size: 12px; color: var(--muted); margin: 0 0 12px; }
+
+.km-meta  { display: flex; justify-content: space-between; margin-bottom: 6px; }
+.km-mlbl  { font-size: 11px; color: var(--muted); text-transform: uppercase; letter-spacing: .06em; }
+.km-mval  { font-size: 12px; font-weight: 600; color: #b8b8e0; }
+
+/* Nominal tagihan */
+.km-nominal {
+  margin-top: 11px;
+  padding-top: 11px;
+  border-top: 1px solid rgba(255,255,255,.06);
+}
+.km-nlbl  { font-size: 10px; color: var(--muted); text-transform: uppercase; letter-spacing: .06em; margin-bottom: 2px; }
+.km-nval  { font-size: 16px; font-weight: 800; font-family: var(--mono); }
+.km-nval.lunas    { color: var(--green); }
+.km-nval.belum    { color: var(--red); }
+.km-nval.sebagian { color: var(--yellow); }
+
+/* Footer kartu */
+.km-card-foot {
+  padding: 7px 15px;
+  border-top: 1px solid rgba(255,255,255,.05);
+  background: rgba(0,0,0,.15);
+  display: flex;
+  gap: 10px;
+  align-items: center;
+  font-size: 11px;
+  color: var(--muted);
+}
+.km-ind-warn   { color: var(--yellow); }
+.km-ind-danger { color: var(--red); }
+.km-arrow { margin-left: auto; font-size: 14px; color: var(--muted); }
+
+/* Kartu kamar kosong */
+.km-card.kosong { border-color: #6366f166; background: #16172b; }
+.km-chip.kosong { background: rgba(99,102,241,.15); color: #a5b4fc; border: 1px solid rgba(99,102,241,.3); }
+.km-nval.kosong { color: #a5b4fc; }
+
+/* Durasi kosong */
+.km-kosong-dur {
+  margin-top: 11px;
+  padding-top: 11px;
+  border-top: 1px solid rgba(255,255,255,.06);
+}
+.km-kosong-dur-lbl { font-size: 10px; color: var(--muted); text-transform: uppercase; letter-spacing: .06em; margin-bottom: 4px; }
+.km-kosong-row { display: flex; gap: 12px; }
+.km-kosong-item { flex: 1; }
+.km-kosong-item-lbl { font-size: 9.5px; color: var(--muted); text-transform: uppercase; letter-spacing: .06em; margin-bottom: 2px; }
+.km-kosong-item-val { font-size: 13px; font-weight: 700; color: #a5b4fc; font-family: var(--mono); }
+.km-kosong-item-val.lama { color: var(--yellow); }
+
+/* Delay animasi kartu */
+{% for i in range(20) %}
+.km-card:nth-child({{ i+1 }}) { animation-delay: {{ (i * 0.04)|round(2) }}s; }
+{% endfor %}
+
+@keyframes kmFadeUp {
+  from { opacity: 0; transform: translateY(14px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+</style>
+
+<!-- Summary -->
+{% set jml_lunas    = kamar_list | selectattr('status_bayar','equalto','lunas')    | list | length %}
+{% set jml_belum    = kamar_list | selectattr('status_bayar','equalto','belum')    | list | length %}
+{% set jml_sebagian = kamar_list | selectattr('status_bayar','equalto','sebagian') | list | length %}
+{% set jml_kosong   = kamar_list | selectattr('status_kamar','equalto','kosong')   | list | length %}
+<div class="km-summary">
+  <div class="km-pill">
+    <div class="kp-num accent">{{ kamar_list | length }}</div>
+    <div class="kp-lbl">Total Kamar</div>
+  </div>
+  <div class="km-pill">
+    <div class="kp-num green">{{ jml_lunas }}</div>
+    <div class="kp-lbl">Sudah Lunas</div>
+  </div>
+  <div class="km-pill">
+    <div class="kp-num red">{{ jml_belum + jml_sebagian }}</div>
+    <div class="kp-lbl">Belum / Sebagian</div>
+  </div>
+  <div class="km-pill">
+    <div class="kp-num" style="color:#a5b4fc;">{{ jml_kosong }}</div>
+    <div class="kp-lbl">Kamar Kosong</div>
+  </div>
+  <div class="km-pill">
+    <div class="kp-num" style="font-size:15px;">Rp {{ "{:,.0f}".format(kamar_list | sum(attribute='jumlah_tagihan') or 0) }}</div>
+    <div class="kp-lbl">Total Tagihan</div>
+  </div>
+</div>
+
+<!-- Filter + Tombol PDF -->
+<div style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:10px;margin-bottom:20px;">
+  <div class="km-filter" style="margin-bottom:0;">
+    <button class="km-fbtn active" data-filter="all">Semua</button>
+    <button class="km-fbtn" data-filter="lunas">&#10003; Lunas</button>
+    <button class="km-fbtn" data-filter="belum">&#10007; Belum Bayar</button>
+    <button class="km-fbtn" data-filter="kosong">&#9634; Kosong</button>
+  </div>
+  <a href="{{ url_for('kamar_pdf.semua_pdf') }}"
+     target="_blank"
+     style="display:inline-flex;align-items:center;gap:7px;font-size:12.5px;font-weight:700;
+            padding:7px 16px;border-radius:8px;border:1.5px solid #dc262666;
+            background:rgba(220,38,38,.08);color:#f87171;text-decoration:none;
+            transition:all .15s;white-space:nowrap;"
+     onmouseover="this.style.background='rgba(220,38,38,.18)';this.style.borderColor='#dc2626';"
+     onmouseout="this.style.background='rgba(220,38,38,.08)';this.style.borderColor='#dc262666';">
+    &#128196; Unduh PDF Semua Kamar
+  </a>
+</div>
+
+<!-- Grid kartu -->
+<div class="km-grid" id="kamarGrid">
+  {% for k in kamar_list %}
+  {% set is_kosong = k.status_kamar == 'kosong' %}
+  {% set st = 'kosong' if is_kosong else (k.status_bayar or 'notagihan') %}
+  {% if is_kosong %}
+  <a href="{{ url_for('kamar.detail_kosong', nomor_kamar=k.nomor_kamar) }}"
+  {% else %}
+  <a href="{{ url_for('kamar.detail', penghuni_id=k.id) }}"
+  {% endif %}
+     class="km-card {{ st }}"
+     data-status="{{ st }}">
+
+    <div class="km-card-head">
+      <div>
+        <div class="km-room-label">Kamar</div>
+        <div class="km-room-num">{{ k.nomor_kamar }}</div>
+      </div>
+      <span class="km-chip {{ st }}">
+        {% if st == 'lunas' %}&#10003; Lunas
+        {% elif st == 'belum' %}&#10007; Belum
+        {% elif st == 'sebagian' %}~ Sebagian
+        {% elif st == 'kosong' %}&#9634; Kosong
+        {% else %}&mdash; No Tagihan{% endif %}
+      </span>
+    </div>
+
+    <div class="km-card-body">
+      {% if is_kosong %}
+        <p class="km-nama" style="color:var(--muted);font-style:italic;">— Tidak ada penghuni —</p>
+        <p class="km-hp">{{ k.tipe_kamar or 'Standard' }} &bull; {{ k.luas or '—' }} m²</p>
+        <div class="km-meta">
+          <span class="km-mlbl">Harga sewa</span>
+          <span class="km-mval">Rp {{ "{:,.0f}".format(k.harga_sewa or 0) }}</span>
+        </div>
+        <div class="km-meta">
+          <span class="km-mlbl">Kapasitas</span>
+          <span class="km-mval">{{ k.kapasitas or 1 }} orang</span>
+        </div>
+        <div class="km-kosong-dur">
+          <div class="km-kosong-dur-lbl">Riwayat Kekosongan</div>
+          <div class="km-kosong-row">
+            <div class="km-kosong-item">
+              <div class="km-kosong-item-lbl">Kosong sejak</div>
+              <div class="km-kosong-item-val {{ 'lama' if k.hari_kosong and k.hari_kosong > 30 else '' }}">
+                {{ k.hari_kosong ~ ' hari' if k.hari_kosong else '—' }}
+              </div>
+            </div>
+            <div class="km-kosong-item">
+              <div class="km-kosong-item-lbl">Terakhir diisi</div>
+              <div class="km-kosong-item-val" style="font-size:11px;color:var(--muted);">
+                {{ k.terakhir_diisi or 'Belum pernah' }}
+              </div>
+            </div>
+          </div>
+        </div>
+      {% else %}
+        <p class="km-nama">{{ k.nama }}</p>
+        <p class="km-hp">{{ k.no_hp if k.no_hp else '—' }}</p>
+
+        <div class="km-meta">
+          <span class="km-mlbl">Lama tinggal</span>
+          <span class="km-mval">{{ k.lama_tinggal }}</span>
+        </div>
+        <div class="km-meta">
+          <span class="km-mlbl">Harga sewa</span>
+          <span class="km-mval">Rp {{ "{:,.0f}".format(k.harga_sewa or 0) }}</span>
+        </div>
+        {% if k.tagihan_belum > 1 %}
+        <div class="km-meta">
+          <span class="km-mlbl">Tunggakan</span>
+          <span class="km-mval" style="color:var(--red);">{{ k.tagihan_belum }} bulan</span>
+        </div>
+        {% endif %}
+
+        {% if k.jumlah_tagihan %}
+        <div class="km-nominal">
+          <div class="km-nlbl">Tagihan bulan ini</div>
+          <div class="km-nval {{ st }}">
+            Rp {{ "{:,.0f}".format(k.sisa_bayar if st != 'lunas' else k.jumlah_tagihan) }}
+          </div>
+        </div>
+        {% endif %}
+      {% endif %}
+    </div>
+
+    <div class="km-card-foot">
+      {% if is_kosong %}
+        {% if k.hari_kosong and k.hari_kosong > 30 %}
+          <span class="km-ind-warn">&#8987; Kosong {{ k.hari_kosong }} hari</span>
+        {% else %}
+          <span style="color:#a5b4fc;">&#9634; Tersedia</span>
+        {% endif %}
+      {% else %}
+        {% if k.komplain_aktif > 0 %}
+          <span class="km-ind-danger">&#9888; {{ k.komplain_aktif }} komplain</span>
+        {% endif %}
+        {% if k.tagihan_belum > 1 %}
+          <span class="km-ind-warn">&#8987; {{ k.tagihan_belum }} tunggakan</span>
+        {% endif %}
+        {% if k.komplain_aktif == 0 and k.tagihan_belum <= 1 %}
+          <span>&#10003; Aman</span>
+        {% endif %}
+      {% endif %}
+      <span class="km-arrow">&#8594;</span>
+    </div>
+
+  </a>
+  {% endfor %}
+</div>
+
+<script>
+document.querySelectorAll('.km-fbtn').forEach(btn => {
+  btn.addEventListener('click', () => {
+    document.querySelectorAll('.km-fbtn').forEach(b => b.classList.remove('active'));
+    btn.classList.add('active');
+    const f = btn.dataset.filter;
+    document.querySelectorAll('.km-card').forEach(card => {
+      card.style.display = (f === 'all' || card.dataset.status === f) ? 'block' : 'none';
+    });
+  });
+});
+</script>
+{% endblock %}

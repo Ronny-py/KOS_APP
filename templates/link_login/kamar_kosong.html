@@ -1,0 +1,280 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Kamar Kosong — Thalib Residence</title>
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;600;800&display=swap" rel="stylesheet">
+  <style>
+    :root { --accent:#4f6ef7; --accent2:#7c3aed; --green:#22c55e; --yellow:#eab308; }
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      font-family: 'Plus Jakarta Sans', sans-serif;
+      background: #0f1117; color: #e2e8f0;
+      min-height: 100vh; padding: 24px 16px;
+    }
+    .container { max-width: 480px; margin: 0 auto; }
+    .back-btn {
+      display: inline-flex; align-items: center; gap: 6px;
+      color: #8892a4; font-size: 13px; text-decoration: none;
+      margin-bottom: 20px; transition: color .15s;
+    }
+    .back-btn:hover { color: var(--accent); }
+    .page-header { text-align: center; margin-bottom: 24px; }
+    .page-header .icon { font-size: 36px; margin-bottom: 8px; }
+    .page-header h1 { font-size: 22px; font-weight: 800; }
+    .page-header p { font-size: 13px; color: #8892a4; margin-top: 4px; }
+    .summary-bar {
+      display: flex; gap: 10px; margin-bottom: 20px;
+    }
+    .summary-card {
+      flex: 1; background: #1a1d27; border: 1px solid #2e3347;
+      border-radius: 12px; padding: 12px; text-align: center;
+    }
+    .summary-card .num { font-size: 22px; font-weight: 800; }
+    .summary-card .label { font-size: 11px; color: #8892a4; margin-top: 2px; }
+    .summary-card.green .num { color: var(--green); }
+    .summary-card.red .num { color: #ef4444; }
+    .lantai-group { margin-bottom: 20px; }
+    .lantai-label {
+      font-size: 11px; font-weight: 700; color: #8892a4;
+      text-transform: uppercase; letter-spacing: 1px;
+      margin-bottom: 10px; padding-left: 2px;
+    }
+    .kamar-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+    .kamar-card {
+      background: #1a1d27; border: 1px solid #2e3347;
+      border-radius: 14px; padding: 14px;
+      transition: all .15s;
+    }
+    .kamar-card:hover { border-color: var(--green); transform: translateY(-1px); }
+    .kamar-nomor { font-size: 20px; font-weight: 800; color: #fff; }
+    .kamar-tipe { font-size: 11px; color: #8892a4; margin-top: 2px; }
+    .kamar-harga {
+      font-size: 13px; font-weight: 700; color: var(--green);
+      margin-top: 8px;
+    }
+    .kamar-meta {
+      display: flex; gap: 8px; margin-top: 6px; flex-wrap: wrap;
+    }
+    .kamar-meta span {
+      font-size: 10px; color: #8892a4;
+      background: #222535; border-radius: 6px; padding: 2px 7px;
+    }
+    .badge-kosong {
+      display: inline-block; font-size: 10px; font-weight: 700;
+      background: rgba(34,197,94,.15); color: var(--green);
+      border: 1px solid rgba(34,197,94,.3); border-radius: 6px;
+      padding: 2px 8px; margin-top: 8px;
+    }
+    .wa-btn {
+      display: flex; align-items: center; justify-content: center; gap: 8px;
+      background: rgba(37,211,102,.12); border: 1px solid rgba(37,211,102,.35);
+      border-radius: 12px; padding: 13px; margin-top: 24px;
+      color: #4ade80; font-size: 14px; font-weight: 700;
+      text-decoration: none; transition: all .15s;
+    }
+    .wa-btn:hover { background: rgba(37,211,102,.22); }
+  </style>
+</head>
+<body>
+<div class="container">
+  <a href="/login" class="back-btn">← Kembali</a>
+
+  <div class="page-header">
+    <div class="icon">🛏️</div>
+    <h1>Kamar Kosong</h1>
+    <p>Thalib Residence — Data real-time</p>
+  </div>
+
+  <div class="summary-bar">
+    <div class="summary-card green">
+      <div class="num">20</div>
+      <div class="label">Kamar Kosong</div>
+    </div>
+    <div class="summary-card red">
+      <div class="num">13</div>
+      <div class="label">Kamar Terisi</div>
+    </div>
+    <div class="summary-card">
+      <div class="num">33</div>
+      <div class="label">Total Kamar</div>
+    </div>
+  </div>
+
+  <div class="lantai-group">
+    <div class="lantai-label">🏢 Lantai 1</div>
+    <div class="kamar-grid">
+      <div class="kamar-card">
+        <div class="kamar-nomor">101</div>
+        <div class="kamar-tipe">Standard AC</div>
+        <div class="kamar-harga">Rp 1.800.000/bln</div>
+        <div class="kamar-meta"><span>3.5 m²</span><span>1 orang</span></div>
+        <div class="badge-kosong">✓ Tersedia</div>
+      </div>
+      <div class="kamar-card">
+        <div class="kamar-nomor">102</div>
+        <div class="kamar-tipe">Standard AC</div>
+        <div class="kamar-harga">Rp 1.800.000/bln</div>
+        <div class="kamar-meta"><span>3.5 m²</span><span>1 orang</span></div>
+        <div class="badge-kosong">✓ Tersedia</div>
+      </div>
+      <div class="kamar-card">
+        <div class="kamar-nomor">103</div>
+        <div class="kamar-tipe">Standard AC</div>
+        <div class="kamar-harga">Rp 1.800.000/bln</div>
+        <div class="kamar-meta"><span>3.5 m²</span><span>2 orang</span></div>
+        <div class="badge-kosong">✓ Tersedia</div>
+      </div>
+      <div class="kamar-card">
+        <div class="kamar-nomor">105</div>
+        <div class="kamar-tipe">Standard AC</div>
+        <div class="kamar-harga">Rp 1.800.000/bln</div>
+        <div class="kamar-meta"><span>3.5 m²</span><span>1 orang</span></div>
+        <div class="badge-kosong">✓ Tersedia</div>
+      </div>
+    </div>
+  </div>
+
+  <div class="lantai-group">
+    <div class="lantai-label">🏢 Lantai 2</div>
+    <div class="kamar-grid">
+      <div class="kamar-card">
+        <div class="kamar-nomor">201</div>
+        <div class="kamar-tipe">Standard AC</div>
+        <div class="kamar-harga">Rp 1.800.000/bln</div>
+        <div class="kamar-meta"><span>3.5 m²</span><span>1 orang</span></div>
+        <div class="badge-kosong">✓ Tersedia</div>
+      </div>
+      <div class="kamar-card">
+        <div class="kamar-nomor">202</div>
+        <div class="kamar-tipe">Standard AC</div>
+        <div class="kamar-harga">Rp 1.800.000/bln</div>
+        <div class="kamar-meta"><span>3.5 m²</span><span>1 orang</span></div>
+        <div class="badge-kosong">✓ Tersedia</div>
+      </div>
+      <div class="kamar-card">
+        <div class="kamar-nomor">203</div>
+        <div class="kamar-tipe">Standard AC</div>
+        <div class="kamar-harga">Rp 1.800.000/bln</div>
+        <div class="kamar-meta"><span>3.5 m²</span><span>2 orang</span></div>
+        <div class="badge-kosong">✓ Tersedia</div>
+      </div>
+      <div class="kamar-card">
+        <div class="kamar-nomor">205</div>
+        <div class="kamar-tipe">Standard AC</div>
+        <div class="kamar-harga">Rp 1.800.000/bln</div>
+        <div class="kamar-meta"><span>3.5 m²</span><span>1 orang</span></div>
+        <div class="badge-kosong">✓ Tersedia</div>
+      </div>
+      <div class="kamar-card">
+        <div class="kamar-nomor">206</div>
+        <div class="kamar-tipe">Standard AC</div>
+        <div class="kamar-harga">Rp 1.800.000/bln</div>
+        <div class="kamar-meta"><span>3.5 m²</span><span>1 orang</span></div>
+        <div class="badge-kosong">✓ Tersedia</div>
+      </div>
+    </div>
+  </div>
+
+  <div class="lantai-group">
+    <div class="lantai-label">🏢 Lantai 3</div>
+    <div class="kamar-grid">
+      <div class="kamar-card">
+        <div class="kamar-nomor">301</div>
+        <div class="kamar-tipe">Standard AC</div>
+        <div class="kamar-harga">Rp 1.800.000/bln</div>
+        <div class="kamar-meta"><span>3.5 m²</span><span>1 orang</span></div>
+        <div class="badge-kosong">✓ Tersedia</div>
+      </div>
+      <div class="kamar-card">
+        <div class="kamar-nomor">302</div>
+        <div class="kamar-tipe">Standard AC</div>
+        <div class="kamar-harga">Rp 1.800.000/bln</div>
+        <div class="kamar-meta"><span>3.5 m²</span><span>1 orang</span></div>
+        <div class="badge-kosong">✓ Tersedia</div>
+      </div>
+      <div class="kamar-card">
+        <div class="kamar-nomor">304</div>
+        <div class="kamar-tipe">Standard AC</div>
+        <div class="kamar-harga">Rp 1.800.000/bln</div>
+        <div class="kamar-meta"><span>3.5 m²</span><span>2 orang</span></div>
+        <div class="badge-kosong">✓ Tersedia</div>
+      </div>
+      <div class="kamar-card">
+        <div class="kamar-nomor">305</div>
+        <div class="kamar-tipe">Standard AC</div>
+        <div class="kamar-harga">Rp 1.800.000/bln</div>
+        <div class="kamar-meta"><span>3.5 m²</span><span>1 orang</span></div>
+        <div class="badge-kosong">✓ Tersedia</div>
+      </div>
+      <div class="kamar-card">
+        <div class="kamar-nomor">306</div>
+        <div class="kamar-tipe">Standard AC</div>
+        <div class="kamar-harga">Rp 1.800.000/bln</div>
+        <div class="kamar-meta"><span>3.5 m²</span><span>1 orang</span></div>
+        <div class="badge-kosong">✓ Tersedia</div>
+      </div>
+    </div>
+  </div>
+
+  <div class="lantai-group">
+    <div class="lantai-label">🏢 Lantai Mezzanine 1</div>
+    <div class="kamar-grid">
+      <div class="kamar-card">
+        <div class="kamar-nomor">M101</div>
+        <div class="kamar-tipe">Standard AC</div>
+        <div class="kamar-harga">Rp 1.800.000/bln</div>
+        <div class="kamar-meta"><span>3.5 m²</span><span>1 orang</span></div>
+        <div class="badge-kosong">✓ Tersedia</div>
+      </div>
+      <div class="kamar-card">
+        <div class="kamar-nomor">M105</div>
+        <div class="kamar-tipe">Standard AC</div>
+        <div class="kamar-harga">Rp 1.800.000/bln</div>
+        <div class="kamar-meta"><span>3.5 m²</span><span>1 orang</span></div>
+        <div class="badge-kosong">✓ Tersedia</div>
+      </div>
+    </div>
+  </div>
+
+  <div class="lantai-group">
+    <div class="lantai-label">🏢 Lantai Mezzanine 2</div>
+    <div class="kamar-grid">
+      <div class="kamar-card">
+        <div class="kamar-nomor">M201</div>
+        <div class="kamar-tipe">Standard AC</div>
+        <div class="kamar-harga">Rp 1.800.000/bln</div>
+        <div class="kamar-meta"><span>3.5 m²</span><span>1 orang</span></div>
+        <div class="badge-kosong">✓ Tersedia</div>
+      </div>
+      <div class="kamar-card">
+        <div class="kamar-nomor">M202</div>
+        <div class="kamar-tipe">Standard AC</div>
+        <div class="kamar-harga">Rp 1.800.000/bln</div>
+        <div class="kamar-meta"><span>3.5 m²</span><span>1 orang</span></div>
+        <div class="badge-kosong">✓ Tersedia</div>
+      </div>
+      <div class="kamar-card">
+        <div class="kamar-nomor">M203</div>
+        <div class="kamar-tipe">Standard AC</div>
+        <div class="kamar-harga">Rp 1.800.000/bln</div>
+        <div class="kamar-meta"><span>3.5 m²</span><span>1 orang</span></div>
+        <div class="badge-kosong">✓ Tersedia</div>
+      </div>
+      <div class="kamar-card">
+        <div class="kamar-nomor">M205</div>
+        <div class="kamar-tipe">Standard AC</div>
+        <div class="kamar-harga">Rp 1.800.000/bln</div>
+        <div class="kamar-meta"><span>3.5 m²</span><span>1 orang</span></div>
+        <div class="badge-kosong">✓ Tersedia</div>
+      </div>
+    </div>
+  </div>
+
+  <a href="https://wa.me/628159959605?text=Halo%20Admin%2C%20saya%20tertarik%20dengan%20kamar%20kosong%20di%20Thalib%20Residence.%20Bisa%20minta%20info%20lebih%20lanjut%3F" target="_blank" class="wa-btn">
+    💬 Tanya / Booking via WhatsApp
+  </a>
+</div>
+</body>
+</html>

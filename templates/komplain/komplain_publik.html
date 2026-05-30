@@ -1,0 +1,490 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Ajukan Komplain — KostPay</title>
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;600;800&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --accent: #4f6ef7; --accent2: #7c3aed;
+      --red: #ef4444; --green: #22c55e; --yellow: #eab308;
+      --border: #2e3347; --surface: #1a1d27; --bg: #0f1117;
+      --muted: #8892a4; --text: #e2e8f0;
+    }
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      font-family: 'Plus Jakarta Sans', sans-serif;
+      background: var(--bg); color: var(--text);
+      min-height: 100vh; padding: 32px 16px;
+    }
+
+    /* ── Wrapper ── */
+    .wrap {
+      max-width: 560px; margin: 0 auto;
+    }
+
+    /* ── Back link ── */
+    .back-link {
+      display: inline-flex; align-items: center; gap: 6px;
+      color: var(--muted); font-size: 13px; text-decoration: none;
+      margin-bottom: 24px; transition: color .15s;
+    }
+    .back-link:hover { color: var(--text); }
+
+    /* ── Card ── */
+    .card {
+      background: var(--surface); border: 1px solid var(--border);
+      border-radius: 20px; padding: 36px 36px 32px;
+    }
+
+    /* ── Header ── */
+    .header { text-align: center; margin-bottom: 28px; }
+    .header .icon {
+      width: 60px; height: 60px; border-radius: 18px;
+      background: linear-gradient(135deg, rgba(239,68,68,.3), rgba(239,68,68,.1));
+      border: 1px solid rgba(239,68,68,.3);
+      display: flex; align-items: center; justify-content: center;
+      font-size: 28px; margin: 0 auto 14px;
+    }
+    .header h1 { font-size: 22px; font-weight: 800; }
+    .header p  { font-size: 13px; color: var(--muted); margin-top: 5px; line-height: 1.5; }
+
+    /* ── Form ── */
+    .form-row { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; }
+    .form-group { margin-bottom: 16px; }
+    .form-group:last-child { margin-bottom: 0; }
+    label {
+      display: block; font-size: 12px; font-weight: 700;
+      color: var(--muted); text-transform: uppercase; letter-spacing: .04em;
+      margin-bottom: 7px;
+    }
+    label .req { color: var(--red); margin-left: 2px; }
+    input, select, textarea {
+      width: 100%; background: #222535; border: 1px solid var(--border);
+      border-radius: 10px; padding: 11px 14px; color: var(--text);
+      font-family: inherit; font-size: 14px; outline: none;
+      transition: border-color .15s;
+    }
+    input:focus, select:focus, textarea:focus { border-color: var(--accent); }
+    textarea { resize: vertical; min-height: 100px; }
+
+    /* ── Upload zone ── */
+    .upload-zone {
+      border: 2px dashed var(--border); border-radius: 10px;
+      padding: 20px; text-align: center; cursor: pointer;
+      transition: all .15s; color: var(--muted); font-size: 13px;
+      background: #222535;
+    }
+    .upload-zone:hover { border-color: var(--accent); background: rgba(79,110,247,.05); }
+    .upload-zone .uz-icon { font-size: 26px; margin-bottom: 6px; }
+    .upload-zone .uz-sub  { font-size: 11px; margin-top: 4px; }
+    #preview-wrap {
+      display: none; margin-top: 10px; position: relative;
+    }
+    #preview-img {
+      max-width: 100%; max-height: 180px; border-radius: 8px;
+      border: 1px solid var(--border); object-fit: cover;
+    }
+    #remove-foto {
+      position: absolute; top: 6px; right: 6px;
+      background: rgba(0,0,0,.6); color: #fff; border: none;
+      border-radius: 6px; font-size: 12px; padding: 3px 8px;
+      cursor: pointer;
+    }
+
+    /* ── Submit button ── */
+    .btn-submit {
+      width: 100%; padding: 14px; margin-top: 8px;
+      background: linear-gradient(135deg, var(--accent), var(--accent2));
+      color: #fff; border: none; border-radius: 12px;
+      font-size: 15px; font-weight: 700; cursor: pointer;
+      display: flex; align-items: center; justify-content: center; gap: 8px;
+      transition: opacity .15s; font-family: inherit;
+    }
+    .btn-submit:hover   { opacity: .88; }
+    .btn-submit:disabled { opacity: .5; cursor: default; }
+
+    /* ── Alerts ── */
+    .alert {
+      padding: 12px 16px; border-radius: 10px; font-size: 13px;
+      margin-bottom: 18px; line-height: 1.5;
+    }
+    .alert-success { background: rgba(34,197,94,.1);  border: 1px solid rgba(34,197,94,.3);  color: var(--green); }
+    .alert-danger  { background: rgba(239,68,68,.1);  border: 1px solid rgba(239,68,68,.3);  color: #fca5a5; }
+
+    /* ── Success state ── */
+    #success-state {
+      display: none; text-align: center; padding: 16px 0 8px;
+    }
+    #success-state .s-icon { font-size: 52px; margin-bottom: 14px; }
+    #success-state h2 { font-size: 20px; font-weight: 800; margin-bottom: 8px; }
+    #success-state p  { font-size: 13px; color: var(--muted); line-height: 1.6; }
+    .btn-back {
+      display: inline-flex; align-items: center; gap: 6px;
+      margin-top: 20px; padding: 10px 22px;
+      background: var(--surface); border: 1px solid var(--border);
+      border-radius: 10px; color: var(--text); font-size: 13px;
+      font-weight: 600; text-decoration: none; transition: border-color .15s;
+    }
+    .btn-back:hover { border-color: var(--accent); color: var(--accent); }
+
+    /* ── Divider ── */
+    .divider {
+      border: none; border-top: 1px solid var(--border);
+      margin: 22px 0;
+    }
+
+    /* ── Validation states ── */
+    .field-valid input   { border-color: var(--green) !important; }
+    .field-invalid input { border-color: var(--red) !important; }
+
+    .validation-box {
+      display: flex; align-items: flex-start; gap: 10px;
+      padding: 12px 14px; border-radius: 10px; font-size: 13px;
+      margin-top: 14px; line-height: 1.5; animation: fadeIn .2s ease;
+    }
+    .validation-box.checking {
+      background: rgba(79,110,247,.08); border: 1px solid rgba(79,110,247,.25); color: var(--accent);
+    }
+    .validation-box.valid {
+      background: rgba(34,197,94,.08); border: 1px solid rgba(34,197,94,.3); color: var(--green);
+    }
+    .validation-box.invalid {
+      background: rgba(239,68,68,.09); border: 1px solid rgba(239,68,68,.3); color: #fca5a5;
+    }
+    .validation-box .vb-icon { font-size: 16px; flex-shrink: 0; margin-top: 1px; }
+    .validation-box .vb-text strong { display: block; font-weight: 700; margin-bottom: 2px; }
+
+    @keyframes fadeIn { from { opacity:0; transform:translateY(-4px); } to { opacity:1; transform:translateY(0); } }
+
+    .input-wrap { position: relative; }
+    .input-status {
+      position: absolute; right: 12px; top: 50%; transform: translateY(-50%);
+      font-size: 15px; pointer-events: none; opacity: 0; transition: opacity .2s;
+    }
+    .input-status.show { opacity: 1; }
+
+    @media (max-width: 480px) {
+      .card { padding: 24px 20px; }
+      .form-row { grid-template-columns: 1fr; gap: 0; }
+    }
+  </style>
+</head>
+<body>
+<div class="wrap">
+
+  <a href="{{ url_for('auth.login') }}" class="back-link">← Kembali ke Login</a>
+
+  <div class="card">
+
+    {# ── Flash messages ── #}
+    {% for msg in get_flashed_messages(category_filter=['success']) %}
+      <div class="alert alert-success">✅ {{ msg }}</div>
+    {% endfor %}
+    {% for msg in get_flashed_messages(category_filter=['danger']) %}
+      <div class="alert alert-danger">⚠️ {{ msg }}</div>
+    {% endfor %}
+
+    {# ── Header ── #}
+    <div class="header">
+      <div class="icon">📝</div>
+      <h1>Ajukan Komplain</h1>
+      <p>Sampaikan masalah atau kendala di kost.<br>Admin akan segera meninjau dan merespons.</p>
+    </div>
+
+    {# ── Form ── #}
+    <div id="form-state">
+      <form id="form-komplain" enctype="multipart/form-data">
+
+        <div class="form-row">
+          <div class="form-group" id="group-nama">
+            <label>Nama Lengkap <span class="req">*</span></label>
+            <div class="input-wrap">
+              <input type="text" id="f-nama" name="nama" placeholder="Contoh: Budi Santoso" required
+                     oninput="resetValidation()" onblur="maybeValidate()">
+              <span class="input-status" id="status-nama"></span>
+            </div>
+          </div>
+          <div class="form-group" id="group-kamar">
+            <label>Nomor Kamar <span class="req">*</span></label>
+            <div class="input-wrap">
+              <input type="text" id="f-kamar" name="kamar" placeholder="Contoh: A1" required
+                     oninput="resetValidation()" onblur="maybeValidate()">
+              <span class="input-status" id="status-kamar"></span>
+            </div>
+          </div>
+        </div>
+        <div id="val-box" style="display:none;"></div>
+
+        <div class="form-group">
+          <label>No. HP / WhatsApp</label>
+          <input type="tel" id="f-hp" name="no_hp" placeholder="Contoh: 08123456789">
+        </div>
+
+        <div class="form-row">
+          <div class="form-group">
+            <label>Kategori <span class="req">*</span></label>
+            <select id="f-kategori" name="kategori" required>
+              {% for k, label in KATEGORI_LIST %}
+              <option value="{{ k }}">{{ label }}</option>
+              {% endfor %}
+            </select>
+          </div>
+          <div class="form-group">
+            <label>Prioritas</label>
+            <select id="f-prioritas" name="prioritas">
+              {% for val, label in PRIORITAS_LIST %}
+              <option value="{{ val }}" {{ 'selected' if val == 'normal' }}>{{ label }}</option>
+              {% endfor %}
+            </select>
+          </div>
+        </div>
+
+        <div class="form-group">
+          <label>Judul Komplain <span class="req">*</span></label>
+          <input type="text" id="f-judul" name="judul"
+                 placeholder="Ringkasan singkat masalah" required maxlength="150">
+        </div>
+
+        <div class="form-group">
+          <label>Deskripsi Masalah <span class="req">*</span></label>
+          <textarea id="f-deskripsi" name="deskripsi" required
+                    placeholder="Jelaskan detail masalah: lokasi, kapan mulai terjadi, dampak yang dirasakan, dll."></textarea>
+        </div>
+
+        <div class="form-group">
+          <label>Foto / Bukti <span style="font-weight:400; text-transform:none; font-size:11px;">(opsional)</span></label>
+          <div class="upload-zone" id="upload-zone"
+               onclick="document.getElementById('f-foto').click()">
+            <div class="uz-icon">📷</div>
+            <div>Klik untuk pilih foto</div>
+            <div class="uz-sub">PNG, JPG, WEBP, GIF — maks 5 MB</div>
+          </div>
+          <div id="preview-wrap">
+            <img id="preview-img" src="" alt="Preview foto">
+            <button type="button" id="remove-foto" onclick="removeFoto()">✕ Hapus</button>
+          </div>
+          <input type="file" id="f-foto" name="foto" accept="image/*"
+                 style="display:none;" onchange="previewFoto(this)">
+        </div>
+
+        <hr class="divider">
+
+        <div id="err-msg" style="display:none;" class="alert alert-danger"></div>
+
+        <button type="button" class="btn-submit" id="btn-kirim" onclick="kirimKomplain()">
+          🔧 Kirim Komplain
+        </button>
+
+      </form>
+    </div>
+
+    {# ── Success state ── #}
+    <div id="success-state">
+      <div class="s-icon">✅</div>
+      <h2>Komplain Terkirim!</h2>
+      <p id="success-msg">Komplain kamu sudah diterima.<br>Admin akan segera meninjau dan merespons.</p>
+      <a href="{{ url_for('komplain_publik.form_komplain') }}" class="btn-back">📝 Ajukan Komplain Lagi</a>
+    </div>
+
+  </div>
+</div>
+
+<script>
+function previewFoto(input) {
+  if (!input.files || !input.files[0]) return;
+  const file = input.files[0];
+  const reader = new FileReader();
+  reader.onload = e => {
+    document.getElementById('preview-img').src = e.target.result;
+    document.getElementById('preview-wrap').style.display = 'block';
+    document.getElementById('upload-zone').style.display = 'none';
+  };
+  reader.readAsDataURL(file);
+}
+
+function removeFoto() {
+  document.getElementById('f-foto').value = '';
+  document.getElementById('preview-wrap').style.display = 'none';
+  document.getElementById('upload-zone').style.display = 'block';
+}
+
+/* ── Validasi nama + kamar ── */
+let validationState = 'idle'; // idle | checking | valid | invalid
+
+function showValBox(type, icon, title, msg) {
+  const box = document.getElementById('val-box');
+  box.innerHTML = `<div class="validation-box ${type}">
+    <span class="vb-icon">${icon}</span>
+    <div class="vb-text"><strong>${title}</strong>${msg}</div>
+  </div>`;
+  box.style.display = 'block';
+}
+
+function hideValBox() {
+  const box = document.getElementById('val-box');
+  box.style.display = 'none';
+  box.innerHTML = '';
+}
+
+function setFieldState(valid) {
+  const gN = document.getElementById('group-nama');
+  const gK = document.getElementById('group-kamar');
+  const sN = document.getElementById('status-nama');
+  const sK = document.getElementById('status-kamar');
+
+  if (valid === null) {
+    // reset
+    gN.classList.remove('field-valid','field-invalid');
+    gK.classList.remove('field-valid','field-invalid');
+    sN.textContent = ''; sN.classList.remove('show');
+    sK.textContent = ''; sK.classList.remove('show');
+  } else if (valid) {
+    gN.classList.add('field-valid'); gN.classList.remove('field-invalid');
+    gK.classList.add('field-valid'); gK.classList.remove('field-invalid');
+    sN.textContent = '✅'; sN.classList.add('show');
+    sK.textContent = '✅'; sK.classList.add('show');
+  } else {
+    gN.classList.add('field-invalid'); gN.classList.remove('field-valid');
+    gK.classList.add('field-invalid'); gK.classList.remove('field-valid');
+    sN.textContent = '❌'; sN.classList.add('show');
+    sK.textContent = '❌'; sK.classList.add('show');
+  }
+}
+
+function resetValidation() {
+  validationState = 'idle';
+  setFieldState(null);
+  hideValBox();
+}
+
+let valTimer = null;
+function maybeValidate() {
+  const nama  = document.getElementById('f-nama').value.trim();
+  const kamar = document.getElementById('f-kamar').value.trim();
+  if (!nama || !kamar) return; // belum isi keduanya
+
+  clearTimeout(valTimer);
+  valTimer = setTimeout(() => validateNamaKamar(nama, kamar), 400);
+}
+
+async function validateNamaKamar(nama, kamar) {
+  validationState = 'checking';
+  showValBox('checking', '⏳', 'Memverifikasi...', ' Mengecek nama dan nomor kamar.');
+
+  try {
+    const res  = await fetch('/api/validasi-penghuni', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ nama, kamar })
+    });
+    const data = await res.json();
+
+    if (data.valid) {
+      validationState = 'valid';
+      setFieldState(true);
+      showValBox('valid', '✅', 'Data cocok!',
+        ` Nama <strong>${nama}</strong> terverifikasi untuk kamar <strong>${kamar}</strong>.`);
+    } else {
+      validationState = 'invalid';
+      setFieldState(false);
+      showValBox('invalid', '🚫', 'Data tidak cocok!',
+        ` Nama dan nomor kamar tidak sesuai data penghuni. Periksa kembali atau hubungi admin.`);
+    }
+  } catch (e) {
+    // Error jaringan: tandai sebagai unknown, biarkan saat submit yang blokir
+    validationState = 'idle';
+    hideValBox();
+  }
+}
+
+async function kirimKomplain() {
+  const errEl = document.getElementById('err-msg');
+  errEl.style.display = 'none';
+
+  const nama     = document.getElementById('f-nama').value.trim();
+  const kamar    = document.getElementById('f-kamar').value.trim();
+  const judul    = document.getElementById('f-judul').value.trim();
+  const deskripsi= document.getElementById('f-deskripsi').value.trim();
+
+  if (!nama || !kamar || !judul || !deskripsi) {
+    errEl.textContent = '⚠️ Nama, nomor kamar, judul, dan deskripsi wajib diisi.';
+    errEl.style.display = 'block';
+    return;
+  }
+
+  // ── Validasi nama + kamar ke backend sebelum kirim ──
+  const btn = document.getElementById('btn-kirim');
+  btn.disabled = true;
+  btn.innerHTML = '⏳ Memverifikasi...';
+  showValBox('checking', '⏳', 'Memverifikasi...', ' Mengecek nama dan nomor kamar.');
+
+  let bolehKirim = false;
+  try {
+    const vRes  = await fetch('/api/validasi-penghuni', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ nama, kamar })
+    });
+    const vData = await vRes.json();
+
+    if (vData.valid) {
+      bolehKirim = true;
+      validationState = 'valid';
+      setFieldState(true);
+      showValBox('valid', '✅', 'Data cocok!',
+        ` Nama <strong>${nama}</strong> terverifikasi untuk kamar <strong>${kamar}</strong>.`);
+    } else {
+      validationState = 'invalid';
+      setFieldState(false);
+      showValBox('invalid', '🚫', 'Data tidak cocok!',
+        ` Nama "<strong>${nama}</strong>" tidak terdaftar di kamar <strong>${kamar}</strong>. Periksa kembali atau hubungi admin.`);
+      errEl.textContent = '❌ Nama dan nomor kamar tidak cocok. Komplain tidak bisa dikirim.';
+      errEl.style.display = 'block';
+      btn.disabled = false;
+      btn.innerHTML = '🔧 Kirim Komplain';
+      document.getElementById('f-nama').focus();
+      return;
+    }
+  } catch (e) {
+    // Endpoint error → TETAP blokir, jangan biarkan lolos
+    hideValBox();
+    errEl.textContent = '❌ Tidak dapat memverifikasi data. Coba beberapa saat lagi.';
+    errEl.style.display = 'block';
+    btn.disabled = false;
+    btn.innerHTML = '🔧 Kirim Komplain';
+    return;
+  }
+
+  if (!bolehKirim) return;
+
+  // ── Kirim komplain ──
+  btn.innerHTML = '⏳ Mengirim...';
+  const fd = new FormData(document.getElementById('form-komplain'));
+
+  try {
+    const res  = await fetch('/api/komplain', { method: 'POST', body: fd });
+    const data = await res.json();
+
+    if (data.success) {
+      document.getElementById('form-state').style.display = 'none';
+      const sMsg = document.getElementById('success-msg');
+      sMsg.innerHTML = `Komplain <strong>"${judul}"</strong> dari kamar <strong>${kamar}</strong> sudah diterima.<br>Admin akan segera meninjau dan merespons.`;
+      document.getElementById('success-state').style.display = 'block';
+    } else {
+      errEl.textContent = data.reply || '❌ Gagal mengirim. Coba lagi.';
+      errEl.style.display = 'block';
+      btn.disabled = false;
+      btn.innerHTML = '🔧 Kirim Komplain';
+    }
+  } catch (e) {
+    errEl.textContent = '❌ Koneksi bermasalah. Coba lagi nanti.';
+    errEl.style.display = 'block';
+    btn.disabled = false;
+    btn.innerHTML = '🔧 Kirim Komplain';
+  }
+}
+</script>
+</body>
+</html>

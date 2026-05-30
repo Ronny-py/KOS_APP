@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Login — KostPay</title>
+  <title>Login</title>
   <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;600;800&display=swap" rel="stylesheet">
   <style>
     :root { --accent:#4f6ef7; --accent2:#7c3aed; --yellow:#eab308; --red:#ef4444; --green:#22c55e; }
@@ -11,8 +11,8 @@
     body {
       font-family: 'Plus Jakarta Sans', sans-serif;
       background: #0f1117; color: #e2e8f0;
-      min-height: 100vh; display: flex; align-items: center; justify-content: center;
-      padding: 24px 0;
+      min-height: 100vh; display: flex; flex-direction: column; align-items: center; justify-content: center;
+      padding: 24px 16px;
     }
     .login-box {
       background: #1a1d27; border: 1px solid #2e3347;
@@ -29,6 +29,33 @@
     }
     .logo h1 { font-size: 24px; font-weight: 800; }
     .logo p   { font-size: 13px; color: #8892a4; margin-top: 4px; }
+
+    /* ── Login layout: logo kiri + form kanan ── */
+    .login-layout {
+      display: flex;
+      gap: 16px;
+      align-items: stretch;
+    }
+    .login-logo-side {
+      flex-shrink: 0;
+      width: 100px;
+      border-radius: 14px;
+      overflow: hidden;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+    .login-logo-side img {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+      object-position: center;
+      display: block;
+    }
+    .login-form-side {
+      flex: 1;
+      min-width: 0;
+    }
 
     /* ── Form inputs ── */
     .form-group { margin-bottom: 16px; }
@@ -134,16 +161,168 @@
     .login-fields-disabled .btn-masuk {
       opacity: .4; pointer-events: none; cursor: default;
     }
+
+    /* ══════════════════════════════════════════════
+       GALERI KAMAR — section di bawah login-box
+    ══════════════════════════════════════════════ */
+    .galeri-section {
+      width: 420px;
+      margin-top: 24px;
+    }
+    .galeri-header {
+      display: flex; align-items: center; justify-content: space-between;
+      margin-bottom: 12px;
+    }
+    .galeri-header h3 {
+      font-size: 13px; font-weight: 700; color: #8892a4;
+      display: flex; align-items: center; gap: 6px;
+    }
+    .galeri-tabs {
+      display: flex; gap: 6px;
+    }
+    .galeri-tab {
+      padding: 4px 12px; border-radius: 20px; font-size: 11px; font-weight: 700;
+      border: 1px solid #2e3347; background: transparent; color: #8892a4;
+      cursor: pointer; transition: all .15s;
+    }
+    .galeri-tab.active {
+      background: var(--accent); border-color: var(--accent); color: #fff;
+    }
+    .galeri-tab:hover:not(.active) {
+      border-color: var(--accent); color: var(--accent);
+    }
+
+    /* Slideshow container */
+    .galeri-slider {
+      position: relative; border-radius: 16px; overflow: hidden;
+      background: #1a1d27; border: 1px solid #2e3347;
+    }
+    .galeri-slide {
+      display: none;
+      opacity: 0; transition: opacity .5s ease;
+      align-items: center; justify-content: center;
+    }
+    .galeri-slide.active {
+      display: flex;
+      opacity: 1;
+      position: relative;
+    }
+    .galeri-slide img {
+      width: 100%;
+      height: auto;
+      max-height: 75vh;
+      object-fit: contain;
+      display: block;
+      border-radius: 16px;
+    }
+    .galeri-slide video {
+      width: 100%;
+      height: auto;
+      max-height: 75vh;
+      object-fit: contain;
+      display: block;
+      border-radius: 16px;
+    }
+    .galeri-slide .no-media {
+      text-align: center; color: #3e4560; padding: 20px;
+    }
+    .galeri-slide .no-media .icon { font-size: 36px; margin-bottom: 8px; }
+    .galeri-slide .no-media p { font-size: 12px; line-height: 1.6; }
+
+    /* Badge tipe file */
+    .galeri-badge {
+      position: absolute; top: 10px; left: 10px;
+      background: rgba(0,0,0,.6); backdrop-filter: blur(4px);
+      border-radius: 6px; padding: 3px 8px;
+      font-size: 10px; font-weight: 700; color: #fff;
+      z-index: 5;
+    }
+    .galeri-badge.video { color: #f87171; }
+
+    /* Nama file label */
+    .galeri-label {
+      position: absolute; bottom: 0; left: 0; right: 0;
+      background: linear-gradient(transparent, rgba(0,0,0,.7));
+      padding: 20px 12px 10px;
+      font-size: 11px; color: rgba(255,255,255,.8);
+      z-index: 5;
+    }
+
+    /* Nav arrows */
+    .galeri-arrow {
+      position: absolute; top: 50%; transform: translateY(-50%);
+      width: 32px; height: 32px; border-radius: 50%;
+      background: rgba(0,0,0,.5); backdrop-filter: blur(4px);
+      border: 1px solid rgba(255,255,255,.15); color: #fff;
+      font-size: 14px; cursor: pointer; display: flex;
+      align-items: center; justify-content: center;
+      transition: background .15s; z-index: 10;
+      user-select: none;
+    }
+    .galeri-arrow:hover { background: rgba(79,110,247,.7); }
+    .galeri-arrow.prev { left: 10px; }
+    .galeri-arrow.next { right: 10px; }
+
+    /* Dots */
+    .galeri-dots {
+      display: flex; justify-content: center; gap: 6px; margin-top: 10px;
+    }
+    .galeri-dot {
+      width: 6px; height: 6px; border-radius: 50%;
+      background: #3e4560; cursor: pointer; transition: all .2s;
+    }
+    .galeri-dot.active { background: var(--accent); transform: scale(1.3); }
+
+    /* Counter */
+    .galeri-counter {
+      text-align: center; font-size: 11px; color: #8892a4; margin-top: 6px;
+    }
+
+    /* Loading state */
+    .galeri-loading {
+      display: flex; align-items: center; justify-content: center;
+      height: 100%; color: #3e4560; font-size: 12px; gap: 8px;
+    }
+    .galeri-spinner {
+      width: 16px; height: 16px; border: 2px solid #3e4560;
+      border-top-color: var(--accent); border-radius: 50%;
+      animation: spin .7s linear infinite;
+    }
+    @keyframes spin { to { transform: rotate(360deg); } }
+
+    /* ══ GALERI ATAS (media_kamar2) ══ */
+    .galeri-atas {
+      width: 420px;
+      margin-bottom: 20px;
+    }
+    .galeri-atas .galeri-slider {
+      position: relative; border-radius: 16px; overflow: hidden;
+      background: #1a1d27; border: 1px solid #2e3347;
+    }
+    .galeri-atas .galeri-dots {
+      display: flex; justify-content: center; gap: 6px; margin-top: 10px;
+    }
+    .galeri-atas .galeri-dot {
+      width: 6px; height: 6px; border-radius: 50%;
+      background: #3e4560; cursor: pointer; transition: all .2s;
+    }
+    .galeri-atas .galeri-dot.active { background: var(--accent); transform: scale(1.3); }
   </style>
 </head>
 <body>
-<div class="login-box">
-
-  <div class="logo">
-    <div class="icon">🏠</div>
-    <h1>KostPay</h1>
-    <p>Sistem Manajemen Pembayaran Kost</p>
+<div class="galeri-atas" id="galeri-atas">
+  <div class="galeri-slider" id="galeri-atas-slider">
+    <div class="galeri-slide active" id="galeri-atas-loading">
+      <div class="galeri-loading">
+        <div class="galeri-spinner"></div>
+        <span>Memuat media…</span>
+      </div>
+    </div>
   </div>
+  <div class="galeri-dots" id="galeri-atas-dots"></div>
+</div>
+
+<div class="login-box">
 
   {# Flash hanya untuk screen login biasa (bukan kode salah) #}
   {% if not show_kode %}
@@ -158,24 +337,26 @@
     <div class="alert alert-success">{{ msg }}</div>
   {% endfor %}
 
-  {# ══════════════════════════════════
-     FORM LOGIN — selalu tampil
-  ══════════════════════════════════ #}
-  <div id="login-fields" class="{{ 'login-fields-disabled' if show_kode else '' }}">
-    <div class="form-group">
-      <label>Username</label>
-      <input type="text" id="inp-username"
-             value="{{ username or '' }}"
-             placeholder="admin"
-             {% if not show_kode %}autofocus{% endif %}>
+  <div class="login-layout">
+    <div class="login-logo-side"><img src="data:image/jpeg;base64,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" alt="kost"></div>
+    <div class="login-form-side">
+      <div id="login-fields" class="{{ 'login-fields-disabled' if show_kode else '' }}">
+        <div class="form-group">
+          <label>Username</label>
+          <input type="text" id="inp-username"
+                 value="{{ username or '' }}"
+                 placeholder="admin"
+                 {% if not show_kode %}autofocus{% endif %}>
+        </div>
+        <div class="form-group">
+          <label>Password</label>
+          <input type="password" id="inp-password" placeholder="••••••••">
+        </div>
+        <button type="button" class="btn btn-masuk" id="btn-masuk" onclick="submitLogin()">
+          🔐 Masuk
+        </button>
+      </div>
     </div>
-    <div class="form-group">
-      <label>Password</label>
-      <input type="password" id="inp-password" placeholder="••••••••">
-    </div>
-    <button type="button" class="btn btn-masuk" id="btn-masuk" onclick="submitLogin()">
-      🔐 Masuk
-    </button>
   </div>
 
   {# Form login tersembunyi — dikirim via JS #}
@@ -185,18 +366,7 @@
     <input type="hidden" name="password" id="fhid-password">
   </form>
 
-  <div class="hint">Default: admin / admin123</div>
 
-  <div style="margin-top:16px; padding-top:14px; border-top:1px solid #2e3347; text-align:center;">
-    <a href="/supervisor/login"
-       style="display:inline-flex; align-items:center; gap:6px; color:#8892a4;
-              font-size:12px; text-decoration:none; padding:7px 16px;
-              border:1px solid #2e3347; border-radius:8px; transition:all .15s;"
-       onmouseover="this.style.borderColor='#7c3aed';this.style.color='#a78bfa'"
-       onmouseout="this.style.borderColor='#2e3347';this.style.color='#8892a4'">
-      🛡️ Login sebagai Supervisor
-    </a>
-  </div>
 
   {# ══════════════════════════════════════════════════════
      SECTION KODE KHUSUS
@@ -311,6 +481,271 @@ if (inpKode) {
   inpKode.addEventListener('input', function() { updateDots(); });
 }
 
+/* ══════════════════════════════════════════════
+   GALERI KAMAR
+══════════════════════════════════════════════ */
+(function () {
+  var allMedia = [];   // [{type:'foto'|'video', url, name}, ...]
+  var filtered = [];   // subset sesuai tab aktif
+  var current  = 0;
+  var timer    = null;
+  var tabMode  = 'semua';
+
+  // Fetch daftar media dari endpoint Flask
+  fetch('/media-kamar/list')
+    .then(function(r){ return r.json(); })
+    .then(function(data){
+      allMedia = data.files || [];
+      _applyTab();
+    })
+    .catch(function(){
+      // Jika endpoint belum ada, tampilkan pesan kosong
+      allMedia = [];
+      _applyTab();
+    });
+
+  window.galeriSetTab = function(mode, btn) {
+    tabMode = mode;
+    document.querySelectorAll('.galeri-tab').forEach(function(b){ b.classList.remove('active'); });
+    btn.classList.add('active');
+    current = 0;
+    _applyTab();
+  };
+
+  function _applyTab() {
+    if (tabMode === 'foto')  filtered = allMedia.filter(function(m){ return m.type === 'foto'; });
+    else if (tabMode === 'video') filtered = allMedia.filter(function(m){ return m.type === 'video'; });
+    else filtered = allMedia.slice();
+    _render();
+  }
+
+  function _render() {
+    var slider = document.getElementById('galeri-slider');
+    var dotsEl = document.getElementById('galeri-dots');
+    var ctrEl  = document.getElementById('galeri-counter');
+
+    // Clear slides (keep loading slide structure, rebuild)
+    slider.innerHTML = '';
+
+    if (!filtered.length) {
+      slider.innerHTML =
+        '<div class="galeri-slide active">' +
+          '<div class="no-media">' +
+            '<div class="icon">📷</div>' +
+            '<p>Belum ada ' + (tabMode === 'video' ? 'video' : tabMode === 'foto' ? 'foto' : 'media') +
+            ' kamar.<br>Tambahkan file ke folder<br><code style="color:#4f6ef7">static/media_kamar/</code></p>' +
+          '</div>' +
+        '</div>';
+      dotsEl.innerHTML = '';
+      ctrEl.textContent = '';
+      return;
+    }
+
+    // Build slides
+    filtered.forEach(function(m, i) {
+      var slide = document.createElement('div');
+      slide.className = 'galeri-slide' + (i === current ? ' active' : '');
+
+      if (m.type === 'video') {
+        slide.innerHTML =
+          '<video src="' + m.url + '" muted loop playsinline ' + (i === current ? 'autoplay' : '') + '></video>';
+      } else {
+        slide.innerHTML =
+          '<img src="' + m.url + '" alt="' + _esc(m.name) + '" loading="lazy">';
+      }
+      slider.appendChild(slide);
+    });
+
+    // Arrows (only if >1 slide)
+    if (filtered.length > 1) {
+      var prev = document.createElement('button');
+      prev.className = 'galeri-arrow prev';
+      prev.innerHTML = '‹';
+      prev.onclick = function(){ _go(current - 1); };
+      slider.appendChild(prev);
+
+      var next = document.createElement('button');
+      next.className = 'galeri-arrow next';
+      next.innerHTML = '›';
+      next.onclick = function(){ _go(current + 1); };
+      slider.appendChild(next);
+    }
+
+    // Dots
+    dotsEl.innerHTML = '';
+    filtered.forEach(function(_, i) {
+      var dot = document.createElement('div');
+      dot.className = 'galeri-dot' + (i === current ? ' active' : '');
+      dot.onclick = (function(idx){ return function(){ _go(idx); }; })(i);
+      dotsEl.appendChild(dot);
+    });
+
+    // Counter
+    ctrEl.textContent = filtered.length > 1
+      ? (current + 1) + ' / ' + filtered.length + ' media'
+      : (filtered.length === 1 ? '1 media' : '');
+
+    // Auto-play current video
+    _syncVideos();
+
+    // Restart autoplay timer
+    _startTimer();
+  }
+
+  function _go(idx) {
+    if (!filtered.length) return;
+    var n = ((idx % filtered.length) + filtered.length) % filtered.length;
+
+    var slides = document.querySelectorAll('#galeri-slider .galeri-slide');
+    var dots   = document.querySelectorAll('#galeri-dots .galeri-dot');
+    var ctrEl  = document.getElementById('galeri-counter');
+
+    if (slides[current]) slides[current].classList.remove('active');
+    if (dots[current])   dots[current].classList.remove('active');
+
+    current = n;
+
+    if (slides[current]) slides[current].classList.add('active');
+    if (dots[current])   dots[current].classList.add('active');
+
+    if (ctrEl) ctrEl.textContent = filtered.length > 1
+      ? (current + 1) + ' / ' + filtered.length + ' media' : '';
+
+    _syncVideos();
+    _startTimer();
+  }
+
+  function _syncVideos() {
+    var slides = document.querySelectorAll('#galeri-slider .galeri-slide');
+    slides.forEach(function(s, i) {
+      var v = s.querySelector('video');
+      if (!v) return;
+      if (i === current) { v.play().catch(function(){}); }
+      else { v.pause(); v.currentTime = 0; }
+    });
+  }
+
+  function _startTimer() {
+    if (timer) clearInterval(timer);
+    if (filtered.length <= 1) return;
+    // Foto: 4 detik, video: ikuti durasi (fallback 6 detik)
+    var delay = 4000;
+    if (filtered[current] && filtered[current].type === 'video') {
+      var v = document.querySelectorAll('#galeri-slider .galeri-slide')[current];
+      var vid = v ? v.querySelector('video') : null;
+      delay = vid && vid.duration ? (vid.duration * 1000 + 500) : 6000;
+    }
+    timer = setTimeout(function(){ _go(current + 1); }, delay);
+  }
+
+  function _esc(s) {
+    return s.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+  }
+})();
+
+/* ══════════════════════════════════════════════
+   GALERI ATAS (media_kamar2) — tanpa tab filter
+══════════════════════════════════════════════ */
+(function () {
+  var media2  = [];
+  var cur2    = 0;
+  var timer2  = null;
+
+  function _esc2(s) {
+    return s.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+  }
+
+  fetch('/media-kamar2/list')
+    .then(function(r){ return r.json(); })
+    .then(function(data){ media2 = data.files || []; _render2(); })
+    .catch(function(){ media2 = []; _render2(); });
+
+  function _render2() {
+    var slider = document.getElementById('galeri-atas-slider');
+    var dotsEl = document.getElementById('galeri-atas-dots');
+    slider.innerHTML = '';
+
+    if (!media2.length) {
+      document.getElementById('galeri-atas').style.display = 'none';
+      return;
+    }
+
+    media2.forEach(function(m, i) {
+      var slide = document.createElement('div');
+      slide.className = 'galeri-slide' + (i === cur2 ? ' active' : '');
+      if (m.type === 'video') {
+        slide.innerHTML =
+          '<video src="' + m.url + '" muted loop playsinline ' + (i === cur2 ? 'autoplay' : '') + '></video>';
+      } else {
+        slide.innerHTML =
+          '<img src="' + m.url + '" alt="' + _esc2(m.name) + '" loading="lazy">';
+      }
+      slider.appendChild(slide);
+    });
+
+    if (media2.length > 1) {
+      var prev = document.createElement('button');
+      prev.className = 'galeri-arrow prev';
+      prev.innerHTML = '‹';
+      prev.onclick = function(){ _go2(cur2 - 1); };
+      slider.appendChild(prev);
+
+      var next = document.createElement('button');
+      next.className = 'galeri-arrow next';
+      next.innerHTML = '›';
+      next.onclick = function(){ _go2(cur2 + 1); };
+      slider.appendChild(next);
+    }
+
+    dotsEl.innerHTML = '';
+    media2.forEach(function(_, i) {
+      var dot = document.createElement('div');
+      dot.className = 'galeri-dot' + (i === cur2 ? ' active' : '');
+      dot.onclick = (function(idx){ return function(){ _go2(idx); }; })(i);
+      dotsEl.appendChild(dot);
+    });
+
+    _syncVideos2();
+    _startTimer2();
+  }
+
+  function _go2(idx) {
+    if (!media2.length) return;
+    var n = ((idx % media2.length) + media2.length) % media2.length;
+    var slides = document.querySelectorAll('#galeri-atas-slider .galeri-slide');
+    var dots   = document.querySelectorAll('#galeri-atas-dots .galeri-dot');
+    if (slides[cur2]) slides[cur2].classList.remove('active');
+    if (dots[cur2])   dots[cur2].classList.remove('active');
+    cur2 = n;
+    if (slides[cur2]) slides[cur2].classList.add('active');
+    if (dots[cur2])   dots[cur2].classList.add('active');
+    _syncVideos2();
+    _startTimer2();
+  }
+
+  function _syncVideos2() {
+    var slides = document.querySelectorAll('#galeri-atas-slider .galeri-slide');
+    slides.forEach(function(s, i) {
+      var v = s.querySelector('video');
+      if (!v) return;
+      if (i === cur2) { v.play().catch(function(){}); }
+      else { v.pause(); v.currentTime = 0; }
+    });
+  }
+
+  function _startTimer2() {
+    if (timer2) clearTimeout(timer2);
+    if (media2.length <= 1) return;
+    var delay = 4000;
+    if (media2[cur2] && media2[cur2].type === 'video') {
+      var s = document.querySelectorAll('#galeri-atas-slider .galeri-slide')[cur2];
+      var vid = s ? s.querySelector('video') : null;
+      delay = vid && vid.duration ? (vid.duration * 1000 + 500) : 6000;
+    }
+    timer2 = setTimeout(function(){ _go2(cur2 + 1); }, delay);
+  }
+})();
+
 /* ── Shake jika kode salah (flash danger di screen kode) ── */
 {% if show_kode %}
   var errAlert = document.getElementById('kode-error-alert');
@@ -327,422 +762,87 @@ if (inpKode) {
 {% endif %}
 </script>
 
-<!-- ── Chatbot Widget ──────────────────────────────────────────────────── -->
+<!-- ── Quick Action Grid ──────────────────────────────────────── -->
 <style>
-  #cb-fab {
-    position: fixed; bottom: 24px; right: 24px; z-index: 9997;
-    width: 52px; height: 52px; border-radius: 50%;
-    background: linear-gradient(135deg, var(--accent), var(--accent2));
-    color: #fff; border: none; font-size: 22px; cursor: pointer;
-    box-shadow: 0 4px 16px rgba(79,110,247,.4);
-    display: flex; align-items: center; justify-content: center;
-    transition: transform .2s, box-shadow .2s;
+  .qa-section {
+    width: 420px;
+    margin-top: 20px;
   }
-  #cb-fab:hover { transform: scale(1.1); box-shadow: 0 6px 22px rgba(79,110,247,.55); }
-  #cb-fab .cb-badge {
-    position: absolute; top: -3px; right: -3px;
-    background: #ef4444; color: #fff; border-radius: 50%;
-    width: 18px; height: 18px; font-size: 10px; font-weight: 700;
-    display: none; align-items: center; justify-content: center;
+  .qa-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 10px;
   }
-  #cb-box {
-    position: fixed; bottom: 88px; right: 24px; z-index: 9996;
-    width: 350px; max-width: calc(100vw - 32px);
+  .qa-btn {
+    display: flex; flex-direction: column; align-items: center; justify-content: center;
+    gap: 6px; padding: 14px 10px;
     background: #1a1d27; border: 1px solid #2e3347;
-    border-radius: 16px; box-shadow: 0 8px 32px rgba(0,0,0,.45);
-    display: none; flex-direction: column; overflow: hidden;
+    border-radius: 14px; cursor: pointer;
     font-family: 'Plus Jakarta Sans', sans-serif;
+    font-size: 12px; font-weight: 700;
+    text-decoration: none;
+    transition: all .15s;
   }
-  #cb-box.open { display: flex; }
-  .cb-header {
-    background: linear-gradient(135deg, var(--accent), var(--accent2));
-    padding: 13px 16px; display: flex; align-items: center; gap: 10px;
-  }
-  .cb-header .cb-avatar {
-    width: 34px; height: 34px; border-radius: 50%;
-    background: rgba(255,255,255,.2);
-    display: flex; align-items: center; justify-content: center; font-size: 16px;
-  }
-  .cb-header .cb-info { flex: 1; }
-  .cb-header .cb-info h6 { margin: 0; font-size: 13px; font-weight: 700; color: #fff; }
-  .cb-header .cb-info small { font-size: 11px; color: rgba(255,255,255,.8); }
-  #cb-close { background: none; border: none; color: rgba(255,255,255,.8); font-size: 18px; cursor: pointer; }
-  #cb-messages {
-    flex: 1; overflow-y: auto; padding: 14px 12px;
-    background: #0f1117; min-height: 260px; max-height: 340px;
-    display: flex; flex-direction: column; gap: 8px;
-  }
-  .cb-bubble {
-    max-width: 84%; padding: 8px 12px; border-radius: 12px;
-    font-size: 13px; line-height: 1.55; word-break: break-word;
-  }
-  .cb-bubble.bot {
-    background: #222535; color: #e2e8f0;
-    border-bottom-left-radius: 3px; align-self: flex-start;
-    border: 1px solid #2e3347;
-  }
-  .cb-bubble.user {
-    background: linear-gradient(135deg, var(--accent), var(--accent2));
-    color: #fff; border-bottom-right-radius: 3px; align-self: flex-end;
-  }
-  .cb-bubble.typing { background: #222535; align-self: flex-start; border: 1px solid #2e3347; }
-  .cb-dots { display: flex; gap: 4px; padding: 2px 4px; }
-  .cb-dots span {
-    width: 6px; height: 6px; border-radius: 50%;
-    background: #8892a4; animation: cbBounce .8s infinite;
-  }
-  .cb-dots span:nth-child(2) { animation-delay: .15s; }
-  .cb-dots span:nth-child(3) { animation-delay: .3s; }
-  @keyframes cbBounce { 0%,80%,100%{transform:translateY(0)} 40%{transform:translateY(-5px)} }
-  .cb-quick { display: flex; flex-wrap: wrap; gap: 6px; padding: 8px 12px 4px; background: #1a1d27; }
-  .cb-qr {
-    background: rgba(79,110,247,.12); color: var(--accent);
-    border: 1px solid rgba(79,110,247,.25); border-radius: 14px;
-    padding: 4px 11px; font-size: 12px; cursor: pointer; transition: background .15s;
-    font-family: 'Plus Jakarta Sans', sans-serif;
-  }
-  .cb-qr:hover { background: rgba(79,110,247,.22); }
-  .cb-footer {
-    padding: 10px 12px; background: #1a1d27;
-    border-top: 1px solid #2e3347; display: flex; gap: 8px; align-items: flex-end;
-  }
-  #cb-input {
-    flex: 1; border: 1px solid #2e3347; border-radius: 18px;
-    padding: 8px 13px; font-size: 13px; outline: none; resize: none;
-    max-height: 90px; overflow-y: auto; font-family: 'Plus Jakarta Sans', sans-serif;
-    background: #222535; color: #e2e8f0; transition: border-color .15s;
-  }
-  #cb-input:focus { border-color: var(--accent); }
-  #cb-send {
-    background: linear-gradient(135deg, var(--accent), var(--accent2));
-    color: #fff; border: none; border-radius: 50%; width: 36px; height: 36px;
-    flex-shrink: 0; cursor: pointer; font-size: 14px;
-    display: flex; align-items: center; justify-content: center; transition: opacity .15s;
-  }
-  #cb-send:disabled { opacity: .4; cursor: not-allowed; }
-  #cb-upload-btn {
-    background: none; border: 1px solid #2e3347; border-radius: 50%;
-    width: 36px; height: 36px; flex-shrink: 0; cursor: pointer;
-    font-size: 15px; display: flex; align-items: center; justify-content: center;
-    color: #8892a4; transition: background .15s, border-color .15s;
-  }
-  #cb-upload-btn:hover { background: rgba(79,110,247,.12); border-color: var(--accent); color: var(--accent); }
+  .qa-btn:hover { transform: translateY(-2px); box-shadow: 0 4px 16px rgba(0,0,0,.3); }
+  .qa-btn .qa-icon { font-size: 22px; }
+  .qa-btn.green  { color: #4ade80; border-color: rgba(34,197,94,.3);  background: rgba(34,197,94,.08); }
+  .qa-btn.green:hover  { background: rgba(34,197,94,.16); border-color: rgba(34,197,94,.5); }
+  .qa-btn.red    { color: #f87171; border-color: rgba(239,68,68,.3);  background: rgba(239,68,68,.08); }
+  .qa-btn.red:hover    { background: rgba(239,68,68,.16); border-color: rgba(239,68,68,.5); }
+  .qa-btn.yellow { color: #fbbf24; border-color: rgba(234,179,8,.3);  background: rgba(234,179,8,.08); }
+  .qa-btn.yellow:hover { background: rgba(234,179,8,.16); border-color: rgba(234,179,8,.5); }
+  .qa-btn.blue   { color: #818cf8; border-color: rgba(79,110,247,.3); background: rgba(79,110,247,.08); }
+  .qa-btn.blue:hover   { background: rgba(79,110,247,.16); border-color: rgba(79,110,247,.5); }
+  .qa-btn.purple { color: #c084fc; border-color: rgba(168,85,247,.3); background: rgba(168,85,247,.08); }
+  .qa-btn.purple:hover { background: rgba(168,85,247,.16); border-color: rgba(168,85,247,.5); }
+  .qa-btn.cyan   { color: #22d3ee; border-color: rgba(6,182,212,.3);  background: rgba(6,182,212,.08); }
+  .qa-btn.cyan:hover   { background: rgba(6,182,212,.16); border-color: rgba(6,182,212,.5); }
+  .qa-btn.orange { color: #fb923c; border-color: rgba(249,115,22,.3); background: rgba(249,115,22,.08); }
+  .qa-btn.orange:hover { background: rgba(249,115,22,.16); border-color: rgba(249,115,22,.5); }
+  .qa-btn.teal   { color: #34d399; border-color: rgba(52,211,153,.3); background: rgba(52,211,153,.08); }
+  .qa-btn.teal:hover   { background: rgba(52,211,153,.16); border-color: rgba(52,211,153,.5); }
 </style>
 
-<button id="cb-fab" onclick="cbToggle()" title="Tanya Asisten Kost">
-  🤖<span class="cb-badge" id="cb-badge">1</span>
-</button>
-
-<div id="cb-box">
-  <div class="cb-header">
-    <div class="cb-avatar">🏠</div>
-    <div class="cb-info">
-      <h6>Asisten KostPay</h6>
-      <small>🟢 Online – Tanya atau ajukan komplain</small>
-    </div>
-    <button id="cb-close" onclick="cbToggle()">✕</button>
-  </div>
-  <div class="cb-quick" id="cb-quick">
-    <button class="cb-qr" style="background:rgba(34,197,94,.12);color:#22c55e;border-color:rgba(34,197,94,.25);" onclick="cbTriggerUpload()">📤 Kirim bukti bayar</button>
-    <button class="cb-qr" style="background:rgba(239,68,68,.12);color:#ef4444;border-color:rgba(239,68,68,.25);" onclick="cbTriggerKomplain()">🔧 Ajukan Komplain</button>
-    <button class="cb-qr" style="background:rgba(234,179,8,.12);color:#eab308;border-color:rgba(234,179,8,.25);" onclick="cbCekStatusKomplain()">📋 Cek Status Komplain</button>
-    <button class="cb-qr" onclick="cbQuick('Ada kamar kosong?')">🛏️ Kamar kosong</button>
-    <button class="cb-qr" onclick="cbQuick('Berapa harga sewa?')">💰 Harga sewa</button>
-    <button class="cb-qr" onclick="cbQuick('Fasilitas apa saja?')">✨ Fasilitas</button>
-    <button class="cb-qr" onclick="cbQuick('Cara pembayaran?')">💳 Cara bayar</button>
-    <button class="cb-qr" onclick="cbQuick('Kontak admin?')">📞 Kontak</button>
-  </div>
-
-  <!-- Form Komplain Inline (tersembunyi, muncul saat dipilih) -->
-  <div id="cb-komplain-form" style="display:none; padding:10px 12px; background:#1a1d27; border-top:1px solid #2e3347;">
-    <div style="font-size:12px; color:#eab308; font-weight:700; margin-bottom:8px;">🔧 Form Pengajuan Komplain</div>
-    <div style="display:flex; flex-direction:column; gap:6px;">
-      <input type="text" id="kf-nama" placeholder="Nama lengkap *"
-        style="background:#222535;border:1px solid #2e3347;border-radius:8px;padding:7px 10px;color:#e2e8f0;font-size:12px;font-family:inherit;outline:none;">
-      <input type="text" id="kf-kamar" placeholder="Nomor kamar * (contoh: A1, 101)"
-        style="background:#222535;border:1px solid #2e3347;border-radius:8px;padding:7px 10px;color:#e2e8f0;font-size:12px;font-family:inherit;outline:none;">
-      <input type="text" id="kf-hp" placeholder="No. HP / WhatsApp (opsional)"
-        style="background:#222535;border:1px solid #2e3347;border-radius:8px;padding:7px 10px;color:#e2e8f0;font-size:12px;font-family:inherit;outline:none;">
-      <select id="kf-kategori"
-        style="background:#222535;border:1px solid #2e3347;border-radius:8px;padding:7px 10px;color:#e2e8f0;font-size:12px;font-family:inherit;outline:none;">
-        <option value="listrik">⚡ Listrik / Kelistrikan</option>
-        <option value="air">🚿 Air / Plumbing</option>
-        <option value="ac">❄️ AC / Kipas</option>
-        <option value="internet">📶 Internet / WiFi</option>
-        <option value="pintu_kunci">🔐 Pintu / Kunci</option>
-        <option value="kebersihan">🧹 Kebersihan</option>
-        <option value="keamanan">🔒 Keamanan</option>
-        <option value="furnitur">🪑 Furnitur / Perabot</option>
-        <option value="lainnya" selected>📝 Lainnya</option>
-      </select>
-      <input type="text" id="kf-judul" placeholder="Judul singkat masalah *"
-        style="background:#222535;border:1px solid #2e3347;border-radius:8px;padding:7px 10px;color:#e2e8f0;font-size:12px;font-family:inherit;outline:none;">
-      <textarea id="kf-deskripsi" rows="3" placeholder="Jelaskan masalahnya secara detail *"
-        style="background:#222535;border:1px solid #2e3347;border-radius:8px;padding:7px 10px;color:#e2e8f0;font-size:12px;font-family:inherit;outline:none;resize:vertical;"></textarea>
-      <div style="display:flex; gap:6px; align-items:center;">
-        <label style="font-size:11px; color:#8892a4; flex-shrink:0;">Foto (opsional):</label>
-        <input type="file" id="kf-foto" accept="image/*"
-          style="font-size:11px; color:#8892a4; flex:1;">
-      </div>
-      <div style="display:flex; gap:6px;">
-        <button onclick="cbKirimKomplain()" id="kf-submit"
-          style="flex:1;background:linear-gradient(135deg,#ef4444,#b91c1c);color:#fff;border:none;border-radius:8px;padding:8px;font-size:12px;font-weight:700;cursor:pointer;font-family:inherit;">
-          🔧 Kirim Komplain
-        </button>
-        <button onclick="cbBatalKomplain()"
-          style="background:#222535;color:#8892a4;border:1px solid #2e3347;border-radius:8px;padding:8px 12px;font-size:12px;cursor:pointer;font-family:inherit;">
-          ✕
-        </button>
-      </div>
-    </div>
-  </div>
-  <div id="cb-messages"></div>
-  <div class="cb-footer">
-    <button id="cb-upload-btn" onclick="document.getElementById('cb-file-input').click()" title="Kirim bukti transfer">📎</button>
-    <input type="file" id="cb-file-input" accept="image/*" style="display:none" onchange="cbUploadFile(this)">
-    <textarea id="cb-input" rows="1" placeholder="Ketik pertanyaan..."
-      onkeydown="cbKey(event)" oninput="cbResize(this)"></textarea>
-    <button id="cb-send" onclick="cbSend()">➤</button>
-  </div>
-  <!-- Upload Preview Panel -->
-  <div id="cb-upload-preview" style="display:none; padding:10px 12px; background:#1a1d27; border-top:1px solid #2e3347;">
-    <div style="font-size:12px; color:#8892a4; margin-bottom:6px;">📸 Bukti Transfer</div>
-    <div style="display:flex; gap:10px; align-items:center;">
-      <img id="cb-preview-img" style="width:64px;height:64px;object-fit:cover;border-radius:8px;border:1px solid #2e3347;" src="" alt="">
-      <div style="flex:1;">
-        <input type="text" id="cb-nama-input" placeholder="Nama / No. Kamar (contoh: Budi / A1)"
-          style="width:100%;background:#222535;border:1px solid #2e3347;border-radius:8px;padding:7px 10px;color:#e2e8f0;font-size:12px;font-family:inherit;outline:none;margin-bottom:6px;">
-        <div style="display:flex;gap:6px;">
-          <button onclick="cbSendUpload()" id="cb-send-upload"
-            style="flex:1;background:linear-gradient(135deg,#22c55e,#16a34a);color:#fff;border:none;border-radius:8px;padding:7px;font-size:12px;font-weight:700;cursor:pointer;font-family:inherit;">
-            ✅ Kirim Bukti
-          </button>
-          <button onclick="cbCancelUpload()"
-            style="background:#222535;color:#8892a4;border:1px solid #2e3347;border-radius:8px;padding:7px 10px;font-size:12px;cursor:pointer;font-family:inherit;">
-            ✕
-          </button>
-        </div>
-      </div>
-    </div>
+<div class="qa-section">
+  <div class="qa-grid">
+    <a href="/bayar/" class="qa-btn green">
+      <span class="qa-icon">📤</span> Kirim Bukti Bayar
+    </a>
+    <a href="/komplain-publik" class="qa-btn red">
+      <span class="qa-icon">🔧</span> Ajukan Komplain
+    </a>
+    <a href="/link_login/cek_komplain" class="qa-btn yellow">
+      <span class="qa-icon">📋</span> Cek Status Komplain
+    </a>
+    <a href="/link_login/fasilitas" class="qa-btn cyan">
+      <span class="qa-icon">✨</span> Fasilitas
+    </a>
+    <a href="https://wa.me/628159959605" target="_blank" class="qa-btn teal">
+      <span class="qa-icon">📞</span> Kontak Admin
+    </a>
   </div>
 </div>
 
-<script>
-(function () {
-  const SK = 'kp_chat_hist';
-  let hist = [], open = false;
-  try { const s = sessionStorage.getItem(SK); if (s) hist = JSON.parse(s); } catch(e) {}
+<!-- ══════════════════════════════════════════════════════
+     GALERI KAMAR
+     Menampilkan foto & video dari folder static/media_kamar/
+══════════════════════════════════════════════════════ -->
+<div class="galeri-section" id="galeri-section">
+  <div class="galeri-header">
+    <h3></h3>
+  </div>
 
-  window.cbTriggerUpload = function () {
-    _addMsg('bot', '📸 Silakan pilih foto bukti transfer kamu.\nKlik tombol 📎 atau tombol di bawah ini 👇');
-    // Directly open file picker
-    setTimeout(() => document.getElementById('cb-file-input').click(), 200);
-  };
+  <div class="galeri-slider" id="galeri-slider">
+    <div class="galeri-slide active" id="galeri-loading-slide">
+      <div class="galeri-loading">
+        <div class="galeri-spinner"></div>
+        <span>Memuat media kamar…</span>
+      </div>
+    </div>
+  </div>
 
-  // ── Komplain Form ──────────────────────────────────────────────────────────
-  window.cbTriggerKomplain = function () {
-    document.getElementById('cb-komplain-form').style.display = 'block';
-    document.getElementById('cb-upload-preview').style.display = 'none';
-    _addMsg('bot', '🔧 Silakan isi form komplain/perbaikan di bawah ini ya 👇\n\nAdmin akan segera menindaklanjuti!');
-    document.getElementById('kf-nama').focus();
-  };
-  window.cbBatalKomplain = function () {
-    document.getElementById('cb-komplain-form').style.display = 'none';
-  };
-  window.cbKirimKomplain = async function () {
-    const nama     = document.getElementById('kf-nama').value.trim();
-    const kamar    = document.getElementById('kf-kamar').value.trim();
-    const hp       = document.getElementById('kf-hp').value.trim();
-    const kategori = document.getElementById('kf-kategori').value;
-    const judul    = document.getElementById('kf-judul').value.trim();
-    const desk     = document.getElementById('kf-deskripsi').value.trim();
-    const fotoEl   = document.getElementById('kf-foto');
-    if (!nama || !kamar || !judul || !desk) {
-      _addMsg('bot', '⚠️ Nama, nomor kamar, judul, dan deskripsi wajib diisi.');
-      return;
-    }
-    const btn = document.getElementById('kf-submit');
-    btn.disabled = true; btn.textContent = '⏳ Mengirim...';
-    document.getElementById('cb-komplain-form').style.display = 'none';
-    _addMsg('user', `🔧 Komplain: ${judul}\n🏠 Kamar ${kamar} — ${nama}`);
-    _typing();
-    const fd = new FormData();
-    fd.append('nama', nama); fd.append('kamar', kamar); fd.append('no_hp', hp);
-    fd.append('kategori', kategori); fd.append('judul', judul); fd.append('deskripsi', desk);
-    if (fotoEl.files && fotoEl.files[0]) fd.append('foto', fotoEl.files[0]);
-    try {
-      const r = await fetch('/api/komplain', { method: 'POST', body: fd });
-      const d = await r.json(); _rmTyping();
-      _addMsg('assistant', d.reply || '✅ Komplain diterima!');
-    } catch(e) {
-      _rmTyping();
-      _addMsg('assistant', '✅ Komplain kamu sudah diterima! Admin akan segera merespons 🙏');
-    } finally {
-      btn.disabled = false; btn.textContent = '🔧 Kirim Komplain';
-      ['kf-nama','kf-kamar','kf-hp','kf-judul','kf-deskripsi'].forEach(id => document.getElementById(id).value = '');
-      document.getElementById('kf-foto').value = '';
-    }
-  };
-  window.cbCekStatusKomplain = function () {
-    _addMsg('bot', '📋 Ketik pesan dengan format:\n\ncek komplain [nama] kamar [nomor]\n\nContoh:\n→ cek komplain Budi kamar A1');
-  };
-
-  let _uploadFile = null;
-  window.cbUploadFile = function (input) {
-    if (!input.files || !input.files[0]) return;
-    _uploadFile = input.files[0];
-    const url = URL.createObjectURL(_uploadFile);
-    document.getElementById('cb-preview-img').src = url;
-    document.getElementById('cb-upload-preview').style.display = 'block';
-    document.getElementById('cb-nama-input').focus();
-    // Reset input so same file can be picked again
-    input.value = '';
-  };
-
-  window.cbCancelUpload = function () {
-    _uploadFile = null;
-    document.getElementById('cb-upload-preview').style.display = 'none';
-    document.getElementById('cb-nama-input').value = '';
-  };
-
-  window.cbSendUpload = async function () {
-    const nama = document.getElementById('cb-nama-input').value.trim();
-    if (!nama) { document.getElementById('cb-nama-input').focus(); return; }
-    if (!_uploadFile) return;
-
-    document.getElementById('cb-send-upload').disabled = true;
-    document.getElementById('cb-upload-preview').style.display = 'none';
-
-    // Show user bubble with thumbnail
-    const thumbUrl = URL.createObjectURL(_uploadFile);
-    const box = document.getElementById('cb-messages');
-    const d = document.createElement('div');
-    d.className = 'cb-bubble user';
-    d.innerHTML = `<div style="font-size:12px;margin-bottom:4px;">📤 Bukti transfer — <strong>${nama}</strong></div><img src="${thumbUrl}" style="max-width:160px;border-radius:8px;display:block;">`;
-    box.appendChild(d);
-    _scroll();
-
-    hist.push({ role: 'user', content: `[Bukti transfer dari: ${nama}]` }); _save();
-
-    _typing();
-    try {
-      const fd = new FormData();
-      fd.append('bukti', _uploadFile);
-      fd.append('nama', nama);
-      const r = await fetch('/api/bukti-transfer', { method: 'POST', body: fd });
-      const data = await r.json(); _rmTyping();
-      _addMsg('assistant', data.reply || '✅ Bukti transfer diterima! Admin akan segera memverifikasi. Terima kasih 🙏');
-    } catch(e) {
-      _rmTyping();
-      _addMsg('assistant', '✅ Bukti transfer kamu sudah diterima!\nAdmin akan memverifikasi dalam waktu dekat.\nAda pertanyaan lain? Hubungi admin: 08159959605 🙏');
-    } finally {
-      _uploadFile = null;
-      document.getElementById('cb-nama-input').value = '';
-      document.getElementById('cb-send-upload').disabled = false;
-    }
-  };
-
-
-  window.cbToggle = function () {
-    open = !open;
-    document.getElementById('cb-box').classList.toggle('open', open);
-    document.getElementById('cb-badge').style.display = 'none';
-    if (open) { _render(); setTimeout(() => document.getElementById('cb-input').focus(), 80); }
-  };
-  window.cbQuick = function (t) {
-    _addMsg('user', t); _call(t);
-  };
-  window.cbSend = function () {
-    const el = document.getElementById('cb-input');
-    const t = el.value.trim(); if (!t) return;
-    el.value = ''; cbResize(el);
-    _addMsg('user', t);
-    // Intercept: cek status komplain
-    const m = t.toLowerCase().match(/cek\s+komplain\s+(.+?)\s+kamar\s+(\S+)/);
-    if (m) { _callCekKomplain(m[1].trim(), m[2].trim()); }
-    else { _call(t); }
-  };
-  window.cbKey = function (e) {
-    if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); cbSend(); }
-  };
-  window.cbResize = function (el) {
-    el.style.height = 'auto';
-    el.style.height = Math.min(el.scrollHeight, 90) + 'px';
-  };
-
-  function _render() {
-    const box = document.getElementById('cb-messages'); box.innerHTML = '';
-    if (!hist.length) _bubble('bot', '👋 Halo! Saya asisten virtual KostPay.\nSilakan tanya seputar kamar, harga, atau fasilitas kost 😊');
-    else hist.forEach(h => _bubble(h.role === 'user' ? 'user' : 'bot', h.content));
-    _scroll();
-  }
-  function _addMsg(role, content) {
-    hist.push({ role, content }); _save();
-    _bubble(role === 'user' ? 'user' : 'bot', content); _scroll();
-  }
-  function _bubble(cls, text) {
-    const box = document.getElementById('cb-messages');
-    const d = document.createElement('div');
-    d.className = 'cb-bubble ' + cls;
-    d.style.whiteSpace = 'pre-wrap';
-    d.innerHTML = text;
-    box.appendChild(d); return d;
-  }
-  function _typing() {
-    const box = document.getElementById('cb-messages');
-    const d = document.createElement('div');
-    d.id = 'cb-typing'; d.className = 'cb-bubble typing';
-    d.innerHTML = '<div class="cb-dots"><span></span><span></span><span></span></div>';
-    box.appendChild(d); _scroll();
-  }
-  function _rmTyping() { const e = document.getElementById('cb-typing'); if (e) e.remove(); }
-  function _scroll() {
-    const b = document.getElementById('cb-messages');
-    setTimeout(() => b && (b.scrollTop = b.scrollHeight), 40);
-  }
-  function _save() {
-    try { sessionStorage.setItem(SK, JSON.stringify(hist.slice(-30))); } catch(e) {}
-  }
-
-  async function _callCekKomplain(nama, kamar) {
-    const btn = document.getElementById('cb-send'); btn.disabled = true;
-    _typing();
-    try {
-      const r = await fetch(`/api/komplain/status?nama=${encodeURIComponent(nama)}&kamar=${encodeURIComponent(kamar)}`);
-      const d = await r.json(); _rmTyping();
-      _addMsg('assistant', d.reply || 'Tidak ditemukan data komplain.');
-    } catch(e) {
-      _rmTyping();
-      _addMsg('assistant', '⚠️ Koneksi bermasalah. Coba lagi nanti.');
-    } finally { btn.disabled = false; }
-  }
-
-  async function _call(msg) {
-    const btn = document.getElementById('cb-send'); btn.disabled = true;
-    _typing();
-    try {
-      const r = await fetch('/api/chatbot', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ message: msg, history: hist.slice(0, -1) })
-      });
-      const d = await r.json(); _rmTyping();
-      _addMsg('assistant', d.reply || 'Maaf, tidak ada respons.');
-    } catch(e) {
-      _rmTyping();
-      _addMsg('assistant', '⚠️ Koneksi bermasalah. Hubungi admin: 08159959605');
-    } finally { btn.disabled = false; }
-  }
-
-  // Badge muncul 2 detik setelah halaman load
-  if (!sessionStorage.getItem('cb_seen')) {
-    setTimeout(() => {
-      const b = document.getElementById('cb-badge');
-      if (b) b.style.display = 'flex';
-    }, 2000);
-    sessionStorage.setItem('cb_seen', '1');
-  }
-})();
-</script>
+  <div class="galeri-dots" id="galeri-dots"></div>
+  <div class="galeri-counter" id="galeri-counter"></div>
+</div>
 </body>
 </html>

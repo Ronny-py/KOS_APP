@@ -1,0 +1,313 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Lapor Pembayaran — KostPay</title>
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;600;800&display=swap" rel="stylesheet">
+  <style>
+    :root { --accent:#4f6ef7; --accent2:#7c3aed; --yellow:#eab308; --red:#ef4444; --green:#22c55e;
+            --bg:#0f1117; --surface:#1a1d27; --border:#2e3347; --muted:#8892a4; --text:#e2e8f0; }
+    * { box-sizing:border-box; margin:0; padding:0; }
+    body {
+      font-family:'Plus Jakarta Sans', sans-serif;
+      background:var(--bg); color:var(--text);
+      min-height:100vh; display:flex; flex-direction:column;
+      align-items:center; padding:32px 16px;
+    }
+    .logo { text-align:center; margin-bottom:28px; }
+    .logo .icon {
+      width:52px; height:52px;
+      background:linear-gradient(135deg,var(--accent),var(--accent2));
+      border-radius:14px; display:flex; align-items:center; justify-content:center;
+      font-size:26px; margin:0 auto 10px;
+    }
+    .logo h1 { font-size:22px; font-weight:800; }
+    .logo p  { font-size:13px; color:var(--muted); margin-top:3px; }
+
+    .box {
+      background:var(--surface); border:1px solid var(--border);
+      border-radius:16px; padding:28px; width:100%; max-width:560px;
+      margin-bottom:16px;
+    }
+    .box-title { font-size:15px; font-weight:700; margin-bottom:18px; }
+
+    .form-group { margin-bottom:16px; }
+    label { display:block; font-size:12px; font-weight:600; color:var(--muted);
+            text-transform:uppercase; letter-spacing:.4px; margin-bottom:6px; }
+    input, select, textarea {
+      width:100%; background:#222535; border:1px solid var(--border);
+      border-radius:10px; padding:11px 14px; color:var(--text);
+      font-family:inherit; font-size:14px; outline:none; transition:border-color .15s;
+    }
+    input:focus, select:focus, textarea:focus { border-color:var(--accent); }
+    textarea { resize:vertical; }
+
+    .form-grid { display:grid; grid-template-columns:1fr 1fr; gap:14px; }
+    @media(max-width:480px) { .form-grid { grid-template-columns:1fr; } }
+
+    .btn {
+      display:inline-flex; align-items:center; justify-content:center; gap:7px;
+      padding:12px 22px; border-radius:10px; font-size:14px; font-weight:700;
+      cursor:pointer; text-decoration:none; border:none; transition:all .15s; width:100%;
+    }
+    .btn-primary { background:var(--accent); color:#fff; }
+    .btn-primary:hover { background:#3b55e0; }
+    .btn-outline { background:transparent; color:var(--muted); border:1px solid var(--border); width:auto; }
+    .btn-outline:hover { border-color:var(--accent); color:var(--text); }
+
+    .tagihan-info {
+      background:#222535; border:1px solid var(--border);
+      border-radius:10px; padding:14px 16px; margin-bottom:16px;
+    }
+    .t-label { font-size:11px; color:var(--muted); text-transform:uppercase; letter-spacing:.4px; }
+    .t-val   { font-size:15px; font-weight:700; margin-top:2px; }
+    .t-sisa  { font-size:18px; font-weight:800; color:var(--red); }
+
+    .alert { padding:11px 14px; border-radius:8px; font-size:13px; margin-bottom:14px; width:100%; max-width:560px; }
+    .alert-success { background:rgba(34,197,94,.1);  border:1px solid rgba(34,197,94,.25);  color:var(--green); }
+    .alert-danger  { background:rgba(239,68,68,.1);  border:1px solid rgba(239,68,68,.25);  color:var(--red); }
+
+    .note {
+      background:rgba(234,179,8,.08); border:1px solid rgba(234,179,8,.25);
+      border-radius:10px; padding:12px 16px; font-size:13px; color:#fde68a; margin-bottom:20px;
+    }
+
+    #zone {
+      border:2px dashed var(--border); border-radius:10px;
+      padding:26px 20px; text-align:center; cursor:pointer;
+      background:#222535; transition:border-color .2s, background .2s;
+    }
+    #zone:hover, #zone.dz-over { border-color:var(--accent); background:rgba(79,110,247,.07); }
+    #prevGrid { display:flex; flex-wrap:wrap; gap:10px; margin-top:14px; }
+    .pi {
+      position:relative; width:88px; height:88px; border-radius:8px; overflow:hidden;
+      border:1px solid var(--border); background:#222535;
+      display:flex; align-items:center; justify-content:center; flex-direction:column; flex-shrink:0;
+    }
+    .pi img { width:100%; height:100%; object-fit:cover; }
+    .pi .ico { font-size:24px; }
+    .pi .fn  { font-size:9px; color:var(--muted); padding:2px 4px;
+               overflow:hidden; text-overflow:ellipsis; white-space:nowrap; max-width:84px; }
+    .pi .x   {
+      position:absolute; top:2px; right:2px; background:rgba(0,0,0,.65); color:#fff;
+      border:none; border-radius:50%; width:18px; height:18px; font-size:13px;
+      line-height:18px; cursor:pointer; text-align:center; padding:0;
+    }
+    .pi .x:hover { background:#e53e3e; }
+    kbd { display:inline-block; padding:1px 5px; border:1px solid var(--border);
+          border-radius:3px; font-size:11px; background:var(--bg); }
+    .flex { display:flex; gap:10px; flex-wrap:wrap; align-items:center; }
+  </style>
+</head>
+<body>
+
+  <div class="logo">
+    <div class="icon">🏠</div>
+    <h1>KostPay</h1>
+    <p>Lapor Pembayaran Sewa</p>
+  </div>
+
+  {% for msg in get_flashed_messages(category_filter=['success']) %}
+    <div class="alert alert-success">{{ msg }}</div>
+  {% endfor %}
+  {% for msg in get_flashed_messages(category_filter=['danger']) %}
+    <div class="alert alert-danger">{{ msg }}</div>
+  {% endfor %}
+
+  {# ══ STEP 1: input nomor kamar + nama ══ #}
+  {% if not selected_penghuni %}
+  <div class="box">
+    <div class="box-title">🔍 Verifikasi Identitas</div>
+    <form method="POST" action="{{ url_for('pembayaran_publik.cari_tagihan') }}">
+      <div class="form-grid">
+        <div class="form-group">
+          <label>Nomor Kamar *</label>
+          <input type="text" name="nomor_kamar" placeholder="Contoh: 101"
+                 value="{{ nomor_kamar or '' }}" autofocus required>
+        </div>
+        <div class="form-group">
+          <label>Nama Penghuni *</label>
+          <input type="text" name="nama" placeholder="Nama lengkap"
+                 value="{{ nama_input or '' }}" required>
+        </div>
+      </div>
+      <button type="submit" class="btn btn-primary">🔍 Cari Tagihan</button>
+    </form>
+  </div>
+
+  {# ══ STEP 2: form bayar setelah identitas cocok ══ #}
+  {% else %}
+  <div class="box">
+    <div class="box-title">💰 Form Pembayaran</div>
+
+    {# Info penghuni terverifikasi #}
+    <div style="display:flex; align-items:center; gap:10px; margin-bottom:20px;
+                background:rgba(34,197,94,.07); border:1px solid rgba(34,197,94,.2);
+                border-radius:10px; padding:12px 14px;">
+      <span style="font-size:22px;">✅</span>
+      <div>
+        <div style="font-weight:700;">{{ selected_penghuni.nama }}</div>
+        <div style="font-size:12px; color:var(--muted);">Kamar {{ selected_penghuni.nomor_kamar }}</div>
+      </div>
+    </div>
+
+    <form method="POST" action="{{ url_for('pembayaran_publik.simpan_bayar') }}"
+          enctype="multipart/form-data" id="frmPubBay">
+      <input type="hidden" name="penghuni_id" value="{{ selected_penghuni.id }}">
+
+      {# Pilih tagihan #}
+      <div class="form-group">
+        <label>Tagihan yang Dibayar *</label>
+        {% if tagihan_list | length == 1 %}
+          <input type="hidden" name="tagihan_id" value="{{ tagihan_list[0].id }}">
+          <div class="tagihan-info">
+            <div class="t-label">Periode</div>
+            <div class="t-val">{{ tagihan_list[0].bulan | nama_bulan }}</div>
+            <div style="display:flex; gap:24px; margin-top:10px; flex-wrap:wrap;">
+              <div>
+                <div class="t-label">Total Tagihan</div>
+                <div class="t-val" style="font-size:14px;">{{ tagihan_list[0].jumlah | rupiah }}</div>
+              </div>
+              <div>
+                <div class="t-label">Sudah Dibayar</div>
+                <div class="t-val" style="font-size:14px;">{{ tagihan_list[0].sudah_dibayar | rupiah }}</div>
+              </div>
+              <div>
+                <div class="t-label">Sisa</div>
+                <div class="t-sisa">{{ (tagihan_list[0].jumlah - tagihan_list[0].sudah_dibayar) | rupiah }}</div>
+              </div>
+            </div>
+          </div>
+        {% else %}
+          <select name="tagihan_id" id="sel-tagihan" onchange="updateSisa(this)">
+            {% for t in tagihan_list %}
+              <option value="{{ t.id }}" data-sisa="{{ (t.jumlah - t.sudah_dibayar) | int }}">
+                {{ t.bulan | nama_bulan }} — sisa {{ (t.jumlah - t.sudah_dibayar) | rupiah }}
+              </option>
+            {% endfor %}
+          </select>
+        {% endif %}
+      </div>
+
+      <div class="form-grid">
+        <div class="form-group">
+          <label>Jumlah Dibayar (Rp) *</label>
+          <input type="number" name="jumlah_bayar" id="inp-jumlah"
+                 min="1000" step="any" required
+                 value="{{ (tagihan_list[0].jumlah - tagihan_list[0].sudah_dibayar) | int }}">
+        </div>
+        <div class="form-group">
+          <label>Metode Pembayaran *</label>
+          <select name="metode">
+            <option value="transfer">Transfer Bank</option>
+            <option value="tunai">Tunai / Cash</option>
+            <option value="qris">QRIS</option>
+            <option value="dompet_digital">Dompet Digital</option>
+          </select>
+        </div>
+      </div>
+
+      <div class="form-group">
+        <label>Pembayaran Untuk *</label>
+        <input type="text" name="keterangan" placeholder="Contoh: Iuran bulanan, Listrik, Air..."
+               value="{{ keterangan or '' }}" required>
+      </div>
+
+      <div class="form-group">
+        <label>📎 Upload Bukti Transfer
+          <span style="font-weight:400; font-size:12px; color:var(--muted);">— bisa lebih dari 1 file</span>
+        </label>
+        <div id="zone">
+          <div style="font-size:30px;">📂</div>
+          <div style="font-weight:600; margin:8px 0 4px;">Klik untuk memilih file</div>
+          <div style="font-size:12px; color:var(--muted);">
+            PNG · JPG · PDF · GIF · WEBP &nbsp;|&nbsp; Pilih banyak dengan <kbd>Ctrl+klik</kbd>
+          </div>
+        </div>
+        <input type="file" id="realInput" name="bukti_file" accept="image/*,.pdf" multiple
+               style="opacity:0;width:1px;height:1px;position:absolute;left:-9999px;">
+        <div id="prevGrid"></div>
+        <p id="countMsg" style="font-size:12px;color:var(--muted);margin:6px 0 0;"></p>
+      </div>
+
+      <div class="form-group">
+        <label>Catatan (opsional)</label>
+        <textarea name="catatan" rows="2" placeholder="Catatan tambahan..."></textarea>
+      </div>
+
+      <div class="note">⏳ Pembayaran Anda akan <strong>diverifikasi admin</strong> sebelum status tagihan diperbarui.</div>
+
+      <div class="flex" style="margin-bottom:0;">
+        <button type="submit" class="btn btn-primary" style="flex:1;">💸 Kirim Laporan</button>
+        <a href="{{ url_for('pembayaran_publik.form_bayar') }}" class="btn btn-outline">← Kembali</a>
+      </div>
+    </form>
+  </div>
+
+  {% endif %}
+
+  <a href="{{ url_for('auth.login') }}"
+     style="font-size:12px; color:var(--muted); text-decoration:none; margin-top:8px;">
+    ← Kembali ke halaman login
+  </a>
+
+<script>
+(function () {
+  'use strict';
+  var zone = document.getElementById('zone');
+  var realInput = document.getElementById('realInput');
+  var prevGrid  = document.getElementById('prevGrid');
+  var countMsg  = document.getElementById('countMsg');
+  var form      = document.getElementById('frmPubBay');
+  if (!zone) return;
+
+  var chosen = [];
+  zone.addEventListener('click', function () { realInput.click(); });
+  realInput.addEventListener('change', function () {
+    if (this.files && this.files.length) addFiles(Array.prototype.slice.call(this.files));
+  });
+  zone.addEventListener('dragover',  function (e) { e.preventDefault(); zone.classList.add('dz-over'); });
+  zone.addEventListener('dragleave', function ()  { zone.classList.remove('dz-over'); });
+  zone.addEventListener('drop', function (e) {
+    e.preventDefault(); zone.classList.remove('dz-over');
+    if (e.dataTransfer && e.dataTransfer.files.length)
+      addFiles(Array.prototype.slice.call(e.dataTransfer.files));
+  });
+  form.addEventListener('submit', syncToInput);
+
+  function okExt(f) {
+    return ['png','jpg','jpeg','gif','webp','pdf'].indexOf(f.name.split('.').pop().toLowerCase()) !== -1;
+  }
+  function addFiles(arr) { arr.forEach(function(f){ if(okExt(f)) chosen.push(f); }); render(); }
+  function removeFile(i) { chosen.splice(i,1); render(); }
+  function syncToInput() {
+    try { var dt=new DataTransfer(); chosen.forEach(function(f){dt.items.add(f);}); realInput.files=dt.files; } catch(e){}
+  }
+  function render() {
+    prevGrid.innerHTML = '';
+    countMsg.textContent = chosen.length ? chosen.length+' file dipilih' : '';
+    chosen.forEach(function(f,i){
+      var div=document.createElement('div'); div.className='pi';
+      var x=document.createElement('button'); x.type='button'; x.className='x'; x.textContent='×';
+      x.addEventListener('click',(function(idx){ return function(e){ e.stopPropagation(); removeFile(idx); }; })(i));
+      if(f.name.toLowerCase().endsWith('.pdf')){
+        var ico=document.createElement('div'); ico.className='ico'; ico.textContent='📄';
+        var fn=document.createElement('div'); fn.className='fn'; fn.textContent=f.name;
+        div.appendChild(ico); div.appendChild(fn);
+      } else {
+        var img=document.createElement('img'); img.alt=f.name; img.src=URL.createObjectURL(f);
+        div.appendChild(img);
+      }
+      div.appendChild(x); prevGrid.appendChild(div);
+    });
+  }
+  window.updateSisa = function(sel) {
+    var opt = sel.options[sel.selectedIndex];
+    var inp = document.getElementById('inp-jumlah');
+    if(inp && opt) inp.value = opt.dataset.sisa || 0;
+  };
+}());
+</script>
+</body>
+</html>

@@ -1,0 +1,129 @@
+{% extends 'base.html' %}
+{% block title %}Detail Check-Out #{{ row.id }}{% endblock %}
+{% block page_title %}Detail Check-Out{% endblock %}
+{% block breadcrumb %}
+  <a href="{{ url_for('checkout.index') }}" style="color:var(--muted)">Check-Out</a> / {{ row.nama }}
+{% endblock %}
+
+{% block topbar_actions %}
+  <button onclick="window.print()" class="btn btn-outline">🖨️ Cetak</button>
+{% endblock %}
+
+{% block content %}
+
+<div style="max-width:680px; margin:0 auto;">
+  <div class="card">
+
+    {# Header #}
+    <div style="text-align:center; padding:8px 0 24px; border-bottom:1px solid var(--border); margin-bottom:24px;">
+      <div style="font-size:48px; margin-bottom:12px;">🚪</div>
+      <div style="font-size:20px; font-weight:800;">Bukti Check-Out</div>
+      <div style="font-size:13px; color:var(--muted); margin-top:4px;">#CO{{ '%04d' % row.id }} · {{ row.created_at[:16] }}</div>
+    </div>
+
+    {# Info penghuni #}
+    <div style="display:grid; grid-template-columns:1fr 1fr; gap:16px; margin-bottom:24px;">
+      <div>
+        <div style="font-size:11px; color:var(--muted); font-weight:700; text-transform:uppercase; margin-bottom:4px;">Penghuni</div>
+        <div class="fw-bold" style="font-size:16px;">{{ row.nama }}</div>
+        <div style="color:var(--muted); font-size:13px;">Kamar {{ row.nomor_kamar }}</div>
+      </div>
+      <div>
+        <div style="font-size:11px; color:var(--muted); font-weight:700; text-transform:uppercase; margin-bottom:4px;">Periode Tinggal</div>
+        <div style="font-size:13px;">{{ row.tanggal_masuk or '—' }} → {{ row.tanggal_keluar }}</div>
+        <div style="color:var(--accent); font-weight:700; font-size:13px;">{{ row.lama_tinggal_hari }} hari</div>
+      </div>
+      <div>
+        <div style="font-size:11px; color:var(--muted); font-weight:700; text-transform:uppercase; margin-bottom:4px;">Kondisi Kamar</div>
+        {% if row.kondisi_kamar == 'baik' %}
+          <span style="color:var(--green); font-weight:700;">✅ Baik / Normal</span>
+        {% elif row.kondisi_kamar == 'minor' %}
+          <span style="color:var(--yellow); font-weight:700;">🟡 Kerusakan Minor</span>
+        {% else %}
+          <span style="color:var(--red); font-weight:700;">🔴 Kerusakan Signifikan</span>
+        {% endif %}
+      </div>
+      <div>
+        <div style="font-size:11px; color:var(--muted); font-weight:700; text-transform:uppercase; margin-bottom:4px;">Diproses Oleh</div>
+        <div style="font-size:13px; font-weight:600;">{{ row.processed_by or 'Admin' }}</div>
+      </div>
+    </div>
+
+    {# Kalkulasi deposit #}
+    <div style="background:var(--surface2); border-radius:12px; padding:20px; margin-bottom:20px;">
+      <div style="font-size:12px; font-weight:700; text-transform:uppercase; color:var(--muted);
+                  letter-spacing:.05em; margin-bottom:16px;">💰 Kalkulasi Deposit</div>
+
+      <div style="display:flex; flex-direction:column; gap:10px; font-size:13px;">
+        <div style="display:flex; justify-content:space-between;">
+          <span style="color:var(--muted);">Deposit Awal</span>
+          <span class="fw-bold" style="color:var(--green);">Rp {{ '{:,.0f}'.format(row.deposit_awal or 0).replace(',','.') }}</span>
+        </div>
+        {% if row.tagihan_belum_lunas > 0 %}
+        <div style="display:flex; justify-content:space-between;">
+          <span style="color:var(--muted);">Potongan Tagihan Belum Lunas</span>
+          <span class="fw-bold" style="color:var(--red);">- Rp {{ '{:,.0f}'.format(row.tagihan_belum_lunas).replace(',','.') }}</span>
+        </div>
+        {% endif %}
+        {% if row.potongan_kerusakan and row.potongan_kerusakan > 0 %}
+        <div style="display:flex; justify-content:space-between; align-items:flex-start; gap:8px;">
+          <div>
+            <span style="color:var(--muted);">Potongan Kerusakan</span>
+            {% if row.keterangan_potongan %}
+            <div style="font-size:11px; color:var(--muted); margin-top:2px;">{{ row.keterangan_potongan }}</div>
+            {% endif %}
+          </div>
+          <span class="fw-bold" style="color:var(--red); flex-shrink:0;">- Rp {{ '{:,.0f}'.format(row.potongan_kerusakan).replace(',','.') }}</span>
+        </div>
+        {% endif %}
+        <div style="border-top:2px solid var(--border); padding-top:12px; margin-top:4px;
+                    display:flex; justify-content:space-between; align-items:center;">
+          <span style="font-size:15px; font-weight:800;">💵 Total Dikembalikan</span>
+          <span style="font-size:24px; font-weight:800; font-family:var(--mono);
+                       color:{{ 'var(--green)' if row.deposit_dikembalikan > 0 else 'var(--red)' }};">
+            Rp {{ '{:,.0f}'.format(row.deposit_dikembalikan or 0).replace(',','.') }}
+          </span>
+        </div>
+      </div>
+    </div>
+
+    {% if row.catatan %}
+    <div style="border-top:1px solid var(--border); padding-top:16px; margin-bottom:16px;">
+      <div style="font-size:11px; font-weight:700; text-transform:uppercase; color:var(--muted); margin-bottom:6px;">Catatan</div>
+      <div style="font-size:13px; line-height:1.6; white-space:pre-wrap;">{{ row.catatan }}</div>
+    </div>
+    {% endif %}
+
+    {% if row.bukti_pengembalian %}
+    <div style="border-top:1px solid var(--border); padding-top:16px;">
+      <div style="font-size:11px; font-weight:700; text-transform:uppercase; color:var(--muted); margin-bottom:8px;">Bukti Pengembalian</div>
+      {% set ext = row.bukti_pengembalian.split('.')[-1].lower() %}
+      {% if ext in ['jpg','jpeg','png','webp','gif'] %}
+        <img src="{{ url_for('checkout.serve_bukti', filename=row.bukti_pengembalian.split('/')[-1]) }}"
+             style="max-width:100%; border-radius:10px; border:1px solid var(--border);">
+      {% else %}
+        <a href="{{ url_for('checkout.serve_bukti', filename=row.bukti_pengembalian.split('/')[-1]) }}"
+           target="_blank" class="btn btn-outline" style="font-size:13px;">
+          📄 Lihat / Download Bukti
+        </a>
+      {% endif %}
+    </div>
+    {% endif %}
+
+    <div style="border-top:1px solid var(--border); padding-top:16px; margin-top:16px;
+                display:flex; gap:10px;">
+      <a href="{{ url_for('checkout.index') }}" class="btn btn-outline">← Kembali</a>
+    </div>
+
+  </div>
+</div>
+
+<style>
+@media print {
+  .sidebar, .topbar, .btn, a[href] { display: none !important; }
+  .main { margin-left: 0 !important; }
+  .card { border: 1px solid #ccc !important; background: #fff !important; color: #000 !important; }
+}
+</style>
+
+{% endblock %}

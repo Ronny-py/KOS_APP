@@ -1,0 +1,198 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Harga Sewa — Thalib Residence</title>
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;600;800&display=swap" rel="stylesheet">
+  <style>
+    :root { --accent:#4f6ef7; --accent2:#7c3aed; --yellow:#eab308; --green:#22c55e; }
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      font-family: 'Plus Jakarta Sans', sans-serif;
+      background: #0f1117; color: #e2e8f0;
+      min-height: 100vh; padding: 24px 16px;
+    }
+    .container { max-width: 480px; margin: 0 auto; }
+    .back-btn {
+      display: inline-flex; align-items: center; gap: 6px;
+      color: #8892a4; font-size: 13px; text-decoration: none;
+      margin-bottom: 20px; transition: color .15s;
+    }
+    .back-btn:hover { color: var(--accent); }
+    .page-header { text-align: center; margin-bottom: 24px; }
+    .page-header .icon { font-size: 36px; margin-bottom: 8px; }
+    .page-header h1 { font-size: 22px; font-weight: 800; }
+    .page-header p { font-size: 13px; color: #8892a4; margin-top: 4px; }
+
+    .paket-card {
+      background: #1a1d27; border: 1px solid #2e3347;
+      border-radius: 16px; padding: 20px; margin-bottom: 14px;
+    }
+    .paket-card.featured {
+      border-color: rgba(79,110,247,.5);
+      background: rgba(79,110,247,.06);
+    }
+    .paket-badge {
+      display: inline-block; font-size: 10px; font-weight: 700;
+      background: var(--accent); color: #fff;
+      border-radius: 6px; padding: 2px 8px; margin-bottom: 8px;
+    }
+    .paket-tipe { font-size: 16px; font-weight: 800; }
+    .paket-desc { font-size: 12px; color: #8892a4; margin-top: 3px; }
+    .paket-harga-grid {
+      display: grid; grid-template-columns: 1fr 1fr;
+      gap: 8px; margin-top: 14px;
+    }
+    .harga-item {
+      background: #222535; border-radius: 10px; padding: 10px 12px;
+    }
+    .harga-item .periode { font-size: 10px; color: #8892a4; margin-bottom: 3px; }
+    .harga-item .nominal { font-size: 14px; font-weight: 800; color: #fff; }
+    .harga-item .per { font-size: 10px; color: #8892a4; }
+    .harga-item.highlight .nominal { color: var(--yellow); }
+    .deposit-row {
+      display: flex; align-items: center; justify-content: space-between;
+      background: rgba(234,179,8,.08); border: 1px solid rgba(234,179,8,.2);
+      border-radius: 10px; padding: 10px 14px; margin-top: 12px;
+    }
+    .deposit-row .label { font-size: 12px; color: #fbbf24; }
+    .deposit-row .val { font-size: 14px; font-weight: 800; color: #fbbf24; }
+
+    .section-title {
+      font-size: 12px; font-weight: 700; color: #8892a4;
+      text-transform: uppercase; letter-spacing: 1px;
+      margin: 20px 0 10px;
+    }
+    .biaya-table { width: 100%; border-collapse: collapse; }
+    .biaya-table tr { border-bottom: 1px solid #2e3347; }
+    .biaya-table tr:last-child { border-bottom: none; }
+    .biaya-table td {
+      padding: 10px 0; font-size: 13px; vertical-align: top;
+    }
+    .biaya-table td:first-child { color: #8892a4; width: 40%; }
+    .biaya-table td:last-child { font-weight: 600; text-align: right; }
+    .gratis { color: var(--green) !important; }
+    .merah { color: #f87171 !important; }
+
+    .wa-btn {
+      display: flex; align-items: center; justify-content: center; gap: 8px;
+      background: rgba(37,211,102,.12); border: 1px solid rgba(37,211,102,.35);
+      border-radius: 12px; padding: 13px; margin-top: 24px;
+      color: #4ade80; font-size: 14px; font-weight: 700;
+      text-decoration: none; transition: all .15s;
+    }
+    .wa-btn:hover { background: rgba(37,211,102,.22); }
+  </style>
+</head>
+<body>
+<div class="container">
+  <a href="/login" class="back-btn">← Kembali</a>
+
+  <div class="page-header">
+    <div class="icon">💰</div>
+    <h1>Harga Sewa</h1>
+    <p>Thalib Residence — Jalan Talib I No. 33C, Jakarta Pusat</p>
+  </div>
+
+  <!-- Paket Single -->
+  <div class="paket-card featured">
+    <div class="paket-badge">Paling Populer</div>
+    <div class="paket-tipe">Single Room</div>
+    <div class="paket-desc">Dengan AC • 1 penghuni • 3.5 m²</div>
+    <div class="paket-harga-grid">
+      <div class="harga-item">
+        <div class="periode">Per Bulan</div>
+        <div class="nominal">Rp 1.800.000</div>
+        <div class="per">/bulan</div>
+      </div>
+      <div class="harga-item">
+        <div class="periode">3 Bulan</div>
+        <div class="nominal">Rp 5.400.000</div>
+        <div class="per">= Rp 1.800.000/bln</div>
+      </div>
+      <div class="harga-item">
+        <div class="periode">6 Bulan</div>
+        <div class="nominal">Rp 10.800.000</div>
+        <div class="per">= Rp 1.800.000/bln</div>
+      </div>
+      <div class="harga-item highlight">
+        <div class="periode">12 Bulan</div>
+        <div class="nominal">Rp 21.600.000</div>
+        <div class="per">= Rp 1.800.000/bln</div>
+      </div>
+    </div>
+    <div class="deposit-row">
+      <div class="label">💳 Deposit</div>
+      <div class="val">Rp 400.000</div>
+    </div>
+  </div>
+
+  <!-- Paket Double -->
+  <div class="paket-card">
+    <div class="paket-tipe">Double Room</div>
+    <div class="paket-desc">Dengan AC • 2 penghuni • Springbed King</div>
+    <div class="paket-harga-grid">
+      <div class="harga-item">
+        <div class="periode">Per Bulan</div>
+        <div class="nominal">Rp 2.000.000</div>
+        <div class="per">/bulan</div>
+      </div>
+      <div class="harga-item">
+        <div class="periode">3 Bulan</div>
+        <div class="nominal">Rp 6.000.000</div>
+        <div class="per">= Rp 2.000.000/bln</div>
+      </div>
+      <div class="harga-item">
+        <div class="periode">6 Bulan</div>
+        <div class="nominal">Rp 12.000.000</div>
+        <div class="per">= Rp 2.000.000/bln</div>
+      </div>
+      <div class="harga-item highlight">
+        <div class="periode">12 Bulan</div>
+        <div class="nominal">Rp 24.000.000</div>
+        <div class="per">= Rp 2.000.000/bln</div>
+      </div>
+    </div>
+    <div class="deposit-row">
+      <div class="label">💳 Deposit</div>
+      <div class="val">Rp 400.000</div>
+    </div>
+  </div>
+
+  <div class="section-title">📋 Biaya Tambahan & Aturan</div>
+  <div class="paket-card">
+    <table class="biaya-table">
+      <tr>
+        <td>⚡ Listrik</td>
+        <td class="merah">Token Mandiri</td>
+      </tr>
+      <tr>
+        <td>🚿 Air</td>
+        <td class="gratis">Gratis (termasuk)</td>
+      </tr>
+      <tr>
+        <td>📶 WiFi</td>
+        <td class="gratis">Gratis (termasuk)</td>
+      </tr>
+      <tr>
+        <td>🏍️ Parkir Motor</td>
+        <td class="gratis">Gratis (termasuk)</td>
+      </tr>
+      <tr>
+        <td>👕 Laundry</td>
+        <td class="merah">Tidak tersedia</td>
+      </tr>
+      <tr>
+        <td>⏰ Denda Terlambat</td>
+        <td class="merah">Rp 50.000/hari (maks H+7)</td>
+      </tr>
+    </table>
+  </div>
+
+  <a href="https://wa.me/628159959605?text=Halo%20Admin%2C%20saya%20ingin%20tanya%20lebih%20lanjut%20tentang%20harga%20sewa%20kamar." target="_blank" class="wa-btn">
+    💬 Tanya via WhatsApp
+  </a>
+</div>
+</body>
+</html>

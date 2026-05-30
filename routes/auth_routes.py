@@ -13,7 +13,6 @@ from flask import (Blueprint, render_template, request,
 from werkzeug.security import check_password_hash
 from models.database import get_db
 from utils.license_guard import validasi_expiry, update_timestamps
-from utils.activity_logger import log_login, get_client_ip
 
 auth_bp = Blueprint("auth", __name__)
 
@@ -77,13 +76,6 @@ def login():
     # ── 1. Verifikasi username + password dulu ────────────────────────────────
     admin = _get_admin(username)
     if admin is None or not check_password_hash(admin["password"], password):
-        log_login(
-            admin_id   = admin["id"] if admin else None,
-            username   = username,
-            ip         = get_client_ip(),
-            user_agent = request.headers.get("User-Agent", ""),
-            status     = "failed"
-        )
         flash("Username atau password salah.", "danger")
         return render_template("login.html",
                                show_kode=False,
@@ -94,13 +86,6 @@ def login():
 
     if ok:
         # ── Login normal berhasil ─────────────────────────────────────────────
-        log_login(
-            admin_id   = admin["id"],
-            username   = admin["username"],
-            ip         = get_client_ip(),
-            user_agent = request.headers.get("User-Agent", ""),
-            status     = "success"
-        )
         _do_login(admin)
         return redirect(url_for("dashboard.index"))
 
@@ -139,13 +124,6 @@ def login():
                 (admin["id"],)
             )
             db.commit()
-            log_login(
-                admin_id   = admin["id"],
-                username   = admin["username"],
-                ip         = get_client_ip(),
-                user_agent = request.headers.get("User-Agent", ""),
-                status     = "success"
-            )
             _do_login(admin)
             flash("Verifikasi berhasil. Selamat datang!", "success")
             return redirect(url_for("dashboard.index"))

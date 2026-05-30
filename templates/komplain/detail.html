@@ -48,6 +48,18 @@
           {% for k, label in KATEGORI_LIST %}{% if k==row.kategori %}
             <div style="font-size:14px;">{{ label }}</div>
           {% endif %}{% endfor %}
+          {% if row.kategori == 'ac' %}
+          <div style="margin-top:8px; font-size:12px; padding:7px 10px;
+                      border-radius:8px; border:1px solid rgba(99,179,237,.3);
+                      background:rgba(99,179,237,.07); color:#63b3ed;">
+            ❄️ Service AC terakhir:
+            {% if service_ac_terakhir %}
+              <strong>{{ service_ac_terakhir }}</strong>
+            {% else %}
+              <strong>Belum pernah service</strong>
+            {% endif %}
+          </div>
+          {% endif %}
           {% if row.selesai_at %}
           <div class="text-muted" style="margin-top:6px; font-size:12px;">
             ✅ Selesai: {{ row.selesai_at[:10] }}
@@ -127,6 +139,22 @@
         </div>
         <button type="submit" class="btn btn-outline" style="width:100%; margin-top:10px;">Simpan Prioritas</button>
       </form>
+
+      {# Ubah Kategori #}
+      <div style="border-top:1px solid var(--border); margin-top:16px; padding-top:14px;">
+        <div class="card-title" style="margin-bottom:10px; font-size:13px;">📂 Kategori</div>
+        <form method="POST" action="{{ url_for('komplain.set_kategori', kid=row.id) }}"
+              style="display:flex; gap:8px; align-items:center;">
+          <select name="kategori" style="flex:1; font-size:13px; padding:8px 10px;">
+            {% for k, label in KATEGORI_LIST %}
+            <option value="{{ k }}" {{ 'selected' if k == row.kategori }}>{{ label }}</option>
+            {% endfor %}
+          </select>
+          <button type="submit" class="btn btn-outline" style="white-space:nowrap; padding:8px 12px;">
+            Ubah
+          </button>
+        </form>
+      </div>
 
       {# Hapus #}
       <div style="border-top:1px solid var(--border); margin-top:16px; padding-top:12px;">

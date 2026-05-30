@@ -1,0 +1,564 @@
+{% extends 'base.html' %}
+{% block title %}Check-In / Check-Out{% endblock %}
+{% block page_title %}Check-In / Check-Out{% endblock %}
+{% block breadcrumb %}Manajemen Penghuni{% endblock %}
+
+{% block topbar_actions %}
+  <span style="font-size:12px; color:var(--muted); padding:6px 10px;
+               background:rgba(79,110,247,.08); border:1px solid rgba(79,110,247,.2);
+               border-radius:8px;">
+    🏠 Kelola keluar-masuk penghuni
+  </span>
+{% endblock %}
+
+{% block content %}
+
+{# ── Flash messages ── #}
+{% with messages = get_flashed_messages(with_categories=true) %}
+  {% for cat, msg in messages %}
+  <div class="alert alert-{{ 'success' if cat=='success' else 'danger' }}"
+       style="padding:12px 16px; border-radius:10px; margin-bottom:16px; font-size:13px; font-weight:600;
+              {{ 'background:rgba(34,197,94,.1); border:1px solid rgba(34,197,94,.3); color:var(--green);'
+                 if cat=='success' else
+                 'background:rgba(239,68,68,.1); border:1px solid rgba(239,68,68,.3); color:#fca5a5;' }}">
+    {{ msg }}
+  </div>
+  {% endfor %}
+{% endwith %}
+
+{# ── Tab switcher ── #}
+<div style="display:flex; gap:6px; margin-bottom:24px; background:var(--surface);
+            border:1px solid var(--border); border-radius:12px; padding:5px; width:fit-content;">
+  <button id="tab-btn-checkin" onclick="switchTab('checkin')"
+          class="tab-btn {{ 'active' if tab == 'checkin' else '' }}"
+          style="padding:9px 22px; border-radius:8px; border:none; font-size:14px; font-weight:700;
+                 cursor:pointer; font-family:inherit; transition:all .15s;">
+    🟢 Check-In
+  </button>
+  <button id="tab-btn-checkout" onclick="switchTab('checkout')"
+          class="tab-btn {{ 'active' if tab != 'checkin' else '' }}"
+          style="padding:9px 22px; border-radius:8px; border:none; font-size:14px; font-weight:700;
+                 cursor:pointer; font-family:inherit; transition:all .15s;">
+    🚪 Check-Out
+  </button>
+</div>
+
+{# ════════════════════════════════════════════
+   TAB CHECK-IN
+════════════════════════════════════════════ #}
+<div id="panel-checkin" style="display:{{ 'block' if tab == 'checkin' else 'none' }};">
+  <div style="display:grid; grid-template-columns:1fr 400px; gap:20px; align-items:start;">
+
+    {# Kolom kiri — Form check-in #}
+    <div>
+      <div class="card">
+        <div style="display:flex; align-items:center; gap:12px; margin-bottom:24px;">
+          <div style="width:44px; height:44px; border-radius:12px;
+                      background:linear-gradient(135deg,rgba(34,197,94,.25),rgba(34,197,94,.1));
+                      border:1px solid rgba(34,197,94,.3);
+                      display:flex; align-items:center; justify-content:center; font-size:22px;">🟢</div>
+          <div>
+            <div style="font-size:16px; font-weight:800;">Proses Check-In</div>
+            <div style="font-size:12px; color:var(--muted);">Daftarkan penghuni baru ke kamar</div>
+          </div>
+        </div>
+
+        <form method="POST" action="{{ url_for('checkout.proses_checkin') }}" id="form-checkin">
+
+          <div style="background:var(--surface2); border-radius:12px; padding:18px; margin-bottom:16px;">
+            <div style="font-size:11px; font-weight:700; text-transform:uppercase;
+                        color:var(--muted); letter-spacing:.06em; margin-bottom:14px;">
+              Data Penghuni
+            </div>
+            <div class="form-grid" style="margin-bottom:14px;">
+              <div class="form-group" style="margin-bottom:0;">
+                <label>Nama Lengkap <span style="color:var(--red);">*</span></label>
+                <input type="text" name="nama" placeholder="Contoh: Budi Santoso" required>
+              </div>
+              <div class="form-group" style="margin-bottom:0;">
+                <label>Nomor Kamar <span style="color:var(--red);">*</span></label>
+                <input type="text" name="nomor_kamar" placeholder="Contoh: 101, A1, M204" required>
+              </div>
+              <div class="form-group" style="margin-bottom:0;">
+                <label>No. HP / WhatsApp</label>
+                <input type="text" name="no_hp" placeholder="08xx-xxxx-xxxx">
+              </div>
+              <div class="form-group" style="margin-bottom:0;">
+                <label>Email</label>
+                <input type="email" name="email" placeholder="opsional">
+              </div>
+            </div>
+          </div>
+
+          <div style="background:var(--surface2); border-radius:12px; padding:18px; margin-bottom:16px;">
+            <div style="font-size:11px; font-weight:700; text-transform:uppercase;
+                        color:var(--muted); letter-spacing:.06em; margin-bottom:14px;">
+              Info Sewa
+            </div>
+            <div class="form-grid" style="margin-bottom:14px;">
+              <div class="form-group" style="margin-bottom:0;">
+                <label>Tanggal Masuk <span style="color:var(--red);">*</span></label>
+                <input type="date" name="tanggal_masuk" id="inp-tgl-masuk" required>
+              </div>
+              <div class="form-group" style="margin-bottom:0;">
+                <label>Harga Sewa / Bulan (Rp)</label>
+                <input type="number" name="harga_sewa" placeholder="0" min="0">
+              </div>
+              <div class="form-group" style="margin-bottom:0;">
+                <label>Deposit (Rp)</label>
+                <input type="number" name="deposit" placeholder="0" min="0">
+              </div>
+              <div class="form-group" style="margin-bottom:0;">
+                <label>Keterangan</label>
+                <input type="text" name="keterangan" placeholder="Opsional">
+              </div>
+            </div>
+          </div>
+
+          <button type="submit" id="btn-checkin"
+                  style="width:100%; padding:15px; border-radius:12px;
+                         background:linear-gradient(135deg,#22c55e,#16a34a);
+                         color:#fff; border:none; font-size:15px; font-weight:800;
+                         cursor:pointer; display:flex; align-items:center;
+                         justify-content:center; gap:10px; transition:opacity .15s;
+                         font-family:inherit; letter-spacing:.02em;">
+            🟢 Konfirmasi Check-In
+          </button>
+        </form>
+      </div>
+    </div>
+
+    {# Kolom kanan — Riwayat check-in #}
+    <div>
+      <div class="card">
+        <div class="card-title" style="margin-bottom:16px;">📜 Riwayat Check-In</div>
+
+        {% if history_checkin %}
+        <div style="display:flex; flex-direction:column; gap:8px;">
+          {% for h in history_checkin %}
+          <a href="{{ url_for('penghuni.edit', pid=h.id) }}"
+             style="display:block; text-decoration:none; padding:12px 14px;
+                    background:var(--surface2); border-radius:10px;
+                    border:1px solid var(--border); transition:border-color .15s;"
+             onmouseover="this.style.borderColor='var(--accent)'"
+             onmouseout="this.style.borderColor='var(--border)'">
+            <div style="display:flex; justify-content:space-between; align-items:flex-start; gap:8px;">
+              <div>
+                <div class="fw-bold" style="font-size:13px; color:var(--text); margin-bottom:3px;">
+                  {{ h.nama }}
+                </div>
+                <div style="font-size:12px; color:var(--muted);">
+                  Kamar {{ h.nomor_kamar }}
+                  {% if h.tanggal_masuk %} · Masuk {{ h.tanggal_masuk[:10] }}{% endif %}
+                </div>
+              </div>
+              <div style="text-align:right; flex-shrink:0;">
+                <div style="font-size:12px; font-weight:700; color:var(--accent);">
+                  Rp {{ '{:,.0f}'.format(h.harga_sewa or 0).replace(',','.') }}
+                </div>
+                <div style="margin-top:4px;">
+                  {% if h.aktif %}
+                    <span style="font-size:10px; font-weight:700; padding:2px 8px; border-radius:6px;
+                                 background:rgba(34,197,94,.15); color:var(--green);">Aktif</span>
+                  {% else %}
+                    <span style="font-size:10px; font-weight:700; padding:2px 8px; border-radius:6px;
+                                 background:var(--surface); color:var(--muted); border:1px solid var(--border);">Sudah keluar</span>
+                  {% endif %}
+                </div>
+              </div>
+            </div>
+          </a>
+          {% endfor %}
+        </div>
+        {% else %}
+        <div class="empty" style="padding:32px 16px;">
+          <div class="empty-icon">🟢</div>
+          <div>Belum ada riwayat check-in</div>
+        </div>
+        {% endif %}
+      </div>
+    </div>
+
+  </div>
+</div>{# /panel-checkin #}
+
+
+{# ════════════════════════════════════════════
+   TAB CHECK-OUT
+════════════════════════════════════════════ #}
+<div id="panel-checkout" style="display:{{ 'none' if tab == 'checkin' else 'block' }};">
+  <div style="display:grid; grid-template-columns:1fr 400px; gap:20px; align-items:start;">
+
+    {# Kolom kiri — Form checkout (sama persis dengan sebelumnya) #}
+    <div>
+      <div class="card">
+        <div style="display:flex; align-items:center; gap:12px; margin-bottom:24px;">
+          <div style="width:44px; height:44px; border-radius:12px;
+                      background:linear-gradient(135deg,rgba(239,68,68,.25),rgba(239,68,68,.1));
+                      border:1px solid rgba(239,68,68,.3);
+                      display:flex; align-items:center; justify-content:center; font-size:22px;">🚪</div>
+          <div>
+            <div style="font-size:16px; font-weight:800;">Proses Check-Out</div>
+            <div style="font-size:12px; color:var(--muted);">Pilih penghuni → review → konfirmasi</div>
+          </div>
+        </div>
+
+        <form method="POST" action="{{ url_for('checkout.proses') }}" enctype="multipart/form-data"
+              id="form-checkout" onsubmit="return konfirmCheckout()">
+
+          <div style="background:var(--surface2); border-radius:12px; padding:18px; margin-bottom:16px;">
+            <div style="font-size:11px; font-weight:700; text-transform:uppercase;
+                        color:var(--muted); letter-spacing:.06em; margin-bottom:12px;">
+              Step 1 — Pilih Penghuni
+            </div>
+            <div class="form-group" style="margin-bottom:0;">
+              <label>Penghuni Aktif <span style="color:var(--red);">*</span></label>
+              <select name="penghuni_id" id="sel-penghuni" required onchange="loadPreview(this.value)"
+                      style="font-size:14px;">
+                <option value="">-- Pilih penghuni --</option>
+                {% for p in penghuni_list %}
+                <option value="{{ p.id }}">{{ p.nama }} — Kamar {{ p.nomor_kamar }} (masuk {{ p.tanggal_masuk }})</option>
+                {% endfor %}
+              </select>
+            </div>
+          </div>
+
+          {# Preview card #}
+          <div id="preview-box" style="display:none; margin-bottom:16px;">
+            <div style="background:linear-gradient(135deg,rgba(79,110,247,.08),rgba(124,58,237,.05));
+                        border:1px solid rgba(79,110,247,.2); border-radius:12px; padding:18px;">
+              <div style="font-size:11px; font-weight:700; text-transform:uppercase;
+                          color:var(--accent); letter-spacing:.06em; margin-bottom:14px;">
+                📋 Ringkasan Penghuni
+              </div>
+              <div style="display:grid; grid-template-columns:1fr 1fr; gap:12px; margin-bottom:14px;">
+                <div>
+                  <div style="font-size:11px; color:var(--muted); margin-bottom:3px;">Nama</div>
+                  <div class="fw-bold" id="pv-nama">—</div>
+                </div>
+                <div>
+                  <div style="font-size:11px; color:var(--muted); margin-bottom:3px;">Kamar</div>
+                  <div class="fw-bold" id="pv-kamar">—</div>
+                </div>
+                <div>
+                  <div style="font-size:11px; color:var(--muted); margin-bottom:3px;">Tanggal Masuk</div>
+                  <div id="pv-masuk">—</div>
+                </div>
+                <div>
+                  <div style="font-size:11px; color:var(--muted); margin-bottom:3px;">Lama Tinggal</div>
+                  <div id="pv-lama" style="font-weight:700;">—</div>
+                </div>
+                <div>
+                  <div style="font-size:11px; color:var(--muted); margin-bottom:3px;">Harga Sewa/Bulan</div>
+                  <div id="pv-sewa" style="color:var(--accent); font-weight:700;">—</div>
+                </div>
+                <div>
+                  <div style="font-size:11px; color:var(--muted); margin-bottom:3px;">Deposit</div>
+                  <div id="pv-deposit" style="color:var(--green); font-weight:700;">—</div>
+                </div>
+              </div>
+              <div id="pv-tagihan-wrap" style="display:none; border-top:1px solid rgba(79,110,247,.15);
+                   padding-top:12px; margin-top:4px;">
+                <div style="font-size:11px; font-weight:700; color:var(--red); margin-bottom:8px;">
+                  ⚠️ Tagihan Belum Lunas
+                </div>
+                <div id="pv-tagihan-list" style="font-size:12px;"></div>
+                <div style="border-top:1px solid rgba(239,68,68,.2); margin-top:8px; padding-top:8px;
+                            display:flex; justify-content:space-between;">
+                  <span style="font-size:12px; color:var(--muted);">Total sisa tagihan</span>
+                  <span id="pv-sisa" style="font-weight:800; color:var(--red); font-size:14px;">—</span>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          {# Step 2 #}
+          <div id="step2-box" style="display:none;">
+            <div style="background:var(--surface2); border-radius:12px; padding:18px; margin-bottom:16px;">
+              <div style="font-size:11px; font-weight:700; text-transform:uppercase;
+                          color:var(--muted); letter-spacing:.06em; margin-bottom:14px;">
+                Step 2 — Detail Kepulangan
+              </div>
+              <div class="form-grid" style="margin-bottom:14px;">
+                <div class="form-group" style="margin-bottom:0;">
+                  <label>Tanggal Keluar <span style="color:var(--red);">*</span></label>
+                  <input type="date" name="tanggal_keluar" id="inp-tgl-keluar" required
+                         value="{{ now }}" onchange="hitungEstimasi()">
+                </div>
+                <div class="form-group" style="margin-bottom:0;">
+                  <label>Kondisi Kamar</label>
+                  <select name="kondisi_kamar" onchange="updateKondisiUI(this.value)">
+                    <option value="baik">✅ Baik / Normal</option>
+                    <option value="minor">🟡 Ada Kerusakan Minor</option>
+                    <option value="rusak">🔴 Kerusakan Signifikan</option>
+                  </select>
+                </div>
+              </div>
+              <div id="potongan-wrap" style="display:none; margin-bottom:14px;">
+                <div class="form-grid">
+                  <div class="form-group" style="margin-bottom:0;">
+                    <label>Potongan Kerusakan (Rp)</label>
+                    <input type="number" name="potongan_kerusakan" id="inp-potongan"
+                           placeholder="0" min="0" oninput="hitungEstimasi()" value="0">
+                  </div>
+                  <div class="form-group" style="margin-bottom:0;">
+                    <label>Keterangan Kerusakan</label>
+                    <input type="text" name="keterangan_potongan"
+                           placeholder="Contoh: AC rusak, dinding kotor">
+                  </div>
+                </div>
+              </div>
+              <div class="form-group" style="margin-bottom:14px;">
+                <label>Catatan Tambahan</label>
+                <textarea name="catatan" rows="3" style="resize:vertical;"
+                          placeholder="Hal-hal yang perlu dicatat saat checkout..."></textarea>
+              </div>
+              <div class="form-group" style="margin-bottom:0;">
+                <label>Bukti Pengembalian Deposit <span style="font-weight:400; font-size:11px; color:var(--muted);">(opsional)</span></label>
+                <div id="drop-bukti"
+                     onclick="document.getElementById('inp-bukti').click()"
+                     style="border:2px dashed var(--border); border-radius:10px; padding:16px;
+                            text-align:center; cursor:pointer; color:var(--muted); font-size:13px;
+                            background:var(--surface); transition:all .15s;">
+                  <div style="font-size:20px; margin-bottom:4px;">📎</div>
+                  <div>Klik untuk upload bukti transfer / tanda terima</div>
+                  <div style="font-size:11px; margin-top:3px;">PNG, JPG, PDF — maks 5 MB</div>
+                  <div id="bukti-nama" style="display:none; margin-top:6px;
+                       font-weight:700; color:var(--green);"></div>
+                </div>
+                <input type="file" id="inp-bukti" name="bukti_pengembalian"
+                       accept="image/*,.pdf" style="display:none;"
+                       onchange="previewBukti(this)">
+              </div>
+            </div>
+
+            {# Kalkulasi deposit #}
+            <div id="kalkulasi-box"
+                 style="border-radius:12px; padding:20px; margin-bottom:16px;
+                        background:var(--surface2); border:1px solid var(--border);">
+              <div style="font-size:11px; font-weight:700; text-transform:uppercase;
+                          color:var(--muted); letter-spacing:.06em; margin-bottom:16px;">
+                💰 Kalkulasi Deposit
+              </div>
+              <div style="display:flex; flex-direction:column; gap:10px; font-size:13px;">
+                <div style="display:flex; justify-content:space-between;">
+                  <span style="color:var(--muted);">Deposit awal</span>
+                  <span id="kal-deposit" class="fw-bold" style="color:var(--green);">—</span>
+                </div>
+                <div style="display:flex; justify-content:space-between;">
+                  <span style="color:var(--muted);">Sisa tagihan belum lunas</span>
+                  <span id="kal-sisa" class="fw-bold" style="color:var(--red);">—</span>
+                </div>
+                <div id="kal-potongan-row" style="display:none; justify-content:space-between;">
+                  <span style="color:var(--muted);">Potongan kerusakan</span>
+                  <span id="kal-potongan" class="fw-bold" style="color:var(--red);">—</span>
+                </div>
+                <div style="border-top:2px solid var(--border); padding-top:10px;
+                            display:flex; justify-content:space-between; align-items:center;">
+                  <span style="font-weight:800; font-size:14px;">💵 Dikembalikan ke Penghuni</span>
+                  <span id="kal-kembali"
+                        style="font-size:22px; font-weight:800; color:var(--green); font-family:var(--mono);">—</span>
+                </div>
+              </div>
+            </div>
+
+            <button type="submit" id="btn-checkout"
+                    style="width:100%; padding:15px; border-radius:12px;
+                           background:linear-gradient(135deg,#ef4444,#dc2626);
+                           color:#fff; border:none; font-size:15px; font-weight:800;
+                           cursor:pointer; display:flex; align-items:center;
+                           justify-content:center; gap:10px; transition:opacity .15s;
+                           font-family:inherit; letter-spacing:.02em;">
+              🚪 Konfirmasi Check-Out
+            </button>
+          </div>
+
+        </form>
+      </div>
+    </div>
+
+    {# Kolom kanan — Riwayat checkout #}
+    <div>
+      <div class="card">
+        <div class="card-title" style="margin-bottom:16px;">📜 Riwayat Check-Out</div>
+        {% if history %}
+        <div style="display:flex; flex-direction:column; gap:10px;">
+          {% for h in history %}
+          <a href="{{ url_for('checkout.detail', cid=h.id) }}"
+             style="display:block; text-decoration:none; padding:14px;
+                    background:var(--surface2); border-radius:10px;
+                    border:1px solid var(--border); transition:border-color .15s;"
+             onmouseover="this.style.borderColor='var(--accent)'"
+             onmouseout="this.style.borderColor='var(--border)'">
+            <div style="display:flex; justify-content:space-between; align-items:flex-start; gap:8px;">
+              <div>
+                <div class="fw-bold" style="font-size:13px; color:var(--text); margin-bottom:3px;">
+                  {{ h.nama }}
+                </div>
+                <div style="font-size:12px; color:var(--muted);">
+                  Kamar {{ h.nomor_kamar }} · Keluar {{ h.tanggal_keluar[:10] }}
+                </div>
+              </div>
+              <div style="text-align:right; flex-shrink:0;">
+                <div style="font-size:13px; font-weight:800;
+                            color:{{ 'var(--green)' if h.deposit_dikembalikan > 0 else 'var(--muted)' }};">
+                  Rp {{ '{:,.0f}'.format(h.deposit_dikembalikan).replace(',','.') }}
+                </div>
+                <div style="font-size:10px; color:var(--muted); margin-top:2px;">dikembalikan</div>
+              </div>
+            </div>
+            {% if h.kondisi_kamar != 'baik' %}
+            <div style="margin-top:8px;">
+              <span style="font-size:10px; font-weight:700; padding:2px 8px; border-radius:6px;
+                           {{ 'background:rgba(234,179,8,.15); color:var(--yellow);'
+                              if h.kondisi_kamar=='minor' else
+                              'background:rgba(239,68,68,.15); color:var(--red);' }}">
+                {{ '🟡 Kerusakan Minor' if h.kondisi_kamar=='minor' else '🔴 Kerusakan Signifikan' }}
+              </span>
+            </div>
+            {% endif %}
+          </a>
+          {% endfor %}
+        </div>
+        {% else %}
+        <div class="empty" style="padding:32px 16px;">
+          <div class="empty-icon">🚪</div>
+          <div>Belum ada riwayat check-out</div>
+        </div>
+        {% endif %}
+      </div>
+    </div>
+
+  </div>
+</div>{# /panel-checkout #}
+
+<style>
+.tab-btn          { background: transparent; color: var(--muted); }
+.tab-btn.active   { background: var(--accent); color: #fff; }
+.tab-btn:hover:not(.active) { background: var(--surface2); color: var(--text); }
+#btn-checkout:hover, #btn-checkin:hover { opacity: .88; }
+#drop-bukti:hover { border-color: var(--accent); background: rgba(79,110,247,.05); }
+</style>
+
+<script>
+// ── Tab switcher ──────────────────────────────────────────────────────────────
+function switchTab(tab) {
+  document.getElementById('panel-checkin').style.display  = tab === 'checkin'  ? 'block' : 'none';
+  document.getElementById('panel-checkout').style.display = tab === 'checkout' ? 'block' : 'none';
+  document.getElementById('tab-btn-checkin').classList.toggle('active',  tab === 'checkin');
+  document.getElementById('tab-btn-checkout').classList.toggle('active', tab === 'checkout');
+  // Update URL tanpa reload
+  history.replaceState(null, '', '?tab=' + tab);
+}
+
+// ── Checkout logic ────────────────────────────────────────────────────────────
+let _deposit = 0, _sisa = 0;
+
+function rupiah(n) {
+  return 'Rp ' + Math.round(n).toLocaleString('id-ID');
+}
+
+async function loadPreview(pid) {
+  const box   = document.getElementById('preview-box');
+  const step2 = document.getElementById('step2-box');
+  if (!pid) { box.style.display = 'none'; step2.style.display = 'none'; return; }
+
+  box.style.display = 'block';
+  step2.style.display = 'none';
+  document.getElementById('pv-nama').textContent = '⏳ Memuat...';
+
+  try {
+    const res  = await fetch(`/checkout/api/preview/${pid}`);
+    const data = await res.json();
+    if (!data.ok) { alert('Gagal memuat data penghuni.'); return; }
+
+    _deposit = data.deposit;
+    _sisa    = data.tagihan_sisa;
+
+    document.getElementById('pv-nama').textContent    = data.nama;
+    document.getElementById('pv-kamar').textContent   = data.nomor_kamar;
+    document.getElementById('pv-masuk').textContent   = data.tanggal_masuk || '—';
+    document.getElementById('pv-lama').textContent    = `${data.lama_hari} hari`;
+    document.getElementById('pv-sewa').textContent    = rupiah(data.harga_sewa);
+    document.getElementById('pv-deposit').textContent = rupiah(data.deposit);
+
+    const tagihanWrap = document.getElementById('pv-tagihan-wrap');
+    if (data.tagihan_list.length > 0) {
+      tagihanWrap.style.display = 'block';
+      let html = '';
+      data.tagihan_list.forEach(t => {
+        const sisa = t.jumlah - t.sudah_bayar;
+        html += `<div style="display:flex; justify-content:space-between; margin-bottom:4px;">
+          <span style="color:var(--muted);">📅 ${t.bulan}</span>
+          <span style="color:var(--red); font-weight:600;">${rupiah(sisa)}</span>
+        </div>`;
+      });
+      document.getElementById('pv-tagihan-list').innerHTML = html;
+      document.getElementById('pv-sisa').textContent = rupiah(data.tagihan_sisa);
+    } else {
+      tagihanWrap.style.display = 'none';
+    }
+
+    document.getElementById('kal-deposit').textContent = rupiah(_deposit);
+    document.getElementById('kal-sisa').textContent    = `- ${rupiah(_sisa)}`;
+    hitungEstimasi();
+    step2.style.display = 'block';
+  } catch(e) {
+    alert('Koneksi bermasalah. Coba lagi.');
+  }
+}
+
+function hitungEstimasi() {
+  const potongan = parseFloat(document.getElementById('inp-potongan')?.value || 0);
+  const kembali  = Math.max(0, _deposit - _sisa - potongan);
+  document.getElementById('kal-kembali').textContent = rupiah(kembali);
+  document.getElementById('kal-kembali').style.color = kembali > 0 ? 'var(--green)' : 'var(--red)';
+  const potRow = document.getElementById('kal-potongan-row');
+  if (potongan > 0) {
+    potRow.style.display = 'flex';
+    document.getElementById('kal-potongan').textContent = `- ${rupiah(potongan)}`;
+  } else {
+    potRow.style.display = 'none';
+  }
+}
+
+function updateKondisiUI(val) {
+  document.getElementById('potongan-wrap').style.display = (val !== 'baik') ? 'block' : 'none';
+  if (val === 'baik') { document.getElementById('inp-potongan').value = 0; hitungEstimasi(); }
+}
+
+function previewBukti(input) {
+  if (input.files && input.files[0]) {
+    const el = document.getElementById('bukti-nama');
+    el.textContent   = '✅ ' + input.files[0].name;
+    el.style.display = 'block';
+    document.getElementById('drop-bukti').style.borderColor = 'var(--green)';
+  }
+}
+
+function konfirmCheckout() {
+  const nama    = document.getElementById('pv-nama').textContent;
+  const kamar   = document.getElementById('pv-kamar').textContent;
+  const tgl     = document.getElementById('inp-tgl-keluar').value;
+  const kembali = document.getElementById('kal-kembali').textContent;
+  return confirm(
+    `⚠️ KONFIRMASI CHECK-OUT\n\n` +
+    `Penghuni : ${nama}\nKamar    : ${kamar}\nTgl Keluar: ${tgl}\n` +
+    `Deposit dikembalikan: ${kembali}\n\nStatus penghuni akan diubah menjadi TIDAK AKTIF.\nLanjutkan?`
+  );
+}
+
+document.addEventListener('DOMContentLoaded', () => {
+  // Set default tanggal hari ini
+  const tglKeluar = document.getElementById('inp-tgl-keluar');
+  if (tglKeluar && !tglKeluar.value) {
+    tglKeluar.value = new Date().toISOString().split('T')[0];
+  }
+  const tglMasuk = document.getElementById('inp-tgl-masuk');
+  if (tglMasuk && !tglMasuk.value) {
+    tglMasuk.value = new Date().toISOString().split('T')[0];
+  }
+});
+</script>
+
+{% endblock %}

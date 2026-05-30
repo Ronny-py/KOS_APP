@@ -403,6 +403,9 @@
       <a href="{{ url_for('wa_scheduler.status') }}" class="nav-link {% if request.blueprint == 'wa_scheduler' %}active{% endif %}">
         <span class="nav-icon">📲</span> Status WA
       </a>
+      <a href="{{ url_for('kamar.index') }}" class="nav-link {% if request.blueprint == 'kamar' %}active{% endif %}">
+        <span class="nav-icon">🏠</span> Statistik Kamar
+      </a>
       <a href="{{ url_for('komplain.index') }}" class="nav-link {% if request.blueprint == 'komplain' %}active{% endif %}"
          style="position:relative;">
         <span class="nav-icon">🔧</span> Komplain
@@ -411,6 +414,12 @@
         <span style="margin-left:auto; background:var(--red); color:#fff; border-radius:10px;
                      padding:1px 7px; font-size:10px; font-weight:700;">{{ komplain_baru_count }}</span>
         {% endif %}
+      </a>
+      <a href="{{ url_for('checkout.index') }}" class="nav-link {% if request.blueprint == 'checkout' %}active{% endif %}">
+        <span class="nav-icon">🚪</span> Check-Out
+      </a>
+      <a href="{{ url_for('qr.admin') }}" class="nav-link {% if request.blueprint == 'qr' %}active{% endif %}">
+        <span class="nav-icon">📷</span> QR Kamar
       </a>
     </div>
     <div class="nav-section">
@@ -435,14 +444,16 @@
     <div class="wa-panel-header" onclick="toggleWaPanel()">
       <div class="wa-panel-title">
         <span class="wa-dot" id="waSideDot"></span>
-        📲 Fonnte WA
+        📲 WA Server
       </div>
       <span class="wa-panel-toggle" id="waPanelToggle">▼</span>
     </div>
     <div class="wa-panel-body" id="waPanelBody">
-      <div class="wa-status-text" id="waSideStatus">Mengecek Fonnte...</div>
-      <div style="font-size:11px; color:var(--muted); margin-top:6px;">
-        Powered by <b>Fonnte API</b>
+      <div class="wa-status-text" id="waSideStatus">Mengecek status...</div>
+      <div class="wa-log" id="waSideLog"></div>
+      <div class="wa-btn-row">
+        <button class="wa-btn wa-btn-start" id="waBtnStart" onclick="waStart()">▶ Start</button>
+        <button class="wa-btn wa-btn-stop"  id="waBtnStop"  onclick="waStop()">■ Stop</button>
       </div>
     </div>
   </div>
@@ -539,10 +550,14 @@
   <span id="waFloatLabel">WA Server</span>
 </div>
 <div class="wa-float-popup" id="waFloatPopup">
-  <h4>📲 Fonnte WA</h4>
+  <h4>📲 WhatsApp Server</h4>
   <div class="wa-status-text" id="waFloatStatus">Mengecek status...</div>
+  <div class="wa-btn-row" style="margin-top:10px;">
+    <button class="wa-btn wa-btn-start" id="waFloatBtnStart" onclick="waStart()">▶ Start</button>
+    <button class="wa-btn wa-btn-stop"  id="waFloatBtnStop"  onclick="waStop()">■ Stop</button>
+  </div>
   <div style="font-size:11px; color:var(--muted); margin-top:8px;">
-    Notifikasi WA via <b>Fonnte API</b>
+    Login diperlukan untuk start/stop server.
   </div>
 </div>
 
@@ -593,7 +608,7 @@ function _updateUI(running, ready) {
   // Float dot + label
   _setFloatDot(running, ready);
   const lbl = document.getElementById('waFloatLabel');
-  if (lbl) lbl.textContent = ready ? '✅ Fonnte' : running ? '⏳ Fonnte...' : '⭕ Fonnte';
+  if (lbl) lbl.textContent = ready ? '✅ WA Siap' : running ? '⏳ WA Starting...' : '⭕ WA Server';
 
   // Status text (sidebar)
   const sideStatus = document.getElementById('waSideStatus');
@@ -615,17 +630,15 @@ function _updateUI(running, ready) {
 }
 
 function _statusHtml(running, ready) {
-  if (ready)   return '<b style="color:var(--green)">✅ Fonnte terhubung</b>';
-  if (running) return '<b style="color:var(--yellow)">⏳ Mengecek Fonnte...</b>';
-  return '<b style="color:var(--muted)">⭕ Fonnte tidak aktif</b>';
+  if (ready)   return '<b style="color:var(--green)">✅ Terhubung & siap kirim WA</b>';
+  if (running) return '<b style="color:var(--yellow)">⏳ Server berjalan — scan QR di CMD</b>';
+  return '<b style="color:var(--muted)">⭕ Server tidak aktif</b>';
 }
 
 async function waCheckStatus() {
   try {
     const r = await fetch('/wa-server/status');
-    if (!r.ok) { _updateUI(false, false); return; }
-    let d;
-    try { d = await r.json(); } catch { _updateUI(false, false); return; }
+    const d = await r.json();
     _updateUI(d.running, d.ready);
   } catch { _updateUI(false, false); }
 }
@@ -635,9 +648,8 @@ async function waStart() {
   btns.forEach(b => { b.disabled = true; b.textContent = '...'; });
   try {
     const r = await fetch('/wa-server/start', { method: 'POST' });
-    let d;
-    try { d = await r.json(); } catch { setTimeout(waCheckStatus, 500); return; }
-    if (!d.success) console.warn('WA start: ' + d.message);
+    const d = await r.json();
+    if (!d.success) alert('Gagal: ' + d.message);
     else {
       // Mulai polling status sampai running
       let tries = 0;
@@ -646,7 +658,7 @@ async function waStart() {
         if (_waRunning || ++tries > 15) clearInterval(poll);
       }, 1500);
     }
-  } catch(e) { console.warn('WA start error:', e); }
+  } catch(e) { alert('Error: ' + e); }
   setTimeout(waCheckStatus, 500);
 }
 
@@ -655,7 +667,7 @@ async function waStop() {
   try {
     await fetch('/wa-server/stop', { method: 'POST' });
     setTimeout(waCheckStatus, 800);
-  } catch(e) { console.warn('WA stop error:', e); }
+  } catch(e) { alert('Error: ' + e); }
 }
 
 async function waFetchLogs() {

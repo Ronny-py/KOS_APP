@@ -10,10 +10,10 @@ from utils.format_helper import rupiah, nama_bulan, status_badge
 from utils.migrate_dokumen import migrate_dokumen_penghuni
 from utils.migrate_pengeluaran import migrate_pengeluaran
 from utils.migrate_admin_expiry import migrate_admin_expiry
-from utils.migrate_notif_wa import migrate_notif_wa
-from utils.migrate_komplain import migrate_komplain
-from utils.migrate_supervisor import migrate_supervisor          # ← SUPERVISOR
-from utils.activity_logger    import log_activity               # ← SUPERVISOR
+from utils.migrate_notif_wa import migrate_notif_wa          # ← BARU
+from utils.migrate_komplain import migrate_komplain           # ← KOMPLAIN
+from utils.migrate_checkout import migrate_checkout           # ← CHECKOUT
+from utils.migrate_keterangan import migrate_keterangan       # ← KETERANGAN BAYAR
 
 # ── Blueprint imports ──────────────────────────────────────────────────────────
 from routes.auth_routes               import auth_bp
@@ -26,13 +26,21 @@ from routes.pengeluaran_routes        import pengeluaran_bp
 from routes.inventaris_routes         import inventaris_bp
 from routes.laporan_inventaris_routes import laporan_inventaris_bp
 from routes.notif_wa_routes           import notif_wa_bp
-from routes.kirim_wa_routes           import kirim_wa_bp
+from routes.kirim_wa_routes           import kirim_wa_bp      # ← BARU
+from routes.wa_server_routes          import wa_server_bp     # ← BARU
 from routes.chatbot_routes            import chatbot_bp
-from routes.bukti_transfer_routes     import bukti_transfer_bp
-from routes.wa_scheduler_routes       import wa_scheduler_bp
-from routes.komplain_routes           import komplain_bp
-from routes.komplain_publik_routes    import komplain_publik_bp
-from routes.supervisor_routes         import supervisor_bp       # ← SUPERVISOR
+from routes.bukti_transfer_routes     import bukti_transfer_bp   # ← BARU
+from routes.wa_scheduler_routes      import wa_scheduler_bp     # ← BARU
+from routes.komplain_routes          import komplain_bp          # ← KOMPLAIN
+from routes.komplain_publik_routes   import komplain_publik_bp   # ← KOMPLAIN
+from routes.pembayaran_publik_routes import pembayaran_publik_bp  # ← PUBLIK
+from routes.media_kamar_routes      import media_kamar_bp         # ← GALERI KAMAR
+from routes.struk_routes            import struk_bp               # ← STRUK PDF
+from routes.checkout_routes         import checkout_bp            # ← CHECKOUT
+from routes.link_login_routes       import link_login_bp          # ← LINK LOGIN
+from routes.kamar_routes            import kamar_bp                # ← STATISTIK KAMAR
+from routes.qr_routes              import qr_bp                    # ← QR KAMAR
+from routes.kamar_pdf_routes       import kamar_pdf_bp             # ← KAMAR PDF
 
 
 def create_app():
@@ -48,9 +56,10 @@ def create_app():
         migrate_dokumen_penghuni()
         migrate_pengeluaran()
         migrate_admin_expiry()
-        migrate_notif_wa()
-        migrate_komplain()
-        migrate_supervisor()                                      # ← SUPERVISOR
+        migrate_notif_wa()                                    # ← BARU
+        migrate_komplain()                                    # ← KOMPLAIN
+        migrate_checkout()                                    # ← CHECKOUT
+        migrate_keterangan()                                  # ← KETERANGAN BAYAR
 
     # Register blueprints
     app.register_blueprint(auth_bp)
@@ -62,22 +71,27 @@ def create_app():
     app.register_blueprint(pengeluaran_bp)
     app.register_blueprint(inventaris_bp)
     app.register_blueprint(laporan_inventaris_bp)
-    app.register_blueprint(notif_wa_bp)
-    app.register_blueprint(kirim_wa_bp)
-    app.register_blueprint(kirim_wa_bp, url_prefix='/wa', name='kirim_wa_wa')
+    app.register_blueprint(notif_wa_bp)                      # ← BARU
+    app.register_blueprint(kirim_wa_bp)                      # ← BARU
+    app.register_blueprint(kirim_wa_bp, url_prefix='/wa', name='kirim_wa_wa')  # broadcast prefix
+    app.register_blueprint(wa_server_bp)                     # ← BARU
     app.register_blueprint(chatbot_bp)
-    app.register_blueprint(bukti_transfer_bp)
-    app.register_blueprint(wa_scheduler_bp)
-    app.register_blueprint(komplain_bp)
-    app.register_blueprint(komplain_publik_bp)
-    app.register_blueprint(supervisor_bp)                        # ← SUPERVISOR
+    app.register_blueprint(bukti_transfer_bp)                    # ← BARU
+    app.register_blueprint(wa_scheduler_bp)                      # ← BARU
+    app.register_blueprint(komplain_bp)                          # ← KOMPLAIN
+    app.register_blueprint(komplain_publik_bp)                   # ← KOMPLAIN
+    app.register_blueprint(pembayaran_publik_bp)                 # ← PUBLIK
+    app.register_blueprint(media_kamar_bp)                       # ← GALERI KAMAR
+    app.register_blueprint(struk_bp)                             # ← STRUK PDF
+    app.register_blueprint(checkout_bp)                          # ← CHECKOUT
+    app.register_blueprint(link_login_bp)                        # ← LINK LOGIN
+    app.register_blueprint(kamar_bp)                             # ← STATISTIK KAMAR
+    app.register_blueprint(qr_bp)                                # ← QR KAMAR
+    app.register_blueprint(kamar_pdf_bp)                         # ← KAMAR PDF
 
     # Context processors
     from utils.context_processors import register_context_processors
-    register_context_processors(app)
-
-    # Activity logger (catat setiap akses menu admin)
-    log_activity(app)                                            # ← SUPERVISOR
+    register_context_processors(app)                             # ← KOMPLAIN badge
 
     # Route root → redirect ke dashboard atau login
     @app.route("/")
@@ -101,11 +115,44 @@ def create_app():
         except Exception as e:
             app.logger.warning(f"Scheduler tidak bisa distart: {e}")
 
+    # ── Auto-start WA server (Node.js) saat Flask start ───────────────────
+    if not app.testing and _os.environ.get("WERKZEUG_RUN_MAIN") != "false":
+        try:
+            from routes.wa_server_routes import _is_running, WA_SERVER_DIR, _wa_process
+            import subprocess, sys
+            if not _is_running():
+                server_js = _os.path.join(WA_SERVER_DIR, 'server.js')
+                if _os.path.isfile(server_js):
+                    import routes.wa_server_routes as _wa_mod
+                    _wa_mod._wa_process = subprocess.Popen(
+                        ['node', 'server.js'],
+                        cwd=WA_SERVER_DIR,
+                        stdout=subprocess.PIPE,
+                        stderr=subprocess.STDOUT,
+                        text=True,
+                        creationflags=subprocess.CREATE_NO_WINDOW if sys.platform == 'win32' else 0,
+                    )
+                    app.logger.info("WA server auto-started saat Flask start.")
+                else:
+                    app.logger.warning(f"server.js tidak ditemukan di {WA_SERVER_DIR}")
+            else:
+                app.logger.info("WA server sudah berjalan, skip auto-start.")
+        except Exception as e:
+            app.logger.warning(f"WA server tidak bisa auto-start: {e}")
+
+    # ── Dev: trigger scheduler manual ────────────────────────────────────────
+    @app.route('/dev/run-scheduler')
+    def dev_run_scheduler():
+        from flask import session
+        if not session.get('admin_id'):
+            return redirect(url_for('auth.login'))
+        from utils.scheduler import _cek_dan_kirim
+        _cek_dan_kirim(app)
+        return 'Scheduler selesai — cek halaman Status WA'
+
     return app
 
 
 if __name__ == '__main__':
     app = create_app()
     app.run(debug=True, port=5000)
-
-app = create_app()

@@ -1,0 +1,220 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Fasilitas — Thalib Residence</title>
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;600;800&display=swap" rel="stylesheet">
+  <style>
+    :root { --accent:#4f6ef7; --accent2:#7c3aed; --green:#22c55e; }
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      font-family: 'Plus Jakarta Sans', sans-serif;
+      background: #0f1117; color: #e2e8f0;
+      min-height: 100vh; padding: 24px 16px;
+    }
+    .container { max-width: 480px; margin: 0 auto; }
+    .back-btn {
+      display: inline-flex; align-items: center; gap: 6px;
+      color: #8892a4; font-size: 13px; text-decoration: none;
+      margin-bottom: 20px; transition: color .15s;
+    }
+    .back-btn:hover { color: var(--accent); }
+    .page-header { text-align: center; margin-bottom: 24px; }
+    .page-header .icon { font-size: 36px; margin-bottom: 8px; }
+    .page-header h1 { font-size: 22px; font-weight: 800; }
+    .page-header p { font-size: 13px; color: #8892a4; margin-top: 4px; }
+
+    .kat-section { margin-bottom: 20px; }
+    .kat-label {
+      font-size: 11px; font-weight: 700; color: #8892a4;
+      text-transform: uppercase; letter-spacing: 1px;
+      margin-bottom: 10px; padding-left: 2px;
+    }
+    .fas-list { display: flex; flex-direction: column; gap: 8px; }
+    .fas-item {
+      background: #1a1d27; border: 1px solid #2e3347;
+      border-radius: 12px; padding: 12px 16px;
+      display: flex; align-items: flex-start; gap: 12px;
+    }
+    .fas-icon { font-size: 20px; flex-shrink: 0; margin-top: 1px; }
+    .fas-info { flex: 1; }
+    .fas-nama { font-size: 14px; font-weight: 700; }
+    .fas-detail { font-size: 12px; color: #8892a4; margin-top: 2px; line-height: 1.5; }
+    .fas-meta {
+      display: flex; gap: 6px; flex-wrap: wrap; margin-top: 5px;
+    }
+    .fas-tag {
+      font-size: 10px; background: #222535; border-radius: 6px;
+      padding: 2px 8px; color: #8892a4;
+    }
+    .fas-tag.baik { color: var(--green); background: rgba(34,197,94,.1); }
+
+    .wa-btn {
+      display: flex; align-items: center; justify-content: center; gap: 8px;
+      background: rgba(37,211,102,.12); border: 1px solid rgba(37,211,102,.35);
+      border-radius: 12px; padding: 13px; margin-top: 24px;
+      color: #4ade80; font-size: 14px; font-weight: 700;
+      text-decoration: none; transition: all .15s;
+    }
+    .wa-btn:hover { background: rgba(37,211,102,.22); }
+  </style>
+</head>
+<body>
+<div class="container">
+  <a href="/login" class="back-btn">← Kembali</a>
+
+  <div class="page-header">
+    <div class="icon">✨</div>
+    <h1>Fasilitas</h1>
+    <p>Thalib Residence — Fasilitas Bersama</p>
+  </div>
+
+  <div class="kat-section">
+    <div class="kat-label">📶 Konektivitas & Utilitas</div>
+    <div class="fas-list">
+      <div class="fas-item">
+        <div class="fas-icon">📶</div>
+        <div class="fas-info">
+          <div class="fas-nama">WiFi / Internet</div>
+          <div class="fas-detail">Password tersedia di resepsionis · Seluruh area</div>
+          <div class="fas-meta"><span class="fas-tag baik">✓ Baik</span><span class="fas-tag">1 unit</span><span class="fas-tag">Gratis</span></div>
+        </div>
+      </div>
+      <div class="fas-item">
+        <div class="fas-icon">⚡</div>
+        <div class="fas-info">
+          <div class="fas-nama">Listrik Token / Pulsa</div>
+          <div class="fas-detail">Token PLN beli sendiri · Per kamar</div>
+          <div class="fas-meta"><span class="fas-tag baik">✓ Baik</span><span class="fas-tag">33 unit</span></div>
+        </div>
+      </div>
+      <div class="fas-item">
+        <div class="fas-icon">💧</div>
+        <div class="fas-info">
+          <div class="fas-nama">Dispenser Air Minum</div>
+          <div class="fas-detail">Air minum gratis · Setiap lantai</div>
+          <div class="fas-meta"><span class="fas-tag baik">✓ Baik</span><span class="fas-tag">3 unit</span><span class="fas-tag">Gratis</span></div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="kat-section">
+    <div class="kat-label">🍳 Dapur & Laundry</div>
+    <div class="fas-list">
+      <div class="fas-item">
+        <div class="fas-icon">🍳</div>
+        <div class="fas-info">
+          <div class="fas-nama">Dapur Bersama</div>
+          <div class="fas-detail">Dilengkapi kompor & kulkas · Lantai 1</div>
+          <div class="fas-meta"><span class="fas-tag baik">✓ Baik</span><span class="fas-tag">1 unit</span></div>
+        </div>
+      </div>
+      <div class="fas-item">
+        <div class="fas-icon">🧊</div>
+        <div class="fas-info">
+          <div class="fas-nama">Kulkas Bersama</div>
+          <div class="fas-detail">Dibersihkan setiap minggu · Dapur lantai 1</div>
+          <div class="fas-meta"><span class="fas-tag baik">✓ Baik</span><span class="fas-tag">1 unit</span></div>
+        </div>
+      </div>
+      <div class="fas-item">
+        <div class="fas-icon">🫧</div>
+        <div class="fas-info">
+          <div class="fas-nama">Mesin Cuci</div>
+          <div class="fas-detail">Bayar Rp 5.000/kg atau mandiri · Lantai 1</div>
+          <div class="fas-meta"><span class="fas-tag baik">✓ Baik</span><span class="fas-tag">2 unit</span></div>
+        </div>
+      </div>
+      <div class="fas-item">
+        <div class="fas-icon">👕</div>
+        <div class="fas-info">
+          <div class="fas-nama">Tempat Jemuran</div>
+          <div class="fas-detail">Lantai 3 / Atap</div>
+          <div class="fas-meta"><span class="fas-tag baik">✓ Baik</span><span class="fas-tag">1 area</span></div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="kat-section">
+    <div class="kat-label">🔒 Keamanan</div>
+    <div class="fas-list">
+      <div class="fas-item">
+        <div class="fas-icon">📹</div>
+        <div class="fas-info">
+          <div class="fas-nama">CCTV</div>
+          <div class="fas-detail">Rekaman 7 hari · Area strategis</div>
+          <div class="fas-meta"><span class="fas-tag baik">✓ Baik</span><span class="fas-tag">6 kamera</span></div>
+        </div>
+      </div>
+      <div class="fas-item">
+        <div class="fas-icon">🔐</div>
+        <div class="fas-info">
+          <div class="fas-nama">Kunci Pintu Pagar</div>
+          <div class="fas-detail">Sistem kunci + intercom · Pintu utama</div>
+          <div class="fas-meta"><span class="fas-tag baik">✓ Baik</span></div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="kat-section">
+    <div class="kat-label">🏠 Fasilitas Umum</div>
+    <div class="fas-list">
+      <div class="fas-item">
+        <div class="fas-icon">🛋️</div>
+        <div class="fas-info">
+          <div class="fas-nama">Lobby / Ruang Tamu</div>
+          <div class="fas-detail">Sofa & meja tamu · Lantai 1</div>
+          <div class="fas-meta"><span class="fas-tag baik">✓ Baik</span></div>
+        </div>
+      </div>
+      <div class="fas-item">
+        <div class="fas-icon">🚿</div>
+        <div class="fas-info">
+          <div class="fas-nama">Kamar Mandi Bersama</div>
+          <div class="fas-detail">Dibersihkan 2x sehari · Per lantai</div>
+          <div class="fas-meta"><span class="fas-tag baik">✓ Baik</span><span class="fas-tag">4 unit</span></div>
+        </div>
+      </div>
+      <div class="fas-item">
+        <div class="fas-icon">🕌</div>
+        <div class="fas-info">
+          <div class="fas-nama">Musholla / Tempat Ibadah</div>
+          <div class="fas-detail">Perlengkapan ibadah tersedia · Lantai 2</div>
+          <div class="fas-meta"><span class="fas-tag baik">✓ Baik</span></div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="kat-section">
+    <div class="kat-label">🏍️ Parkir</div>
+    <div class="fas-list">
+      <div class="fas-item">
+        <div class="fas-icon">🏍️</div>
+        <div class="fas-info">
+          <div class="fas-nama">Area Parkir Motor</div>
+          <div class="fas-detail">1 slot per kamar · Halaman depan</div>
+          <div class="fas-meta"><span class="fas-tag baik">✓ Baik</span><span class="fas-tag">33 slot</span><span class="fas-tag">Gratis</span></div>
+        </div>
+      </div>
+      <div class="fas-item">
+        <div class="fas-icon">🚗</div>
+        <div class="fas-info">
+          <div class="fas-nama">Area Parkir Mobil</div>
+          <div class="fas-detail">Kapasitas terbatas · Samping gedung</div>
+          <div class="fas-meta"><span class="fas-tag baik">✓ Baik</span><span class="fas-tag">3 slot</span></div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <a href="https://wa.me/628159959605?text=Halo%20Admin%2C%20saya%20ingin%20tanya%20tentang%20fasilitas%20Thalib%20Residence." target="_blank" class="wa-btn">
+    💬 Tanya via WhatsApp
+  </a>
+</div>
+</body>
+</html>

@@ -318,20 +318,20 @@ Terima kasih!"
 </div>
 
 {# ══════════════════════════════════════════════════════════════════════════
-   2. Preview H-3
+   2a. Preview Hari H
    ══════════════════════════════════════════════════════════════════════════ #}
 <div class="card" style="margin-bottom:20px;">
   <div class="card-title" style="margin-bottom:4px;">
-    📋 Penghuni yang Akan Dapat Notif Hari Ini
+    📋 Notif Hari H
     <span class="text-muted" style="font-weight:400; font-size:12px;">
-      (jatuh tempo: {{ target_date }})
+      (jatuh tempo: {{ tanggal_H }})
     </span>
   </div>
   <div class="text-muted" style="font-size:12px; margin-bottom:16px;">
-    Daftar tagihan H-3 yang belum lunas dan belum dapat notif hari ini.
+    Tagihan jatuh tempo <strong>hari ini</strong>. Notif dikirim sekali — lihat kolom status.
   </div>
 
-  {% if preview_h3 %}
+  {% if preview_H %}
   <div class="table-wrap">
     <table>
       <thead>
@@ -343,11 +343,11 @@ Terima kasih!"
           <th>Jatuh Tempo</th>
           <th>Tagihan</th>
           <th>Sisa</th>
-          <th>WA Terkirim</th>
+          <th>Notif H</th>
         </tr>
       </thead>
       <tbody>
-        {% for p in preview_h3 %}
+        {% for p in preview_H %}
         {% set sisa = p.jumlah - p.total_bayar %}
         <tr>
           <td><span class="badge badge-info text-mono">{{ p.nomor_kamar }}</span></td>
@@ -364,10 +364,10 @@ Terima kasih!"
             {% endif %}
           </td>
           <td>
-            {% if p.wa_count == 0 %}
-              <span class="badge badge-secondary">Belum pernah</span>
+            {% if p.sudah_terkirim %}
+              <span class="badge badge-success">✅ Sudah</span>
             {% else %}
-              <span class="badge badge-info">{{ p.wa_count }}x</span>
+              <span class="badge badge-secondary">⏳ Belum</span>
             {% endif %}
           </td>
         </tr>
@@ -378,7 +378,73 @@ Terima kasih!"
   {% else %}
   <div class="empty" style="padding:24px 0;">
     <div class="empty-icon">✅</div>
-    <div>Tidak ada tagihan H-3 hari ini — atau semua sudah dapat notif.</div>
+    <div>Tidak ada tagihan jatuh tempo hari ini.</div>
+  </div>
+  {% endif %}
+</div>
+
+{# ══════════════════════════════════════════════════════════════════════════
+   2b. Preview H+3
+   ══════════════════════════════════════════════════════════════════════════ #}
+<div class="card" style="margin-bottom:20px;">
+  <div class="card-title" style="margin-bottom:4px;">
+    ⚠️ Notif H+3
+    <span class="text-muted" style="font-weight:400; font-size:12px;">
+      (jatuh tempo: {{ tanggal_H3 }})
+    </span>
+  </div>
+  <div class="text-muted" style="font-size:12px; margin-bottom:16px;">
+    Tagihan yang sudah <strong>melewati jatuh tempo 3 hari</strong>. Notif pengingat dikirim sekali.
+  </div>
+
+  {% if preview_H3 %}
+  <div class="table-wrap">
+    <table>
+      <thead>
+        <tr>
+          <th>Kamar</th>
+          <th>Nama</th>
+          <th>No. HP</th>
+          <th>Bulan</th>
+          <th>Jatuh Tempo</th>
+          <th>Tagihan</th>
+          <th>Sisa</th>
+          <th>Notif H+3</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for p in preview_H3 %}
+        {% set sisa = p.jumlah - p.total_bayar %}
+        <tr>
+          <td><span class="badge badge-info text-mono">{{ p.nomor_kamar }}</span></td>
+          <td class="fw-bold">{{ p.nama }}</td>
+          <td class="text-muted">{{ p.no_hp }}</td>
+          <td class="text-muted">{{ p.bulan }}</td>
+          <td><span class="text-mono" style="font-size:13px;">{{ p.tanggal_jatuh_tempo }}</span></td>
+          <td class="text-mono text-green">{{ p.jumlah | rupiah }}</td>
+          <td>
+            {% if sisa <= 0 %}
+              <span class="badge badge-success">Lunas</span>
+            {% else %}
+              <span class="text-mono" style="color:var(--danger,#e55);">{{ sisa | rupiah }}</span>
+            {% endif %}
+          </td>
+          <td>
+            {% if p.sudah_terkirim %}
+              <span class="badge badge-success">✅ Sudah</span>
+            {% else %}
+              <span class="badge badge-warning">⏳ Belum</span>
+            {% endif %}
+          </td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+  {% else %}
+  <div class="empty" style="padding:24px 0;">
+    <div class="empty-icon">✅</div>
+    <div>Tidak ada tagihan H+3 hari ini — atau semua sudah dapat notif.</div>
   </div>
   {% endif %}
 </div>
@@ -397,6 +463,7 @@ Terima kasih!"
           <th>Waktu Kirim</th>
           <th>Kamar</th>
           <th>Nama</th>
+          <th>Tipe</th>
           <th>Status</th>
           <th>Keterangan</th>
         </tr>
@@ -409,6 +476,15 @@ Terima kasih!"
           </td>
           <td><span class="badge badge-info text-mono">{{ log.nomor_kamar }}</span></td>
           <td class="fw-bold">{{ log.nama }}</td>
+          <td>
+            {% if log.tipe_notif == 'H' %}
+              <span class="badge badge-info">Hari H</span>
+            {% elif log.tipe_notif == 'H+3' %}
+              <span class="badge badge-warning">H+3</span>
+            {% else %}
+              <span class="badge badge-secondary">{{ log.tipe_notif or '—' }}</span>
+            {% endif %}
+          </td>
           <td>
             {% if log.status == 'sent' %}
               <span class="badge badge-success">✅ Terkirim</span>
@@ -548,10 +624,7 @@ document.addEventListener('DOMContentLoaded', () => {
 async function bcCheckWaStatus() {
   try {
     const r = await fetch('/wa-server/status');
-    if (!r.ok) throw new Error('Route tidak ditemukan');
-    const text = await r.text();
-    let d;
-    try { d = JSON.parse(text); } catch(e) { throw new Error('Response bukan JSON'); }
+    const d = await r.json();
     const badge = document.getElementById('bc-wa-badge');
     if (!badge) return;
     if (d.ready) {

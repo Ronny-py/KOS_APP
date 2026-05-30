@@ -1,0 +1,254 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>QR Kamar — Print</title>
+<style>
+@import url('https://fonts.googleapis.com/css2?family=Syne:wght@700;800&family=DM+Mono:wght@400;500&family=DM+Sans:wght@400;500;600&display=swap');
+
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+:root {
+  --ink:    #0a0a0f;
+  --muted:  #6b6b80;
+  --accent: #7c6af7;
+  --light:  #f5f4ff;
+  --border: #e0dff8;
+  --syne:   'Syne', sans-serif;
+  --mono:   'DM Mono', monospace;
+  --sans:   'DM Sans', sans-serif;
+}
+
+body {
+  font-family: var(--sans);
+  background: #f0eff8;
+  color: var(--ink);
+  padding: 32px 24px;
+}
+
+/* ── Screen header ── */
+.screen-header {
+  max-width: 1100px;
+  margin: 0 auto 32px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  flex-wrap: wrap;
+}
+.screen-title {
+  font-family: var(--syne);
+  font-size: 28px;
+  font-weight: 800;
+  color: var(--ink);
+  letter-spacing: -.03em;
+}
+.screen-title span { color: var(--accent); }
+.screen-sub {
+  font-size: 13px;
+  color: var(--muted);
+  margin-top: 4px;
+}
+.btn-row { display: flex; gap: 10px; }
+.btn-print {
+  background: var(--accent);
+  color: #fff;
+  border: none;
+  border-radius: 12px;
+  padding: 12px 28px;
+  font-family: var(--sans);
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+  letter-spacing: .02em;
+  transition: opacity .15s;
+  text-decoration: none;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+}
+.btn-print:hover { opacity: .85; }
+.btn-back {
+  background: transparent;
+  color: var(--muted);
+  border: 1.5px solid var(--border);
+  border-radius: 12px;
+  padding: 12px 20px;
+  font-family: var(--sans);
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+  text-decoration: none;
+  display: inline-flex;
+  align-items: center;
+}
+.btn-back:hover { color: var(--ink); }
+
+/* ── Grid ── */
+.grid {
+  max-width: 1100px;
+  margin: 0 auto;
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+  gap: 20px;
+}
+
+/* ── Card ── */
+.card {
+  background: #fff;
+  border: 1.5px solid var(--border);
+  border-radius: 20px;
+  overflow: hidden;
+  page-break-inside: avoid;
+  break-inside: avoid;
+}
+.card-header {
+  background: var(--ink);
+  padding: 14px 16px 12px;
+  display: flex;
+  align-items: baseline;
+  gap: 10px;
+}
+.room-label {
+  font-family: var(--mono);
+  font-size: 9px;
+  font-weight: 500;
+  color: rgba(255,255,255,.45);
+  letter-spacing: .15em;
+  text-transform: uppercase;
+  flex-shrink: 0;
+}
+.room-num {
+  font-family: var(--syne);
+  font-size: 24px;
+  font-weight: 800;
+  color: #fff;
+  letter-spacing: -.02em;
+  line-height: 1;
+}
+.qr-wrap {
+  padding: 16px 16px 12px;
+  display: flex;
+  justify-content: center;
+  background: #fff;
+}
+.qr-wrap img {
+  width: 140px;
+  height: 140px;
+  display: block;
+  border-radius: 8px;
+}
+.card-body { padding: 0 16px 16px; }
+.tenant-name {
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--ink);
+  margin-bottom: 12px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.pin-section {
+  background: var(--light);
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  padding: 10px 12px;
+  margin-bottom: 10px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+}
+.pin-label {
+  font-family: var(--mono);
+  font-size: 9px;
+  font-weight: 500;
+  letter-spacing: .12em;
+  color: var(--muted);
+  text-transform: uppercase;
+  flex-shrink: 0;
+}
+.pin-digits { display: flex; gap: 5px; }
+.pd {
+  width: 26px;
+  height: 30px;
+  background: #fff;
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  font-family: var(--mono);
+  font-size: 15px;
+  font-weight: 500;
+  color: var(--accent);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+.scan-hint {
+  font-size: 10px;
+  color: var(--muted);
+  text-align: center;
+  letter-spacing: .03em;
+}
+
+/* ── PRINT ── */
+@media print {
+  body {
+    background: #fff;
+    padding: 0;
+  }
+  .screen-header { display: none; }
+  .grid {
+    max-width: none;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 10px;
+    padding: 8mm;
+  }
+  .card {
+    border-color: #ccc;
+    border-radius: 14px;
+  }
+}
+</style>
+</head>
+<body>
+
+<div class="screen-header">
+  <div>
+    <div class="screen-title">QR <span>Kamar</span></div>
+    <div class="screen-sub">{{ kamar_qr|length }} kamar aktif — tempel di pintu</div>
+  </div>
+  <div class="btn-row">
+    <a href="/dashboard" class="btn-back">← Dashboard</a>
+    <button class="btn-print" onclick="window.print()">🖨 Print Semua</button>
+  </div>
+</div>
+
+<div class="grid">
+  {% for k in kamar_qr %}
+  <div class="card">
+    <div class="card-header">
+      <div class="room-label">Kamar</div>
+      <div class="room-num">{{ k.nomor_kamar }}</div>
+    </div>
+    <div class="qr-wrap">
+      <img src="{{ base_url }}/qr/image/{{ k.nomor_kamar }}" alt="QR {{ k.nomor_kamar }}">
+    </div>
+    <div class="card-body">
+      <div class="tenant-name">{{ k.nama }}</div>
+      <div class="pin-section">
+        <div class="pin-label">PIN</div>
+        <div class="pin-digits">
+          {% for d in k.pin %}
+          <span class="pd">{{ d }}</span>
+          {% endfor %}
+        </div>
+      </div>
+      <div class="scan-hint">Scan untuk portal kamar</div>
+    </div>
+  </div>
+  {% endfor %}
+</div>
+
+</body>
+</html>

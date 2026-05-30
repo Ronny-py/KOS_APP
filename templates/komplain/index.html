@@ -1,9 +1,91 @@
 {% extends 'base.html' %}
-{% block title %}Komplain Penghuni{% endblock %}
+{% block title %}Komplain Penghuni
+<script>
+const STAT_BADGE = {
+  'baru':     ['badge-info',      '🆕'],
+  'diproses': ['badge-warning',   '🔧'],
+  'selesai':  ['badge-success',   '✅'],
+  'ditolak':  ['badge-secondary', '❌'],
+};
+const PRIO_COLOR = {
+  'urgent': 'var(--red)',
+  'tinggi': '#f97316',
+  'normal': 'var(--accent)',
+  'rendah': 'var(--muted)',
+};
+
+async function bukaRiwayat(kamar, nama) {
+  const modal = document.getElementById('modalRiwayat');
+  document.getElementById('riwayatJudul').textContent  = `📋 Riwayat Kamar ${kamar}`;
+  document.getElementById('riwayatSubjudul').textContent = nama;
+  document.getElementById('riwayatBody').innerHTML =
+    '<div style="text-align:center;color:var(--muted);padding:32px;">⏳ Memuat...</div>';
+  modal.style.display = 'flex';
+  document.body.style.overflow = 'hidden';
+
+  try {
+    const res  = await fetch(`/komplain/api/riwayat-kamar?kamar=${encodeURIComponent(kamar)}`);
+    const data = await res.json();
+    renderRiwayat(data.riwayat || []);
+  } catch(e) {
+    document.getElementById('riwayatBody').innerHTML =
+      '<div style="color:var(--red);padding:24px;">❌ Gagal memuat data.</div>';
+  }
+}
+
+function renderRiwayat(rows) {
+  const body = document.getElementById('riwayatBody');
+  if (!rows.length) {
+    body.innerHTML = '<div style="text-align:center;color:var(--muted);padding:32px;">Belum ada riwayat komplain.</div>';
+    return;
+  }
+
+  const items = rows.map(r => {
+    const [badgeClass, icon] = STAT_BADGE[r.status] || ['badge-secondary','❓'];
+    const prioColor = PRIO_COLOR[r.prioritas] || 'var(--muted)';
+    const selesai   = r.selesai_at ? `<span style="color:var(--green);font-size:11px;">✅ Selesai: ${r.selesai_at}</span>` : '';
+    const catatan   = r.catatan_admin
+      ? `<div style="margin-top:6px;padding:8px 10px;background:rgba(79,110,247,.07);
+                     border-radius:6px;font-size:12px;color:var(--muted);line-height:1.5;">
+           💬 ${r.catatan_admin}</div>` : '';
+    return `
+      <div style="border:1px solid var(--border);border-radius:10px;padding:14px 16px;margin-bottom:10px;">
+        <div style="display:flex;align-items:flex-start;justify-content:space-between;gap:8px;margin-bottom:6px;">
+          <div style="font-size:13px;font-weight:700;">${r.judul}</div>
+          <div style="display:flex;gap:6px;align-items:center;flex-shrink:0;">
+            <span class="badge ${badgeClass}" style="font-size:11px;">${icon} ${r.status}</span>
+            <span style="font-size:11px;font-weight:700;color:${prioColor};">${r.prioritas.toUpperCase()}</span>
+          </div>
+        </div>
+        <div style="font-size:12px;color:var(--muted);margin-bottom:4px;">
+          ${r.kategori_label} &nbsp;·&nbsp; ${r.created_at}
+          ${selesai ? '&nbsp;·&nbsp;' + selesai : ''}
+        </div>
+        ${catatan}
+      </div>`;
+  }).join('');
+
+  body.innerHTML = `<div style="font-size:12px;color:var(--muted);margin-bottom:14px;">${rows.length} komplain ditemukan</div>` + items;
+}
+
+function tutupRiwayat() {
+  document.getElementById('modalRiwayat').style.display = 'none';
+  document.body.style.overflow = '';
+}
+document.getElementById('modalRiwayat').addEventListener('click', function(e) {
+  if (e.target === this) tutupRiwayat();
+});
+document.addEventListener('keydown', function(e) {
+  if (e.key === 'Escape') tutupRiwayat();
+});
+</script>
+
+{% endblock %}
 {% block page_title %}Komplain & Perbaikan{% endblock %}
 {% block breadcrumb %}Manajemen Komplain{% endblock %}
 {% block topbar_actions %}
   <a href="{{ url_for('komplain.laporan') }}" class="btn btn-outline">📊 Laporan Bulanan</a>
+  <button onclick="openModal()" class="btn btn-primary">➕ Tambah Komplain</button>
 {% endblock %}
 
 {% block content %}
@@ -60,7 +142,23 @@
         <td class="fw-bold">{{ r.nama_pelapor }}</td>
         <td>
           {% for k, label in KATEGORI_LIST %}{% if k==r.kategori %}
-            <span style="font-size:12px;">{{ label }}</span>
+          <span class="kat-cell"
+                data-kamar="{{ r.nomor_kamar }}"
+                data-label="{{ label }}"
+                data-terakhir="{{ terakhir_selesai.get(r.id, '') }}"
+                onclick="bukaRiwayat('{{ r.nomor_kamar }}', '{{ r.nama_pelapor }}')"
+                style="font-size:12px; cursor:pointer; position:relative; display:inline-flex; align-items:center; gap:4px;">
+            {{ label }}
+            <span style="font-size:10px; color:var(--muted);">🕐</span>
+            <span class="kat-tooltip">
+              {% if terakhir_selesai.get(r.id) %}
+                ✅ Terakhir selesai: <strong>{{ terakhir_selesai[r.id] }}</strong>
+              {% else %}
+                ⚪ Belum pernah selesai
+              {% endif %}
+              <br><span style="color:var(--accent); font-size:10px;">Klik untuk riwayat lengkap</span>
+            </span>
+          </span>
           {% endif %}{% endfor %}
         </td>
         <td style="max-width:220px; overflow:hidden; text-overflow:ellipsis; white-space:nowrap;"
@@ -96,4 +194,196 @@
     {% endif %}
   </div>
 </div>
+
+
+{# ── Modal Riwayat Kamar ── #}
+<div id="modalRiwayat" style="display:none; position:fixed; inset:0; z-index:1001;
+     background:rgba(0,0,0,.55); backdrop-filter:blur(4px); align-items:center; justify-content:center;">
+  <div style="background:var(--surface); border:1px solid var(--border); border-radius:16px;
+              width:100%; max-width:640px; max-height:85vh; overflow-y:auto;
+              box-shadow:0 24px 60px rgba(0,0,0,.4); margin:16px; animation:slideUp .22s ease;">
+    <div style="display:flex; align-items:center; justify-content:space-between;
+                padding:18px 24px 14px; border-bottom:1px solid var(--border); position:sticky; top:0;
+                background:var(--surface); z-index:1;">
+      <div>
+        <div style="font-size:16px; font-weight:800;" id="riwayatJudul">Riwayat Komplain</div>
+        <div style="font-size:12px; color:var(--muted); margin-top:2px;" id="riwayatSubjudul"></div>
+      </div>
+      <button onclick="tutupRiwayat()" style="background:var(--surface2); border:1px solid var(--border);
+              border-radius:8px; width:32px; height:32px; cursor:pointer; font-size:16px;
+              color:var(--muted); display:flex; align-items:center; justify-content:center;">✕</button>
+    </div>
+    <div id="riwayatBody" style="padding:20px 24px 24px;">
+      <div style="text-align:center; color:var(--muted); padding:24px;">⏳ Memuat...</div>
+    </div>
+  </div>
+</div>
+
+{# ── Modal Tambah Komplain ── #}
+<div id="modalKomplain" style="display:none; position:fixed; inset:0; z-index:1000;
+     background:rgba(0,0,0,.45); backdrop-filter:blur(4px); align-items:center; justify-content:center;">
+  <div style="background:var(--surface); border:1px solid var(--border); border-radius:16px;
+              width:100%; max-width:560px; max-height:90vh; overflow-y:auto;
+              box-shadow:0 24px 60px rgba(0,0,0,.35); margin:16px; animation:slideUp .22s ease;">
+    {# Header #}
+    <div style="display:flex; align-items:center; justify-content:space-between;
+                padding:20px 24px 16px; border-bottom:1px solid var(--border);">
+      <div>
+        <div style="font-size:17px; font-weight:800;">➕ Tambah Komplain</div>
+        <div style="font-size:12px; color:var(--muted); margin-top:2px;">Input komplain manual oleh admin</div>
+      </div>
+      <button onclick="closeModal()" style="background:var(--surface2); border:1px solid var(--border);
+              border-radius:8px; width:32px; height:32px; cursor:pointer; font-size:16px;
+              color:var(--muted); display:flex; align-items:center; justify-content:center;">✕</button>
+    </div>
+
+    {# Form #}
+    <form method="POST" action="{{ url_for('komplain.tambah') }}" enctype="multipart/form-data"
+          style="padding:20px 24px 24px;">
+
+      {# Baris 1: Nama + Kamar #}
+      <div class="form-grid" style="margin-bottom:14px;">
+        <div class="form-group" style="margin-bottom:0;">
+          <label>Nama Pelapor <span style="color:var(--red);">*</span></label>
+          <input type="text" name="nama" placeholder="Contoh: Budi Santoso" required>
+        </div>
+        <div class="form-group" style="margin-bottom:0;">
+          <label>Nomor Kamar <span style="color:var(--red);">*</span></label>
+          <input type="text" name="kamar" placeholder="Contoh: A1" required>
+        </div>
+      </div>
+
+      {# No HP #}
+      <div class="form-group" style="margin-bottom:14px;">
+        <label>No. HP / WhatsApp</label>
+        <input type="text" name="no_hp" placeholder="Contoh: 08123456789">
+      </div>
+
+      {# Baris 2: Kategori + Prioritas #}
+      <div class="form-grid" style="margin-bottom:14px;">
+        <div class="form-group" style="margin-bottom:0;">
+          <label>Kategori <span style="color:var(--red);">*</span></label>
+          <select name="kategori" required>
+            {% for k, label in KATEGORI_LIST %}
+            <option value="{{ k }}">{{ label }}</option>
+            {% endfor %}
+          </select>
+        </div>
+        <div class="form-group" style="margin-bottom:0;">
+          <label>Prioritas</label>
+          <select name="prioritas">
+            {% for val, label in PRIORITAS_LIST %}
+            <option value="{{ val }}" {{ 'selected' if val == 'normal' }}>{{ label }}</option>
+            {% endfor %}
+          </select>
+        </div>
+      </div>
+
+      {# Judul #}
+      <div class="form-group" style="margin-bottom:14px;">
+        <label>Judul Komplain <span style="color:var(--red);">*</span></label>
+        <input type="text" name="judul" placeholder="Ringkasan singkat masalah" required maxlength="150">
+      </div>
+
+      {# Deskripsi #}
+      <div class="form-group" style="margin-bottom:14px;">
+        <label>Deskripsi Masalah <span style="color:var(--red);">*</span></label>
+        <textarea name="deskripsi" rows="4" required
+                  placeholder="Jelaskan detail masalah: lokasi, kapan mulai terjadi, dampak, dll."
+                  style="resize:vertical;"></textarea>
+      </div>
+
+      {# Upload Foto #}
+      <div class="form-group" style="margin-bottom:20px;">
+        <label>Foto / Bukti <span style="color:var(--muted); font-weight:400;">(opsional)</span></label>
+        <div id="dropZone" onclick="document.getElementById('fotoInput').click()"
+             style="border:2px dashed var(--border); border-radius:10px; padding:20px;
+                    text-align:center; cursor:pointer; transition:all .15s; color:var(--muted);
+                    font-size:13px; background:var(--surface2);">
+          <div style="font-size:24px; margin-bottom:6px;">📷</div>
+          <div>Klik untuk pilih foto</div>
+          <div style="font-size:11px; margin-top:4px;">PNG, JPG, WEBP, GIF — maks 5 MB</div>
+          <div id="fotoNama" style="margin-top:8px; font-weight:700; color:var(--accent); display:none;"></div>
+        </div>
+        <input type="file" id="fotoInput" name="foto" accept="image/*" style="display:none;"
+               onchange="previewFoto(this)">
+      </div>
+
+      {# Tombol #}
+      <div style="display:flex; gap:10px;">
+        <button type="button" onclick="closeModal()"
+                class="btn btn-outline" style="flex:1;">Batal</button>
+        <button type="submit" class="btn btn-primary" style="flex:2;">
+          💾 Simpan Komplain
+        </button>
+      </div>
+    </form>
+  </div>
+</div>
+
+<style>
+@keyframes slideUp {
+  from { opacity:0; transform:translateY(24px) scale(.97); }
+  to   { opacity:1; transform:translateY(0) scale(1); }
+}
+#dropZone:hover { border-color:var(--accent); background:rgba(79,110,247,.05); }
+
+/* ── Tooltip Kategori ── */
+.kat-cell { position: relative; }
+.kat-tooltip {
+  display: none;
+  position: absolute;
+  bottom: calc(100% + 8px);
+  left: 50%;
+  transform: translateX(-50%);
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  padding: 8px 12px;
+  font-size: 12px;
+  white-space: nowrap;
+  box-shadow: 0 8px 24px rgba(0,0,0,.4);
+  z-index: 50;
+  pointer-events: none;
+  color: var(--text);
+  line-height: 1.6;
+}
+.kat-tooltip::after {
+  content: '';
+  position: absolute;
+  top: 100%; left: 50%;
+  transform: translateX(-50%);
+  border: 6px solid transparent;
+  border-top-color: var(--border);
+}
+.kat-cell:hover .kat-tooltip { display: block; }
+</style>
+
+<script>
+function openModal() {
+  const m = document.getElementById('modalKomplain');
+  m.style.display = 'flex';
+  document.body.style.overflow = 'hidden';
+}
+function closeModal() {
+  const m = document.getElementById('modalKomplain');
+  m.style.display = 'none';
+  document.body.style.overflow = '';
+}
+document.getElementById('modalKomplain').addEventListener('click', function(e) {
+  if (e.target === this) closeModal();
+});
+document.addEventListener('keydown', function(e) {
+  if (e.key === 'Escape') closeModal();
+});
+function previewFoto(input) {
+  const el = document.getElementById('fotoNama');
+  if (input.files && input.files[0]) {
+    el.textContent = '✅ ' + input.files[0].name;
+    el.style.display = 'block';
+    document.getElementById('dropZone').style.borderColor = 'var(--green)';
+  }
+}
+</script>
+
 {% endblock %}

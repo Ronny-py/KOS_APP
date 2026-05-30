@@ -1,0 +1,446 @@
+{% extends "base.html" %}
+{% block title %}Kamar {{ penghuni.nomor_kamar }}{% endblock %}
+{% block page_title %}Detail Kamar {{ penghuni.nomor_kamar }}{% endblock %}
+{% block breadcrumb %}<a href="{{ url_for('kamar.index') }}" style="color:var(--muted);text-decoration:none;">Statistik Kamar</a> &rsaquo; {{ penghuni.nama }}{% endblock %}
+
+{% block content %}
+<style>
+/* Hero */
+.kd-hero {
+  background: linear-gradient(135deg, var(--surface) 0%, var(--surface2) 100%);
+  border: 1px solid var(--border);
+  border-radius: 14px;
+  padding: 24px 28px;
+  margin-bottom: 20px;
+  position: relative;
+  overflow: hidden;
+}
+.kd-hero::after {
+  content: '{{ penghuni.nomor_kamar }}';
+  position: absolute;
+  right: 24px; top: 50%;
+  transform: translateY(-50%);
+  font-size: 72px;
+  font-weight: 900;
+  color: rgba(255,255,255,.04);
+  font-family: var(--mono);
+  pointer-events: none;
+  letter-spacing: -.04em;
+}
+.kd-room-tag {
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: .12em;
+  color: var(--accent);
+  text-transform: uppercase;
+  margin-bottom: 4px;
+}
+.kd-nama {
+  font-size: 26px;
+  font-weight: 800;
+  color: var(--text);
+  margin: 0 0 14px;
+  letter-spacing: -.02em;
+}
+.kd-meta-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 20px;
+}
+.kd-meta-item {
+  font-size: 12.5px;
+  color: var(--muted);
+}
+.kd-meta-item strong { color: var(--text); font-weight: 600; }
+
+/* Back btn */
+.kd-back {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 12.5px;
+  font-weight: 600;
+  color: var(--muted);
+  text-decoration: none;
+  padding: 6px 14px;
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  background: transparent;
+  margin-bottom: 16px;
+  transition: all .15s;
+}
+.kd-back:hover { color: var(--text); border-color: var(--accent); background: var(--surface2); }
+
+/* Stat row */
+.kd-stats {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(130px, 1fr));
+  gap: 12px;
+  margin-bottom: 20px;
+}
+.kd-stat {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  padding: 14px 16px;
+}
+.kd-stat-lbl { font-size: 10.5px; font-weight: 700; color: var(--muted); text-transform: uppercase; letter-spacing: .07em; margin-bottom: 5px; }
+.kd-stat-val { font-size: 20px; font-weight: 800; font-family: var(--mono); color: var(--text); }
+.kd-stat-val.green  { color: var(--green); }
+.kd-stat-val.red    { color: var(--red); }
+.kd-stat-val.accent { color: var(--accent); }
+
+/* Section */
+.kd-section {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  margin-bottom: 16px;
+  overflow: hidden;
+}
+.kd-sec-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 13px 18px;
+  border-bottom: 1px solid var(--border);
+  cursor: pointer;
+  user-select: none;
+}
+.kd-sec-head:hover { background: rgba(255,255,255,.02); }
+.kd-sec-title {
+  font-size: 13px;
+  font-weight: 700;
+  color: var(--text);
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+.kd-sec-count {
+  font-size: 11px;
+  background: var(--surface2);
+  color: var(--muted);
+  padding: 2px 9px;
+  border-radius: 10px;
+  font-weight: 600;
+}
+.kd-toggle { font-size: 12px; color: var(--muted); transition: transform .2s; }
+.kd-toggle.open { transform: rotate(180deg); }
+.kd-sec-body { display: none; }
+.kd-sec-body.open { display: block; }
+
+/* Tabel dalam */
+.kd-table { width: 100%; border-collapse: collapse; font-size: 13px; }
+.kd-table th {
+  background: var(--surface2);
+  color: var(--muted);
+  font-size: 10.5px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: .06em;
+  padding: 9px 16px;
+  text-align: left;
+  border-bottom: 1px solid var(--border);
+}
+.kd-table td {
+  padding: 11px 16px;
+  color: var(--text);
+  border-bottom: 1px solid var(--border);
+  vertical-align: middle;
+}
+.kd-table tr:last-child td { border-bottom: none; }
+.kd-table tr:hover td { background: rgba(255,255,255,.02); }
+
+/* Mini badge */
+.kd-tag {
+  display: inline-block;
+  font-size: 10.5px;
+  font-weight: 700;
+  padding: 2px 9px;
+  border-radius: 10px;
+  text-transform: uppercase;
+  letter-spacing: .04em;
+}
+.kd-tag-lunas    { background: rgba(34,197,94,.15);  color: var(--green);  border: 1px solid rgba(34,197,94,.3); }
+.kd-tag-belum    { background: rgba(239,68,68,.15);  color: var(--red);    border: 1px solid rgba(239,68,68,.3); }
+.kd-tag-sebagian { background: rgba(234,179,8,.15);  color: var(--yellow); border: 1px solid rgba(234,179,8,.3); }
+.kd-tag-sent     { background: rgba(34,197,94,.15);  color: var(--green);  border: 1px solid rgba(34,197,94,.3); }
+.kd-tag-failed   { background: rgba(239,68,68,.15);  color: var(--red);    border: 1px solid rgba(239,68,68,.3); }
+.kd-tag-pending  { background: var(--surface2);      color: var(--muted);  border: 1px solid var(--border); }
+.kd-tag-baru     { background: rgba(79,110,247,.15); color: var(--accent); border: 1px solid rgba(79,110,247,.3); }
+.kd-tag-proses   { background: rgba(234,179,8,.15);  color: var(--yellow); border: 1px solid rgba(234,179,8,.3); }
+.kd-tag-selesai  { background: rgba(34,197,94,.15);  color: var(--green);  border: 1px solid rgba(34,197,94,.3); }
+
+/* Progress bar */
+.kd-bar { height: 4px; background: var(--surface2); border-radius: 2px; margin-top: 5px; overflow: hidden; }
+.kd-bar-fill { height: 100%; background: linear-gradient(90deg, var(--green), #16a34a); border-radius: 2px; }
+
+/* Empty */
+.kd-empty { text-align: center; padding: 28px; color: var(--muted); font-size: 13px; }
+</style>
+
+<a href="{{ url_for('kamar.index') }}" class="kd-back">&#8592; Kembali ke Statistik Kamar</a>
+
+<!-- Hero -->
+<div class="kd-hero">
+  <div class="kd-room-tag">&#127968; Kamar {{ penghuni.nomor_kamar }}</div>
+  <div class="kd-nama">{{ penghuni.nama }}</div>
+  <div class="kd-meta-row">
+    <div class="kd-meta-item">&#128222; <strong>{{ penghuni.no_hp or '—' }}</strong></div>
+    <div class="kd-meta-item">&#128197; Masuk <strong>{{ penghuni.tanggal_masuk }}</strong></div>
+    <div class="kd-meta-item">&#9203; <strong>{{ penghuni.lama_tinggal }}</strong></div>
+    <div class="kd-meta-item">&#128176; Sewa <strong>Rp {{ "{:,.0f}".format(penghuni.harga_sewa or 0) }}/bln</strong></div>
+    {% if penghuni.email %}
+    <div class="kd-meta-item">&#9993; <strong>{{ penghuni.email }}</strong></div>
+    {% endif %}
+  </div>
+</div>
+
+<!-- Stat cards -->
+<div class="kd-stats">
+  <div class="kd-stat">
+    <div class="kd-stat-lbl">Total Tagihan</div>
+    <div class="kd-stat-val accent">{{ tagihan_list | length }} bln</div>
+  </div>
+  <div class="kd-stat">
+    <div class="kd-stat-lbl">Sudah Lunas</div>
+    <div class="kd-stat-val green">{{ jumlah_lunas }}</div>
+  </div>
+  <div class="kd-stat">
+    <div class="kd-stat-lbl">Belum Lunas</div>
+    <div class="kd-stat-val {{ 'red' if jumlah_belum > 0 else 'green' }}">{{ jumlah_belum }}</div>
+  </div>
+  <div class="kd-stat">
+    <div class="kd-stat-lbl">Total Terbayar</div>
+    <div class="kd-stat-val green" style="font-size:14px;">Rp {{ "{:,.0f}".format(total_terbayar) }}</div>
+  </div>
+</div>
+
+<!-- Riwayat Tagihan -->
+<div class="kd-section">
+  <div class="kd-sec-head" onclick="toggleSec(this)">
+    <div class="kd-sec-title">
+      &#128195; Riwayat Tagihan
+      <span class="kd-sec-count">{{ tagihan_list | length }}</span>
+    </div>
+    <span class="kd-toggle open">&#9650;</span>
+  </div>
+  <div class="kd-sec-body open">
+    {% if tagihan_list %}
+    <div style="overflow-x:auto;">
+    <table class="kd-table">
+      <thead><tr>
+        <th>Bulan</th><th>Jumlah</th><th>Terbayar</th><th>Sisa</th><th>Jatuh Tempo</th><th>Status</th>
+      </tr></thead>
+      <tbody>
+      {% for t in tagihan_list %}
+      <tr>
+        <td><strong>{{ t.bulan | nama_bulan }}</strong></td>
+        <td>Rp {{ "{:,.0f}".format(t.jumlah) }}</td>
+        <td>
+          Rp {{ "{:,.0f}".format(t.total_bayar) }}
+          {% if t.jumlah > 0 %}
+          <div class="kd-bar"><div class="kd-bar-fill" style="width:{{ [[((t.total_bayar / t.jumlah * 100)|int), 0]|max, 100]|min }}%"></div></div>
+          {% endif %}
+        </td>
+        <td style="color:{{ 'var(--red)' if t.sisa > 0 else 'var(--green)' }};font-weight:700;">
+          Rp {{ "{:,.0f}".format(t.sisa) }}
+        </td>
+        <td>{{ t.tanggal_jatuh_tempo or '—' }}</td>
+        <td><span class="kd-tag kd-tag-{{ t.status }}">{{ t.status }}</span></td>
+      </tr>
+      {% endfor %}
+      </tbody>
+    </table>
+    </div>
+    {% else %}
+    <div class="kd-empty">Belum ada tagihan</div>
+    {% endif %}
+  </div>
+</div>
+
+<!-- Riwayat Pembayaran -->
+<div class="kd-section">
+  <div class="kd-sec-head" onclick="toggleSec(this)">
+    <div class="kd-sec-title">
+      &#128179; Riwayat Pembayaran
+      <span class="kd-sec-count">{{ pembayaran_list | length }}</span>
+    </div>
+    <span class="kd-toggle open">&#9650;</span>
+  </div>
+  <div class="kd-sec-body open">
+    {% if pembayaran_list %}
+    <div style="overflow-x:auto;">
+    <table class="kd-table">
+      <thead><tr>
+        <th>Tanggal</th><th>Bulan Tagihan</th><th>Jumlah</th><th>Metode</th><th>Status</th>
+      </tr></thead>
+      <tbody>
+      {% for p in pembayaran_list %}
+      <tr>
+        <td>{{ p.tanggal_bayar[:16] if p.tanggal_bayar else '—' }}</td>
+        <td>{{ p.bulan | nama_bulan }}</td>
+        <td style="color:var(--green);font-weight:700;">Rp {{ "{:,.0f}".format(p.jumlah_bayar) }}</td>
+        <td>{{ p.metode or '—' }}</td>
+        <td>
+          {% if p.verified %}
+          <span class="kd-tag kd-tag-lunas">&#10003; Verified</span>
+          {% else %}
+          <span class="kd-tag kd-tag-pending">Pending</span>
+          {% endif %}
+        </td>
+      </tr>
+      {% endfor %}
+      </tbody>
+    </table>
+    </div>
+    {% else %}
+    <div class="kd-empty">Belum ada pembayaran</div>
+    {% endif %}
+  </div>
+</div>
+
+<!-- Log Notif WA -->
+<div class="kd-section">
+  <div class="kd-sec-head" onclick="toggleSec(this)">
+    <div class="kd-sec-title">
+      &#128241; Log Notifikasi WA
+      <span class="kd-sec-count">{{ notif_list | length }}</span>
+    </div>
+    <span class="kd-toggle">&#9650;</span>
+  </div>
+  <div class="kd-sec-body">
+    {% if notif_list %}
+    <div style="overflow-x:auto;">
+    <table class="kd-table">
+      <thead><tr>
+        <th>Waktu</th><th>Tipe</th><th>Status</th><th>Keterangan</th>
+      </tr></thead>
+      <tbody>
+      {% for n in notif_list %}
+      <tr>
+        <td>{{ n.tanggal_kirim[:16] if n.tanggal_kirim else '—' }}</td>
+        <td><span class="kd-tag kd-tag-pending">{{ n.tipe_notif }}</span></td>
+        <td><span class="kd-tag kd-tag-{{ n.status }}">{{ n.status }}</span></td>
+        <td style="font-size:11px;color:var(--muted);max-width:280px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">
+          {{ n.error_msg or '—' }}
+        </td>
+      </tr>
+      {% endfor %}
+      </tbody>
+    </table>
+    </div>
+    {% else %}
+    <div class="kd-empty">Belum ada log notifikasi</div>
+    {% endif %}
+  </div>
+</div>
+
+<!-- Komplain -->
+<div class="kd-section">
+  <div class="kd-sec-head" onclick="toggleSec(this)">
+    <div class="kd-sec-title">
+      &#9888; Riwayat Komplain
+      <span class="kd-sec-count">{{ komplain_list | length }}</span>
+    </div>
+    <span class="kd-toggle">&#9650;</span>
+  </div>
+  <div class="kd-sec-body">
+    {% if komplain_list %}
+    <div style="overflow-x:auto;">
+    <table class="kd-table">
+      <thead><tr>
+        <th>Tanggal</th><th>Judul</th><th>Kategori</th><th>Prioritas</th><th>Status</th>
+      </tr></thead>
+      <tbody>
+      {% for k in komplain_list %}
+      <tr>
+        <td>{{ k.created_at[:10] if k.created_at else '—' }}</td>
+        <td><strong>{{ k.judul }}</strong></td>
+        <td>{{ k.kategori or '—' }}</td>
+        <td style="text-transform:capitalize;">{{ k.prioritas or '—' }}</td>
+        <td><span class="kd-tag kd-tag-{{ k.status }}">{{ k.status }}</span></td>
+      </tr>
+      {% endfor %}
+      </tbody>
+    </table>
+    </div>
+    {% else %}
+    <div class="kd-empty">&#128522; Tidak ada komplain</div>
+    {% endif %}
+  </div>
+</div>
+
+<!-- Riwayat Penghuni Kamar Ini -->
+<div class="kd-section">
+  <div class="kd-sec-head" onclick="toggleSec(this)">
+    <div class="kd-sec-title">
+      &#128196; Riwayat Penghuni Kamar {{ penghuni.nomor_kamar }}
+      <span class="kd-sec-count">{{ riwayat_kamar | length }}</span>
+    </div>
+    <span class="kd-toggle">&#9650;</span>
+  </div>
+  <div class="kd-sec-body">
+    {% if riwayat_kamar %}
+    <div style="overflow-x:auto;">
+    <table class="kd-table">
+      <thead><tr>
+        <th>Nama</th>
+        <th>No. HP</th>
+        <th>Tanggal Masuk</th>
+        <th>Tanggal Keluar</th>
+        <th>Lama Tinggal</th>
+        <th>Harga Sewa</th>
+        <th>Deposit</th>
+        <th>Tagihan Sisa</th>
+        <th>Kondisi Kamar</th>
+      </tr></thead>
+      <tbody>
+      {% for r in riwayat_kamar %}
+      <tr>
+        <td><strong>{{ r.nama }}</strong></td>
+        <td style="color:var(--muted);">{{ r.no_hp or '—' }}</td>
+        <td>{{ r.tanggal_masuk[:10] if r.tanggal_masuk else '—' }}</td>
+        <td>{{ r.tanggal_keluar[:10] if r.tanggal_keluar else '—' }}</td>
+        <td>
+          {% if r.lama_tinggal_hari %}
+            {% set hari = r.lama_tinggal_hari %}
+            {% if hari >= 30 %}{{ (hari // 30) }} bln {{ (hari % 30) }} hr
+            {% else %}{{ hari }} hari{% endif %}
+          {% else %}—{% endif %}
+        </td>
+        <td>Rp {{ "{:,.0f}".format(r.harga_sewa or 0) }}</td>
+        <td>Rp {{ "{:,.0f}".format(r.deposit_awal or 0) }}</td>
+        <td style="color:{{ 'var(--red)' if (r.tagihan_belum_lunas or 0) > 0 else 'var(--green)' }};font-weight:700;">
+          Rp {{ "{:,.0f}".format(r.tagihan_belum_lunas or 0) }}
+        </td>
+        <td>
+          {% if r.kondisi_kamar == 'baik' %}<span class="kd-tag kd-tag-lunas">✅ Baik</span>
+          {% elif r.kondisi_kamar == 'minor' %}<span class="kd-tag kd-tag-sebagian">🟡 Minor</span>
+          {% elif r.kondisi_kamar == 'rusak' %}<span class="kd-tag kd-tag-belum">🔴 Rusak</span>
+          {% else %}<span style="color:var(--muted);">—</span>{% endif %}
+        </td>
+      </tr>
+      {% endfor %}
+      </tbody>
+    </table>
+    </div>
+    {% else %}
+    <div class="kd-empty">Belum ada riwayat penghuni sebelumnya di kamar ini</div>
+    {% endif %}
+  </div>
+</div>
+
+<!-- Riwayat Cuci AC -->
+{% include 'kamar/_cuci_ac.html' %}
+
+<script>
+function toggleSec(head) {
+  const body = head.nextElementSibling;
+  const icon = head.querySelector('.kd-toggle');
+  const isOpen = body.classList.contains('open');
+  body.classList.toggle('open', !isOpen);
+  if (icon) icon.classList.toggle('open', !isOpen);
+}
+</script>
+{% endblock %}

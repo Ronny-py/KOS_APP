@@ -1,0 +1,212 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Cara Bayar — Thalib Residence</title>
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;600;800&display=swap" rel="stylesheet">
+  <style>
+    :root { --accent:#4f6ef7; --accent2:#7c3aed; --green:#22c55e; --yellow:#eab308; }
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      font-family: 'Plus Jakarta Sans', sans-serif;
+      background: #0f1117; color: #e2e8f0;
+      min-height: 100vh; padding: 24px 16px;
+    }
+    .container { max-width: 480px; margin: 0 auto; }
+    .back-btn {
+      display: inline-flex; align-items: center; gap: 6px;
+      color: #8892a4; font-size: 13px; text-decoration: none;
+      margin-bottom: 20px; transition: color .15s;
+    }
+    .back-btn:hover { color: var(--accent); }
+    .page-header { text-align: center; margin-bottom: 24px; }
+    .page-header .icon { font-size: 36px; margin-bottom: 8px; }
+    .page-header h1 { font-size: 22px; font-weight: 800; }
+    .page-header p { font-size: 13px; color: #8892a4; margin-top: 4px; }
+
+    .section-title {
+      font-size: 11px; font-weight: 700; color: #8892a4;
+      text-transform: uppercase; letter-spacing: 1px;
+      margin: 0 0 10px; padding-left: 2px;
+    }
+    .card {
+      background: #1a1d27; border: 1px solid #2e3347;
+      border-radius: 16px; padding: 18px; margin-bottom: 16px;
+    }
+
+    /* Metode pembayaran */
+    .metode-item {
+      display: flex; align-items: center; gap: 14px;
+      padding: 12px 0; border-bottom: 1px solid #2e3347;
+    }
+    .metode-item:last-child { border-bottom: none; padding-bottom: 0; }
+    .metode-item:first-child { padding-top: 0; }
+    .metode-icon {
+      width: 42px; height: 42px; border-radius: 12px;
+      display: flex; align-items: center; justify-content: center;
+      font-size: 20px; flex-shrink: 0;
+    }
+    .metode-icon.blue { background: rgba(79,110,247,.15); }
+    .metode-icon.green { background: rgba(34,197,94,.15); }
+    .metode-info { flex: 1; }
+    .metode-nama { font-size: 14px; font-weight: 700; }
+    .metode-desc { font-size: 12px; color: #8892a4; margin-top: 2px; }
+
+    /* Rekening */
+    .rek-card {
+      background: rgba(79,110,247,.06); border: 1px solid rgba(79,110,247,.25);
+      border-radius: 12px; padding: 16px; margin-bottom: 10px;
+    }
+    .rek-bank { font-size: 11px; font-weight: 700; color: var(--accent); margin-bottom: 4px; }
+    .rek-nomor { font-size: 20px; font-weight: 800; letter-spacing: 2px; }
+    .rek-nama { font-size: 12px; color: #8892a4; margin-top: 4px; }
+    .copy-btn {
+      display: inline-flex; align-items: center; gap: 5px;
+      background: rgba(79,110,247,.15); border: 1px solid rgba(79,110,247,.3);
+      border-radius: 8px; padding: 5px 12px; font-size: 12px; font-weight: 700;
+      color: var(--accent); cursor: pointer; margin-top: 10px;
+      transition: all .15s; font-family: inherit; border: none;
+    }
+    .copy-btn:hover { background: rgba(79,110,247,.25); }
+
+    /* Step cara bayar */
+    .step-list { display: flex; flex-direction: column; gap: 0; }
+    .step-item { display: flex; gap: 14px; padding: 12px 0; position: relative; }
+    .step-item:not(:last-child)::after {
+      content: ''; position: absolute;
+      left: 15px; top: 44px; bottom: 0; width: 2px;
+      background: #2e3347;
+    }
+    .step-num {
+      width: 32px; height: 32px; border-radius: 50%;
+      background: rgba(79,110,247,.15); border: 2px solid var(--accent);
+      color: var(--accent); font-size: 13px; font-weight: 800;
+      display: flex; align-items: center; justify-content: center;
+      flex-shrink: 0; z-index: 1;
+    }
+    .step-content { flex: 1; padding-top: 4px; }
+    .step-title { font-size: 14px; font-weight: 700; }
+    .step-desc { font-size: 12px; color: #8892a4; margin-top: 3px; line-height: 1.6; }
+
+    /* Warning denda */
+    .denda-banner {
+      background: rgba(239,68,68,.08); border: 1px solid rgba(239,68,68,.25);
+      border-radius: 12px; padding: 14px 16px;
+    }
+    .denda-title { font-size: 13px; font-weight: 700; color: #f87171; margin-bottom: 4px; }
+    .denda-desc { font-size: 12px; color: #fca5a5; line-height: 1.6; }
+
+    /* Tombol lapor bayar */
+    .lapor-btn {
+      display: flex; align-items: center; justify-content: center; gap: 8px;
+      background: linear-gradient(135deg, var(--accent), var(--accent2));
+      border-radius: 12px; padding: 14px; margin-top: 24px;
+      color: #fff; font-size: 14px; font-weight: 700;
+      text-decoration: none; transition: opacity .15s;
+    }
+    .lapor-btn:hover { opacity: .9; }
+    .wa-btn {
+      display: flex; align-items: center; justify-content: center; gap: 8px;
+      background: rgba(37,211,102,.12); border: 1px solid rgba(37,211,102,.35);
+      border-radius: 12px; padding: 13px; margin-top: 10px;
+      color: #4ade80; font-size: 14px; font-weight: 700;
+      text-decoration: none; transition: all .15s;
+    }
+    .wa-btn:hover { background: rgba(37,211,102,.22); }
+  </style>
+</head>
+<body>
+<div class="container">
+  <a href="/login" class="back-btn">← Kembali</a>
+
+  <div class="page-header">
+    <div class="icon">💳</div>
+    <h1>Cara Bayar</h1>
+    <p>Thalib Residence — Panduan Pembayaran Sewa</p>
+  </div>
+
+  <!-- Metode Pembayaran -->
+  <div class="section-title">💳 Metode Pembayaran</div>
+  <div class="card">
+    <div class="metode-item">
+      <div class="metode-icon blue">🏦</div>
+      <div class="metode-info">
+        <div class="metode-nama">Transfer Bank</div>
+        <div class="metode-desc">Transfer ke rekening admin, kirim bukti via aplikasi</div>
+      </div>
+    </div>
+    <div class="metode-item">
+      <div class="metode-icon green">💵</div>
+      <div class="metode-info">
+        <div class="metode-nama">Tunai / Cash</div>
+        <div class="metode-desc">Bayar langsung ke admin kost · Jam 08.00–21.00 WIB</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Rekening -->
+  <div class="section-title">🏦 Rekening Tujuan Transfer</div>
+  <div class="rek-card">
+    <div class="rek-bank">BANK (lihat info ke admin)</div>
+    <div class="rek-nomor">Hubungi Admin</div>
+    <div class="rek-nama">a.n. Pemilik Thalib Residence</div>
+    <button class="copy-btn" onclick="
+      navigator.clipboard.writeText('08159959605');
+      this.textContent='✓ Tersalin!';
+      setTimeout(()=>this.textContent='📋 Salin No. WA Admin',1500)
+    ">📋 Salin No. WA Admin</button>
+  </div>
+  <p style="font-size:11px;color:#8892a4;margin-bottom:16px;margin-top:-4px;">
+    * Nomor rekening lengkap bisa diminta langsung ke admin via WhatsApp
+  </p>
+
+  <!-- Langkah-langkah -->
+  <div class="section-title">📋 Langkah Pembayaran</div>
+  <div class="card">
+    <div class="step-list">
+      <div class="step-item">
+        <div class="step-num">1</div>
+        <div class="step-content">
+          <div class="step-title">Transfer ke rekening admin</div>
+          <div class="step-desc">Transfer sesuai nominal tagihan bulanan kamu. Pastikan nama pengirim jelas.</div>
+        </div>
+      </div>
+      <div class="step-item">
+        <div class="step-num">2</div>
+        <div class="step-content">
+          <div class="step-title">Screenshot / foto bukti transfer</div>
+          <div class="step-desc">Simpan bukti pembayaran dari aplikasi bank atau m-banking kamu.</div>
+        </div>
+      </div>
+      <div class="step-item">
+        <div class="step-num">3</div>
+        <div class="step-content">
+          <div class="step-title">Kirim bukti via aplikasi ini</div>
+          <div class="step-desc">Klik tombol "Kirim Bukti Bayar" di halaman utama, upload foto bukti transfer, dan isi nama + nomor kamar.</div>
+        </div>
+      </div>
+      <div class="step-item">
+        <div class="step-num">4</div>
+        <div class="step-content">
+          <div class="step-title">Tunggu verifikasi admin</div>
+          <div class="step-desc">Admin akan memverifikasi dan mengkonfirmasi pembayaran kamu. Proses biasanya cepat di jam kerja.</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Denda -->
+  <div class="denda-banner" style="margin-bottom:16px;">
+    <div class="denda-title">⚠️ Perhatian: Denda Keterlambatan</div>
+    <div class="denda-desc">
+      Pembayaran melewati tanggal jatuh tempo dikenakan denda <strong>Rp 50.000/hari</strong>, maksimal H+7 dari jatuh tempo.<br>
+      Jam layanan admin: <strong>08.00 – 21.00 WIB</strong>
+    </div>
+  </div>
+
+  <a href="/bayar/" class="lapor-btn">📤 Kirim Bukti Bayar Sekarang</a>
+  <a href="https://wa.me/628159959605?text=Halo%20Admin%2C%20saya%20ingin%20konfirmasi%20pembayaran%20sewa." target="_blank" class="wa-btn">💬 Konfirmasi via WhatsApp</a>
+</div>
+</body>
+</html>

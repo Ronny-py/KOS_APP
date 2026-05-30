@@ -1,0 +1,680 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
+<title>Portal Kamar {{ nomor_kamar }}</title>
+<style>
+@import url('https://fonts.googleapis.com/css2?family=Syne:wght@700;800&family=DM+Mono:wght@400;500&family=DM+Sans:wght@300;400;500;600&display=swap');
+
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+:root {
+  --bg:      #0a0a0f;
+  --surface: #13131a;
+  --card:    #16161f;
+  --border:  rgba(255,255,255,.07);
+  --text:    #f0f0f8;
+  --muted:   #5a5a70;
+  --muted2:  #8888a0;
+  --accent:  #7c6af7;
+  --accent2: #a78bfa;
+  --green:   #22c55e;
+  --yellow:  #eab308;
+  --red:     #ef4444;
+  --syne:    'Syne', sans-serif;
+  --mono:    'DM Mono', monospace;
+  --sans:    'DM Sans', sans-serif;
+}
+
+html { scroll-behavior: smooth; }
+
+body {
+  font-family: var(--sans);
+  background: var(--bg);
+  color: var(--text);
+  min-height: 100dvh;
+  padding-bottom: 40px;
+}
+
+/* ── Ambient ── */
+body::before {
+  content: '';
+  position: fixed;
+  width: 500px; height: 300px;
+  background: radial-gradient(ellipse, rgba(124,106,247,.12) 0%, transparent 70%);
+  top: -80px; left: 50%;
+  transform: translateX(-50%);
+  pointer-events: none;
+  z-index: 0;
+}
+
+/* ── Header ── */
+.header {
+  position: relative;
+  z-index: 1;
+  padding: 28px 20px 20px;
+  max-width: 480px;
+  margin: 0 auto;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+.header-left { display: flex; align-items: center; gap: 14px; }
+.avatar {
+  width: 48px; height: 48px;
+  background: linear-gradient(135deg, var(--accent), #5b21b6);
+  border-radius: 14px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 22px;
+  flex-shrink: 0;
+  box-shadow: 0 6px 20px rgba(124,106,247,.3);
+}
+.header-room {
+  font-family: var(--mono);
+  font-size: 10px;
+  letter-spacing: .14em;
+  color: var(--accent2);
+  text-transform: uppercase;
+  margin-bottom: 3px;
+}
+.header-name {
+  font-family: var(--syne);
+  font-size: 18px;
+  font-weight: 800;
+  color: var(--text);
+  letter-spacing: -.02em;
+  line-height: 1;
+}
+.badge-bulan {
+  font-family: var(--mono);
+  font-size: 10px;
+  color: var(--muted2);
+  background: rgba(255,255,255,.05);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  padding: 6px 10px;
+  letter-spacing: .06em;
+}
+
+/* ── Content wrapper ── */
+.content {
+  max-width: 480px;
+  margin: 0 auto;
+  padding: 0 16px;
+  position: relative;
+  z-index: 1;
+}
+
+/* ── Section title ── */
+.section-title {
+  font-family: var(--mono);
+  font-size: 10px;
+  letter-spacing: .14em;
+  color: var(--muted);
+  text-transform: uppercase;
+  margin-bottom: 10px;
+  margin-top: 24px;
+}
+
+/* ── Tagihan card ── */
+.tagihan-card {
+  background: var(--card);
+  border: 1px solid var(--border);
+  border-radius: 20px;
+  overflow: hidden;
+  animation: fadeUp .4s ease both;
+}
+@keyframes fadeUp {
+  from { opacity:0; transform:translateY(16px); }
+  to   { opacity:1; transform:translateY(0); }
+}
+.tagihan-card:nth-child(2) { animation-delay: .05s; }
+.tagihan-card:nth-child(3) { animation-delay: .10s; }
+.tagihan-card:nth-child(4) { animation-delay: .15s; }
+
+.tagihan-top {
+  padding: 20px 20px 16px;
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 12px;
+}
+.tagihan-jumlah {
+  font-family: var(--syne);
+  font-size: 28px;
+  font-weight: 800;
+  color: var(--text);
+  letter-spacing: -.03em;
+  line-height: 1;
+}
+.tagihan-jumlah small {
+  font-family: var(--sans);
+  font-size: 12px;
+  font-weight: 400;
+  color: var(--muted2);
+  display: block;
+  margin-bottom: 4px;
+  letter-spacing: 0;
+}
+.status-pill {
+  font-family: var(--mono);
+  font-size: 10px;
+  font-weight: 500;
+  letter-spacing: .08em;
+  padding: 5px 11px;
+  border-radius: 20px;
+  text-transform: uppercase;
+  flex-shrink: 0;
+}
+.status-pill.lunas   { background: rgba(34,197,94,.15);  color: var(--green);  border: 1px solid rgba(34,197,94,.25); }
+.status-pill.belum   { background: rgba(239,68,68,.12);  color: var(--red);    border: 1px solid rgba(239,68,68,.2); }
+.status-pill.sebagian{ background: rgba(234,179,8,.12);  color: var(--yellow); border: 1px solid rgba(234,179,8,.2); }
+
+.tagihan-divider {
+  height: 1px;
+  background: var(--border);
+  margin: 0 20px;
+}
+.tagihan-rows { padding: 14px 20px 18px; display: flex; flex-direction: column; gap: 8px; }
+.tagihan-row  { display: flex; justify-content: space-between; align-items: center; }
+.tagihan-row .lbl { font-size: 12px; color: var(--muted2); }
+.tagihan-row .val { font-family: var(--mono); font-size: 13px; color: var(--text); }
+.tagihan-row .val.sisa { color: var(--red); font-weight: 500; }
+.tagihan-row .val.lunas-val { color: var(--green); }
+
+/* ── Bayar button ── */
+.btn-bayar {
+  display: block;
+  width: calc(100% - 40px);
+  margin: 0 20px 20px;
+  background: linear-gradient(135deg, var(--accent), #5b21b6);
+  color: #fff;
+  border: none;
+  border-radius: 12px;
+  padding: 14px;
+  font-family: var(--sans);
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+  text-align: center;
+  letter-spacing: .02em;
+  transition: opacity .15s, transform .1s;
+  -webkit-tap-highlight-color: transparent;
+}
+.btn-bayar:active { opacity: .85; transform: scale(.98); }
+
+/* ── Kosong state ── */
+.empty-state {
+  background: var(--card);
+  border: 1px solid var(--border);
+  border-radius: 16px;
+  padding: 28px 20px;
+  text-align: center;
+  color: var(--muted2);
+  font-size: 13px;
+}
+.empty-icon { font-size: 28px; margin-bottom: 8px; }
+
+/* ── Tunggakan list ── */
+.tunggakan-list { display: flex; flex-direction: column; gap: 8px; }
+.tunggakan-item {
+  background: var(--card);
+  border: 1px solid rgba(239,68,68,.15);
+  border-radius: 14px;
+  padding: 14px 16px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 12px;
+  animation: fadeUp .4s ease both;
+}
+.tunggakan-bulan { font-size: 13px; font-weight: 500; color: var(--text); }
+.tunggakan-sisa  {
+  font-family: var(--mono);
+  font-size: 13px;
+  color: var(--red);
+  font-weight: 500;
+}
+
+/* ── Komplain ── */
+.komplain-list { display: flex; flex-direction: column; gap: 8px; }
+.komplain-item {
+  background: var(--card);
+  border: 1px solid var(--border);
+  border-radius: 14px;
+  padding: 14px 16px;
+  animation: fadeUp .4s ease both;
+}
+.komplain-top {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 10px;
+  margin-bottom: 6px;
+}
+.komplain-judul { font-size: 13px; font-weight: 600; color: var(--text); }
+.komplain-status {
+  font-family: var(--mono);
+  font-size: 9px;
+  letter-spacing: .08em;
+  padding: 3px 8px;
+  border-radius: 20px;
+  text-transform: uppercase;
+  flex-shrink: 0;
+}
+.ks-baru      { background: rgba(124,106,247,.15); color: var(--accent2); border: 1px solid rgba(124,106,247,.2); }
+.ks-proses    { background: rgba(234,179,8,.12);   color: var(--yellow);  border: 1px solid rgba(234,179,8,.2); }
+.ks-selesai   { background: rgba(34,197,94,.12);   color: var(--green);   border: 1px solid rgba(34,197,94,.2); }
+.komplain-desc { font-size: 12px; color: var(--muted2); line-height: 1.5; }
+
+/* ── Form komplain ── */
+.form-card {
+  background: var(--card);
+  border: 1px solid var(--border);
+  border-radius: 20px;
+  padding: 20px;
+  animation: fadeUp .4s ease both;
+}
+.form-group { margin-bottom: 14px; }
+.form-label {
+  display: block;
+  font-size: 11px;
+  font-weight: 600;
+  color: var(--muted2);
+  letter-spacing: .08em;
+  text-transform: uppercase;
+  margin-bottom: 7px;
+}
+.form-input, .form-select, .form-textarea {
+  width: 100%;
+  background: rgba(255,255,255,.04);
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  padding: 11px 13px;
+  font-family: var(--sans);
+  font-size: 14px;
+  color: var(--text);
+  outline: none;
+  transition: border-color .15s;
+  -webkit-appearance: none;
+}
+.form-input:focus, .form-select:focus, .form-textarea:focus {
+  border-color: var(--accent);
+}
+.form-select option { background: #1a1a2a; color: var(--text); }
+.form-textarea { resize: vertical; min-height: 90px; line-height: 1.5; }
+.btn-submit {
+  width: 100%;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  padding: 13px;
+  font-family: var(--sans);
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--text);
+  cursor: pointer;
+  transition: border-color .15s, background .15s;
+  -webkit-tap-highlight-color: transparent;
+}
+.btn-submit:active { background: rgba(124,106,247,.15); border-color: var(--accent); }
+
+/* ── WA button ── */
+.btn-wa {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  width: 100%;
+  background: #128c45;
+  color: #fff;
+  border: none;
+  border-radius: 14px;
+  padding: 15px;
+  font-family: var(--sans);
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+  text-decoration: none;
+  margin-top: 20px;
+  transition: opacity .15s;
+  -webkit-tap-highlight-color: transparent;
+}
+.btn-wa:active { opacity: .85; }
+.wa-icon { font-size: 20px; }
+
+/* ── Toast ── */
+.toast {
+  position: fixed;
+  bottom: 24px; left: 50%;
+  transform: translateX(-50%) translateY(80px);
+  background: #1e1e2e;
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  padding: 12px 20px;
+  font-size: 13px;
+  font-weight: 500;
+  color: var(--text);
+  z-index: 999;
+  transition: transform .3s cubic-bezier(.34,1.56,.64,1);
+  white-space: nowrap;
+  box-shadow: 0 8px 32px rgba(0,0,0,.5);
+}
+.toast.show { transform: translateX(-50%) translateY(0); }
+.toast.ok   { border-color: rgba(34,197,94,.3); color: var(--green); }
+.toast.err  { border-color: rgba(239,68,68,.3); color: var(--red); }
+
+/* ── Modal upload bukti ── */
+.modal-overlay {
+  position: fixed; inset: 0;
+  background: rgba(0,0,0,.7);
+  z-index: 100;
+  display: flex;
+  align-items: flex-end;
+  justify-content: center;
+  opacity: 0; pointer-events: none;
+  transition: opacity .25s;
+}
+.modal-overlay.open { opacity: 1; pointer-events: all; }
+.modal-sheet {
+  background: #1a1a26;
+  border: 1px solid var(--border);
+  border-radius: 24px 24px 0 0;
+  padding: 24px 20px 40px;
+  width: 100%;
+  max-width: 480px;
+  transform: translateY(100%);
+  transition: transform .3s cubic-bezier(.32,0,.67,0);
+}
+.modal-overlay.open .modal-sheet {
+  transform: translateY(0);
+  transition: transform .35s cubic-bezier(.34,1.1,.64,1);
+}
+.modal-handle {
+  width: 36px; height: 4px;
+  background: var(--border);
+  border-radius: 2px;
+  margin: 0 auto 20px;
+}
+.modal-title {
+  font-family: var(--syne);
+  font-size: 18px;
+  font-weight: 800;
+  margin-bottom: 20px;
+  letter-spacing: -.02em;
+}
+.file-label {
+  display: block;
+  border: 1.5px dashed rgba(124,106,247,.4);
+  border-radius: 12px;
+  padding: 20px;
+  text-align: center;
+  cursor: pointer;
+  color: var(--muted2);
+  font-size: 13px;
+  transition: border-color .15s, background .15s;
+  margin-bottom: 14px;
+}
+.file-label:hover { border-color: var(--accent); background: rgba(124,106,247,.05); }
+.file-label span { display: block; font-size: 28px; margin-bottom: 6px; }
+#fileInput { display: none; }
+#fileName { font-family: var(--mono); font-size: 11px; color: var(--accent2); margin-top: 4px; }
+</style>
+</head>
+<body>
+
+<!-- ── Header ── -->
+<div class="header">
+  <div class="header-left">
+    <div class="avatar">🏠</div>
+    <div>
+      <div class="header-room">Kamar {{ nomor_kamar }}</div>
+      <div class="header-name">{{ penghuni.nama }}</div>
+    </div>
+  </div>
+  <div class="badge-bulan">{{ bulan_ini }}</div>
+</div>
+
+<div class="content">
+
+  <!-- ── Tagihan bulan ini ── -->
+  <div class="section-title">Tagihan Bulan Ini</div>
+
+  {% if tagihan %}
+  <div class="tagihan-card">
+    <div class="tagihan-top">
+      <div class="tagihan-jumlah">
+        <small>Total tagihan</small>
+        Rp {{ "{:,.0f}".format(tagihan.jumlah).replace(",", ".") }}
+      </div>
+      {% if tagihan.status == 'lunas' %}
+        <span class="status-pill lunas">Lunas</span>
+      {% elif tagihan.status == 'sebagian' %}
+        <span class="status-pill sebagian">Sebagian</span>
+      {% else %}
+        <span class="status-pill belum">Belum bayar</span>
+      {% endif %}
+    </div>
+    <div class="tagihan-divider"></div>
+    <div class="tagihan-rows">
+      <div class="tagihan-row">
+        <span class="lbl">Sudah dibayar</span>
+        <span class="val">Rp {{ "{:,.0f}".format(tagihan.total_bayar).replace(",", ".") }}</span>
+      </div>
+      <div class="tagihan-row">
+        <span class="lbl">Sisa tagihan</span>
+        {% if tagihan.sisa > 0 %}
+          <span class="val sisa">Rp {{ "{:,.0f}".format(tagihan.sisa).replace(",", ".") }}</span>
+        {% else %}
+          <span class="val lunas-val">✓ Lunas</span>
+        {% endif %}
+      </div>
+      {% if tagihan.tanggal_jatuh_tempo %}
+      <div class="tagihan-row">
+        <span class="lbl">Jatuh tempo</span>
+        <span class="val">{{ tagihan.tanggal_jatuh_tempo }}</span>
+      </div>
+      {% endif %}
+    </div>
+    {% if tagihan.sisa > 0 %}
+    <button class="btn-bayar" onclick="openModal()">Upload Bukti Pembayaran</button>
+    {% endif %}
+  </div>
+  {% else %}
+  <div class="empty-state">
+    <div class="empty-icon">📋</div>
+    Belum ada tagihan untuk bulan ini
+  </div>
+  {% endif %}
+
+  <!-- ── Tunggakan ── -->
+  {% if tunggakan %}
+  <div class="section-title">Tunggakan</div>
+  <div class="tunggakan-list">
+    {% for t in tunggakan %}
+    <div class="tunggakan-item">
+      <div class="tunggakan-bulan">{{ t.bulan }}</div>
+      <div class="tunggakan-sisa">Rp {{ "{:,.0f}".format(t.jumlah - t.total_bayar).replace(",", ".") }}</div>
+    </div>
+    {% endfor %}
+  </div>
+  {% endif %}
+
+  <!-- ── Komplain aktif ── -->
+  {% if komplain_aktif %}
+  <div class="section-title">Komplain Aktif</div>
+  <div class="komplain-list">
+    {% for k in komplain_aktif %}
+    <div class="komplain-item">
+      <div class="komplain-top">
+        <div class="komplain-judul">{{ k.judul }}</div>
+        <span class="komplain-status ks-{{ k.status }}">{{ k.status }}</span>
+      </div>
+      <div class="komplain-desc">{{ k.deskripsi[:80] }}{% if k.deskripsi|length > 80 %}…{% endif %}</div>
+    </div>
+    {% endfor %}
+  </div>
+  {% endif %}
+
+  <!-- ── Form komplain baru ── -->
+  <div class="section-title">Ajukan Komplain</div>
+  <div class="form-card">
+    <div class="form-group">
+      <label class="form-label">Kategori</label>
+      <select class="form-select" id="k-kategori">
+        <option value="fasilitas">Fasilitas</option>
+        <option value="kebersihan">Kebersihan</option>
+        <option value="keamanan">Keamanan</option>
+        <option value="tagihan">Tagihan</option>
+        <option value="lainnya">Lainnya</option>
+      </select>
+    </div>
+    <div class="form-group">
+      <label class="form-label">Judul</label>
+      <input type="text" class="form-input" id="k-judul" placeholder="Contoh: AC bocor, listrik mati…">
+    </div>
+    <div class="form-group">
+      <label class="form-label">Deskripsi</label>
+      <textarea class="form-textarea" id="k-deskripsi" placeholder="Ceritakan masalahnya…"></textarea>
+    </div>
+    <button class="btn-submit" onclick="submitKomplain()">Kirim Komplain</button>
+  </div>
+
+  <!-- ── WA Admin ── -->
+  <a class="btn-wa" href="https://wa.me/{{ wa_admin | replace('+','') | replace('-','') | replace(' ','') }}?text=Halo%2C%20saya%20penghuni%20kamar%20{{ nomor_kamar }}%20ingin%20menghubungi%20admin." target="_blank">
+    <span class="wa-icon">💬</span>
+    Chat Admin via WhatsApp
+  </a>
+
+</div><!-- /content -->
+
+<!-- ── Modal Upload Bukti ── -->
+<div class="modal-overlay" id="modalOverlay" onclick="closeModalOutside(event)">
+  <div class="modal-sheet">
+    <div class="modal-handle"></div>
+    <div class="modal-title">Upload Bukti Bayar</div>
+
+    <div class="form-group">
+      <label class="form-label">Jumlah Dibayar</label>
+      <input type="number" class="form-input" id="b-jumlah"
+             placeholder="0"
+             value="{{ tagihan.sisa | int if tagihan else 0 }}">
+    </div>
+    <div class="form-group">
+      <label class="form-label">Metode</label>
+      <select class="form-select" id="b-metode">
+        <option value="transfer">Transfer Bank</option>
+        <option value="cash">Tunai</option>
+        <option value="qris">QRIS</option>
+        <option value="ewallet">E-Wallet</option>
+      </select>
+    </div>
+    <div class="form-group">
+      <label class="file-label" for="fileInput">
+        <span>📎</span>
+        Pilih foto / screenshot bukti
+        <div id="fileName">Belum ada file dipilih</div>
+      </label>
+      <input type="file" id="fileInput" accept="image/*,.pdf" onchange="onFileChange(this)">
+    </div>
+    <div class="form-group">
+      <label class="form-label">Catatan (opsional)</label>
+      <input type="text" class="form-input" id="b-catatan" placeholder="misal: transfer dari BCA">
+    </div>
+    <button class="btn-bayar" style="margin:0;width:100%;border-radius:12px;" onclick="submitBayar()">Kirim Bukti</button>
+  </div>
+</div>
+
+<!-- ── Toast ── -->
+<div class="toast" id="toast"></div>
+
+<script>
+const KAMAR = '{{ nomor_kamar }}';
+
+// ── Toast ──────────────────────────────────────────────────────────
+function showToast(msg, type='ok') {
+  const t = document.getElementById('toast');
+  t.textContent = msg;
+  t.className = `toast ${type} show`;
+  setTimeout(() => t.classList.remove('show'), 3000);
+}
+
+// ── Modal ─────────────────────────────────────────────────────────
+function openModal() {
+  document.getElementById('modalOverlay').classList.add('open');
+}
+function closeModal() {
+  document.getElementById('modalOverlay').classList.remove('open');
+}
+function closeModalOutside(e) {
+  if (e.target === document.getElementById('modalOverlay')) closeModal();
+}
+function onFileChange(input) {
+  document.getElementById('fileName').textContent =
+    input.files[0] ? input.files[0].name : 'Belum ada file';
+}
+
+// ── Submit komplain ───────────────────────────────────────────────
+async function submitKomplain() {
+  const judul     = document.getElementById('k-judul').value.trim();
+  const kategori  = document.getElementById('k-kategori').value;
+  const deskripsi = document.getElementById('k-deskripsi').value.trim();
+
+  if (!judul || !deskripsi) {
+    showToast('Judul dan deskripsi wajib diisi', 'err'); return;
+  }
+
+  const fd = new FormData();
+  fd.append('judul', judul);
+  fd.append('kategori', kategori);
+  fd.append('deskripsi', deskripsi);
+
+  try {
+    const res  = await fetch(`/qr/${KAMAR}/komplain`, { method: 'POST', body: fd });
+    const data = await res.json();
+    if (data.ok) {
+      showToast('✓ Komplain terkirim');
+      document.getElementById('k-judul').value = '';
+      document.getElementById('k-deskripsi').value = '';
+      setTimeout(() => location.reload(), 1800);
+    } else {
+      showToast(data.msg || 'Gagal', 'err');
+    }
+  } catch { showToast('Koneksi bermasalah', 'err'); }
+}
+
+// ── Submit bukti bayar ────────────────────────────────────────────
+async function submitBayar() {
+  const jumlah = document.getElementById('b-jumlah').value;
+  const metode = document.getElementById('b-metode').value;
+  const catatan= document.getElementById('b-catatan').value;
+  const file   = document.getElementById('fileInput').files[0];
+
+  if (!jumlah || Number(jumlah) <= 0) {
+    showToast('Masukkan jumlah yang valid', 'err'); return;
+  }
+
+  const fd = new FormData();
+  fd.append('jumlah_bayar', jumlah);
+  fd.append('metode', metode);
+  fd.append('catatan', catatan);
+  if (file) fd.append('bukti', file);
+
+  try {
+    const res  = await fetch(`/qr/${KAMAR}/bayar`, { method: 'POST', body: fd });
+    const data = await res.json();
+    if (data.ok) {
+      showToast('✓ Bukti pembayaran terkirim');
+      closeModal();
+      setTimeout(() => location.reload(), 1800);
+    } else {
+      showToast(data.msg || 'Gagal', 'err');
+    }
+  } catch { showToast('Koneksi bermasalah', 'err'); }
+}
+</script>
+</body>
+</html>

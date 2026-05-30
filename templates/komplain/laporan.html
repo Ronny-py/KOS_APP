@@ -6,6 +6,14 @@
 {% endblock %}
 {% block topbar_actions %}
   <button onclick="window.print()" class="btn btn-outline">🖨️ Cetak</button>
+  <a href="{{ url_for('komplain.export_excel', bulan=bulan, tahun=tahun) }}"
+     class="btn btn-outline" style="color:#1D6F42; border-color:#1D6F42;">
+    📊 Export Excel
+  </a>
+  <a href="{{ url_for('komplain.export_pdf', bulan=bulan, tahun=tahun) }}"
+     class="btn btn-outline" style="color:#e53e3e; border-color:#e53e3e;">
+    📄 Export PDF
+  </a>
 {% endblock %}
 
 {% block content %}

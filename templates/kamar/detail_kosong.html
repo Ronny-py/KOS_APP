@@ -1,0 +1,532 @@
+{% extends "base.html" %}
+{% block title %}Kamar {{ kamar.nomor_kamar }} — Kosong{% endblock %}
+{% block page_title %}Detail Kamar {{ kamar.nomor_kamar }}{% endblock %}
+{% block breadcrumb %}<a href="{{ url_for('kamar.index') }}" style="color:var(--muted);text-decoration:none;">Statistik Kamar</a> &rsaquo; Kamar {{ kamar.nomor_kamar }}{% endblock %}
+
+{% block content %}
+<style>
+/* Hero kosong */
+.kd-hero {
+  background: linear-gradient(135deg, #16172b 0%, #1e1f3a 100%);
+  border: 1px solid #6366f166;
+  border-radius: 14px;
+  padding: 24px 28px;
+  margin-bottom: 20px;
+  position: relative;
+  overflow: hidden;
+}
+.kd-hero::after {
+  content: '{{ kamar.nomor_kamar }}';
+  position: absolute;
+  right: 24px; top: 50%;
+  transform: translateY(-50%);
+  font-size: 72px;
+  font-weight: 900;
+  color: rgba(99,102,241,.06);
+  font-family: var(--mono);
+  pointer-events: none;
+  letter-spacing: -.04em;
+}
+.kd-room-tag {
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: .12em;
+  color: #a5b4fc;
+  text-transform: uppercase;
+  margin-bottom: 4px;
+}
+.kd-nama {
+  font-size: 22px;
+  font-weight: 800;
+  color: var(--muted);
+  margin: 0 0 14px;
+  letter-spacing: -.02em;
+  font-style: italic;
+}
+.kd-meta-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 20px;
+}
+.kd-meta-item {
+  font-size: 12.5px;
+  color: var(--muted);
+}
+.kd-meta-item strong { color: var(--text); font-weight: 600; }
+
+/* Chip kosong */
+.kd-chip-kosong {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  background: rgba(99,102,241,.15);
+  color: #a5b4fc;
+  border: 1px solid rgba(99,102,241,.3);
+  font-size: 11px;
+  font-weight: 700;
+  padding: 4px 12px;
+  border-radius: 20px;
+  text-transform: uppercase;
+  letter-spacing: .06em;
+  margin-bottom: 14px;
+}
+
+/* Back btn */
+.kd-back {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 12.5px;
+  font-weight: 600;
+  color: var(--muted);
+  text-decoration: none;
+  padding: 6px 14px;
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  background: transparent;
+  margin-bottom: 16px;
+  transition: all .15s;
+}
+.kd-back:hover { color: var(--text); border-color: #a5b4fc; background: var(--surface2); }
+
+/* Stat row */
+.kd-stats {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+  gap: 12px;
+  margin-bottom: 20px;
+}
+.kd-stat {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  padding: 14px 16px;
+}
+.kd-stat-lbl { font-size: 10.5px; font-weight: 700; color: var(--muted); text-transform: uppercase; letter-spacing: .07em; margin-bottom: 5px; }
+.kd-stat-val { font-size: 20px; font-weight: 800; font-family: var(--mono); color: var(--text); }
+.kd-stat-val.purple { color: #a5b4fc; }
+.kd-stat-val.yellow { color: var(--yellow); }
+.kd-stat-val.green  { color: var(--green); }
+.kd-stat-val.muted  { color: var(--muted); font-size: 13px; }
+
+/* Section */
+.kd-section {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  margin-bottom: 16px;
+  overflow: hidden;
+}
+.kd-sec-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 13px 18px;
+  border-bottom: 1px solid var(--border);
+  cursor: pointer;
+  user-select: none;
+}
+.kd-sec-head:hover { background: rgba(255,255,255,.02); }
+.kd-sec-title {
+  font-size: 13px;
+  font-weight: 700;
+  color: var(--text);
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+.kd-sec-count {
+  font-size: 11px;
+  background: var(--surface2);
+  color: var(--muted);
+  padding: 2px 9px;
+  border-radius: 10px;
+  font-weight: 600;
+}
+.kd-toggle { font-size: 12px; color: var(--muted); transition: transform .2s; }
+.kd-toggle.open { transform: rotate(180deg); }
+.kd-sec-body { display: none; }
+.kd-sec-body.open { display: block; }
+
+/* Info grid */
+.kd-info-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+  gap: 0;
+}
+.kd-info-item {
+  padding: 13px 18px;
+  border-bottom: 1px solid var(--border);
+  border-right: 1px solid var(--border);
+}
+.kd-info-item:nth-child(even) { border-right: none; }
+.kd-info-lbl { font-size: 10.5px; font-weight: 700; color: var(--muted); text-transform: uppercase; letter-spacing: .06em; margin-bottom: 4px; }
+.kd-info-val { font-size: 14px; font-weight: 600; color: var(--text); }
+
+/* Kekosongan timeline */
+.kd-timeline {
+  padding: 18px;
+}
+.kd-tl-item {
+  display: flex;
+  gap: 14px;
+  margin-bottom: 18px;
+  position: relative;
+}
+.kd-tl-item:not(:last-child)::before {
+  content: '';
+  position: absolute;
+  left: 15px;
+  top: 30px;
+  width: 2px;
+  height: calc(100% + 2px);
+  background: var(--border);
+}
+.kd-tl-dot {
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 14px;
+  flex-shrink: 0;
+  position: relative;
+  z-index: 1;
+}
+.kd-tl-dot.kosong  { background: rgba(99,102,241,.2); border: 2px solid #6366f166; }
+.kd-tl-dot.isi     { background: rgba(34,197,94,.15);  border: 2px solid rgba(34,197,94,.3); }
+.kd-tl-dot.keluar  { background: rgba(239,68,68,.15);  border: 2px solid rgba(239,68,68,.3); }
+.kd-tl-content { flex: 1; padding-top: 5px; }
+.kd-tl-date { font-size: 11px; color: var(--muted); margin-bottom: 2px; }
+.kd-tl-label { font-size: 13px; font-weight: 600; color: var(--text); }
+.kd-tl-sub { font-size: 12px; color: var(--muted); margin-top: 2px; }
+
+/* Fasilitas tags */
+.kd-fasil-wrap { padding: 14px 18px; display: flex; flex-wrap: wrap; gap: 8px; }
+.kd-fasil-tag {
+  background: var(--surface2);
+  border: 1px solid var(--border);
+  color: var(--text);
+  font-size: 12px;
+  font-weight: 500;
+  padding: 4px 12px;
+  border-radius: 20px;
+}
+
+/* Durasi highlight */
+.kd-dur-box {
+  background: rgba(99,102,241,.08);
+  border: 1px solid rgba(99,102,241,.25);
+  border-radius: 10px;
+  padding: 14px 18px;
+  margin: 0 18px 16px;
+  display: flex;
+  gap: 24px;
+  align-items: center;
+  flex-wrap: wrap;
+}
+.kd-dur-num { font-size: 32px; font-weight: 900; font-family: var(--mono); color: #a5b4fc; line-height: 1; }
+.kd-dur-num.lama { color: var(--yellow); }
+.kd-dur-label { font-size: 11px; color: var(--muted); text-transform: uppercase; letter-spacing: .06em; margin-top: 3px; }
+.kd-dur-sep { width: 1px; height: 40px; background: var(--border); }
+
+/* Tabel */
+.kd-table { width: 100%; border-collapse: collapse; font-size: 13px; }
+.kd-table th {
+  background: var(--surface2);
+  color: var(--muted);
+  font-size: 10.5px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: .06em;
+  padding: 9px 16px;
+  text-align: left;
+  border-bottom: 1px solid var(--border);
+}
+.kd-table td {
+  padding: 11px 16px;
+  color: var(--text);
+  border-bottom: 1px solid var(--border);
+  vertical-align: middle;
+}
+.kd-table tr:last-child td { border-bottom: none; }
+.kd-table tr:hover td { background: rgba(255,255,255,.02); }
+
+/* Tags */
+.kd-tag {
+  display: inline-block;
+  font-size: 10.5px;
+  font-weight: 700;
+  padding: 2px 9px;
+  border-radius: 10px;
+  text-transform: uppercase;
+  letter-spacing: .04em;
+}
+.kd-tag-lunas    { background: rgba(34,197,94,.15);  color: var(--green);  border: 1px solid rgba(34,197,94,.3); }
+.kd-tag-belum    { background: rgba(239,68,68,.15);  color: var(--red);    border: 1px solid rgba(239,68,68,.3); }
+.kd-tag-sebagian { background: rgba(234,179,8,.15);  color: var(--yellow); border: 1px solid rgba(234,179,8,.3); }
+.kd-tag-pending  { background: var(--surface2);      color: var(--muted);  border: 1px solid var(--border); }
+.kd-tag-baru     { background: rgba(79,110,247,.15); color: var(--accent); border: 1px solid rgba(79,110,247,.3); }
+.kd-tag-diproses { background: rgba(234,179,8,.15);  color: var(--yellow); border: 1px solid rgba(234,179,8,.3); }
+.kd-tag-selesai  { background: rgba(34,197,94,.15);  color: var(--green);  border: 1px solid rgba(34,197,94,.3); }
+.kd-tag-ditolak  { background: rgba(239,68,68,.15);  color: var(--red);    border: 1px solid rgba(239,68,68,.3); }
+
+
+</style>
+
+<a href="{{ url_for('kamar.index') }}" class="kd-back">&#8592; Kembali ke Statistik Kamar</a>
+
+<!-- Hero -->
+<div class="kd-hero">
+  <div class="kd-room-tag">&#127968; Kamar {{ kamar.nomor_kamar }}</div>
+  <div class="kd-chip-kosong">&#9634; Kamar Kosong</div>
+  <div class="kd-nama">Tidak ada penghuni</div>
+  <div class="kd-meta-row">
+    <div class="kd-meta-item">&#127968; <strong>{{ kamar.tipe_kamar or 'Standard' }}</strong></div>
+    <div class="kd-meta-item">&#128207; Lantai <strong>{{ kamar.lantai or '—' }}</strong></div>
+    <div class="kd-meta-item">&#128101; Kapasitas <strong>{{ kamar.kapasitas or 1 }} orang</strong></div>
+    <div class="kd-meta-item">&#128176; Sewa <strong>Rp {{ "{:,.0f}".format(kamar.harga_sewa or 0) }}/bln</strong></div>
+    {% if kamar.luas %}
+    <div class="kd-meta-item">&#128269; <strong>{{ kamar.luas }} m²</strong></div>
+    {% endif %}
+  </div>
+</div>
+
+<!-- Stat cards -->
+<div class="kd-stats">
+  <div class="kd-stat">
+    <div class="kd-stat-lbl">Kosong Selama</div>
+    <div class="kd-stat-val {{ 'yellow' if kamar.hari_kosong and kamar.hari_kosong > 30 else 'purple' }}">
+      {{ kamar.hari_kosong ~ ' hari' if kamar.hari_kosong else '—' }}
+    </div>
+  </div>
+  <div class="kd-stat">
+    <div class="kd-stat-lbl">Terakhir Diisi</div>
+    <div class="kd-stat-val muted">{{ kamar.terakhir_diisi or 'Belum pernah' }}</div>
+  </div>
+  <div class="kd-stat">
+    <div class="kd-stat-lbl">Total Penghuni</div>
+    <div class="kd-stat-val purple">{{ riwayat_penghuni | length }}</div>
+  </div>
+  <div class="kd-stat">
+    <div class="kd-stat-lbl">Harga/Bulan</div>
+    <div class="kd-stat-val green" style="font-size:15px;">Rp {{ "{:,.0f}".format(kamar.harga_sewa or 0) }}</div>
+  </div>
+</div>
+
+<!-- Info Kamar -->
+<div class="kd-section">
+  <div class="kd-sec-head" onclick="toggleSec(this)">
+    <div class="kd-sec-title">&#127968; Info Kamar</div>
+    <span class="kd-toggle open">&#9650;</span>
+  </div>
+  <div class="kd-sec-body open">
+    <div class="kd-info-grid">
+      <div class="kd-info-item">
+        <div class="kd-info-lbl">Nomor Kamar</div>
+        <div class="kd-info-val">{{ kamar.nomor_kamar }}</div>
+      </div>
+      <div class="kd-info-item">
+        <div class="kd-info-lbl">Lantai</div>
+        <div class="kd-info-val">{{ kamar.lantai or '—' }}</div>
+      </div>
+      <div class="kd-info-item">
+        <div class="kd-info-lbl">Tipe Kamar</div>
+        <div class="kd-info-val">{{ kamar.tipe_kamar or '—' }}</div>
+      </div>
+      <div class="kd-info-item">
+        <div class="kd-info-lbl">Luas</div>
+        <div class="kd-info-val">{{ kamar.luas ~ ' m²' if kamar.luas else '—' }}</div>
+      </div>
+      <div class="kd-info-item">
+        <div class="kd-info-lbl">Kapasitas</div>
+        <div class="kd-info-val">{{ kamar.kapasitas or 1 }} orang</div>
+      </div>
+      <div class="kd-info-item">
+        <div class="kd-info-lbl">Harga Sewa</div>
+        <div class="kd-info-val">Rp {{ "{:,.0f}".format(kamar.harga_sewa or 0) }}/bln</div>
+      </div>
+    </div>
+    {% if kamar.deskripsi %}
+    <div style="padding:12px 18px;border-top:1px solid var(--border);font-size:13px;color:var(--muted);">
+      {{ kamar.deskripsi }}
+    </div>
+    {% endif %}
+  </div>
+</div>
+
+<!-- Kekosongan -->
+<div class="kd-section">
+  <div class="kd-sec-head" onclick="toggleSec(this)">
+    <div class="kd-sec-title">&#8987; Durasi Kekosongan</div>
+    <span class="kd-toggle open">&#9650;</span>
+  </div>
+  <div class="kd-sec-body open">
+    <div class="kd-dur-box">
+      <div>
+        <div class="kd-dur-num {{ 'lama' if kamar.hari_kosong and kamar.hari_kosong > 30 else '' }}">
+          {{ kamar.hari_kosong or '—' }}
+        </div>
+        <div class="kd-dur-label">Hari Kosong</div>
+      </div>
+      {% if kamar.hari_kosong %}
+      <div class="kd-dur-sep"></div>
+      <div>
+        <div class="kd-dur-num" style="font-size:20px;color:var(--muted);">{{ (kamar.hari_kosong // 30) ~ ' bln' if kamar.hari_kosong >= 30 else '< 1 bln' }}</div>
+        <div class="kd-dur-label">Perkiraan</div>
+      </div>
+      {% endif %}
+      {% if kamar.tanggal_kosong %}
+      <div class="kd-dur-sep"></div>
+      <div>
+        <div class="kd-dur-num" style="font-size:18px;color:#a5b4fc;">{{ kamar.tanggal_kosong }}</div>
+        <div class="kd-dur-label">Kosong Sejak</div>
+      </div>
+      {% endif %}
+    </div>
+
+    <!-- Timeline penghuni -->
+    <div class="kd-timeline">
+      <!-- Titik sekarang: kosong -->
+      <div class="kd-tl-item">
+        <div class="kd-tl-dot kosong">&#9634;</div>
+        <div class="kd-tl-content">
+          <div class="kd-tl-date">{{ kamar.tanggal_kosong or 'Saat ini' }}</div>
+          <div class="kd-tl-label">Kamar Kosong</div>
+          <div class="kd-tl-sub">Tersedia untuk penghuni baru</div>
+        </div>
+      </div>
+
+      {% for rp in riwayat_penghuni %}
+      <!-- Keluar -->
+      <div class="kd-tl-item">
+        <div class="kd-tl-dot keluar">&#8592;</div>
+        <div class="kd-tl-content">
+          <div class="kd-tl-date">{{ rp.tanggal_keluar or '—' }}</div>
+          <div class="kd-tl-label">{{ rp.nama }} keluar</div>
+          <div class="kd-tl-sub">Lama tinggal: {{ rp.lama_tinggal or '—' }}</div>
+        </div>
+      </div>
+      <!-- Masuk -->
+      <div class="kd-tl-item">
+        <div class="kd-tl-dot isi">&#8594;</div>
+        <div class="kd-tl-content">
+          <div class="kd-tl-date">{{ rp.tanggal_masuk or '—' }}</div>
+          <div class="kd-tl-label">{{ rp.nama }} masuk</div>
+          <div class="kd-tl-sub">{{ rp.no_hp or '' }}</div>
+        </div>
+      </div>
+      {% else %}
+      <div class="kd-empty" style="padding-top:0;">Belum pernah ada penghuni di kamar ini</div>
+      {% endfor %}
+    </div>
+  </div>
+</div>
+
+<!-- Fasilitas kamar -->
+{% if kamar.fasilitas %}
+<div class="kd-section">
+  <div class="kd-sec-head" onclick="toggleSec(this)">
+    <div class="kd-sec-title">&#10024; Fasilitas Kamar</div>
+    <span class="kd-toggle open">&#9650;</span>
+  </div>
+  <div class="kd-sec-body open">
+    <div class="kd-fasil-wrap">
+      {% for f in kamar.fasilitas.split(',') %}
+      <span class="kd-fasil-tag">{{ f.strip() }}</span>
+      {% endfor %}
+    </div>
+  </div>
+</div>
+{% endif %}
+
+<!-- Komplain kamar ini -->
+<div class="kd-section">
+  <div class="kd-sec-head" onclick="toggleSec(this)">
+    <div class="kd-sec-title">
+      &#9888; Riwayat Komplain Kamar
+      <span class="kd-sec-count">{{ komplain_list | length }}</span>
+    </div>
+    <span class="kd-toggle">&#9650;</span>
+  </div>
+  <div class="kd-sec-body">
+    {% if komplain_list %}
+    <div style="overflow-x:auto;">
+    <table class="kd-table">
+      <thead><tr>
+        <th>Tanggal</th><th>Pelapor</th><th>Judul</th><th>Kategori</th><th>Prioritas</th><th>Status</th><th>Selesai</th>
+      </tr></thead>
+      <tbody>
+      {% for k in komplain_list %}
+      <tr>
+        <td>{{ k.created_at[:10] if k.created_at else '—' }}</td>
+        <td>{{ k.nama_pelapor or '—' }}</td>
+        <td><strong>{{ k.judul }}</strong></td>
+        <td>{{ k.kategori or '—' }}</td>
+        <td style="text-transform:capitalize;">{{ k.prioritas or '—' }}</td>
+        <td><span class="kd-tag kd-tag-{{ k.status }}">{{ k.status }}</span></td>
+        <td style="color:var(--muted);">{{ k.selesai_at[:10] if k.selesai_at else '—' }}</td>
+      </tr>
+      {% endfor %}
+      </tbody>
+    </table>
+    </div>
+    {% else %}
+    <div class="kd-empty">&#128522; Tidak ada riwayat komplain untuk kamar ini</div>
+    {% endif %}
+  </div>
+</div>
+
+<!-- Riwayat Pembayaran Kamar -->
+<div class="kd-section">
+  <div class="kd-sec-head" onclick="toggleSec(this)">
+    <div class="kd-sec-title">
+      &#128179; Riwayat Pembayaran Kamar
+      <span class="kd-sec-count">{{ pembayaran_list | length }}</span>
+    </div>
+    <span class="kd-toggle">&#9650;</span>
+  </div>
+  <div class="kd-sec-body">
+    {% if pembayaran_list %}
+    <div style="overflow-x:auto;">
+    <table class="kd-table">
+      <thead><tr>
+        <th>Tanggal Bayar</th><th>Nama Penghuni</th><th>Bulan Tagihan</th><th>Jumlah</th><th>Metode</th><th>Status</th>
+      </tr></thead>
+      <tbody>
+      {% for p in pembayaran_list %}
+      <tr>
+        <td>{{ p.tanggal_bayar[:10] if p.tanggal_bayar else '—' }}</td>
+        <td>{{ p.nama_penghuni or '—' }}</td>
+        <td>{{ p.bulan | nama_bulan }}</td>
+        <td style="color:var(--green);font-weight:700;">Rp {{ "{:,.0f}".format(p.jumlah_bayar) }}</td>
+        <td>{{ p.metode or '—' }}</td>
+        <td>
+          {% if p.verified %}<span class="kd-tag kd-tag-lunas">✓ Verified</span>
+          {% else %}<span class="kd-tag kd-tag-pending">Pending</span>{% endif %}
+        </td>
+      </tr>
+      {% endfor %}
+      </tbody>
+    </table>
+    </div>
+    {% else %}
+    <div class="kd-empty">Belum ada riwayat pembayaran untuk kamar ini</div>
+    {% endif %}
+  </div>
+</div>
+
+<!-- Riwayat Cuci AC -->
+{% include 'kamar/_cuci_ac.html' %}
+
+<script>
+function toggleSec(head) {
+  const body = head.nextElementSibling;
+  const icon = head.querySelector('.kd-toggle');
+  const isOpen = body.classList.contains('open');
+  body.classList.toggle('open', !isOpen);
+  if (icon) icon.classList.toggle('open', !isOpen);
+}
+</script>
+{% endblock %}

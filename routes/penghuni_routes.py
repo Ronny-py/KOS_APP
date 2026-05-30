@@ -8,7 +8,6 @@ from flask import (Blueprint, render_template, request, redirect,
                    url_for, flash, current_app, send_from_directory, abort)
 from werkzeug.utils import secure_filename
 from utils.auth import login_required
-from flask import session
 from models import penghuni_model
 from datetime import date
 
@@ -267,12 +266,6 @@ def nonaktif(pid):
 @penghuni_bp.route('/hapus/<int:pid>')
 @login_required
 def hapus(pid):
-    if not session.get('supervisor_id') and not session.get('admin_id'):
-        flash('Akses ditolak.', 'danger')
-        return redirect(url_for('penghuni.index'))
-    if session.get('admin_id') and not session.get('supervisor_id'):
-        flash('Admin tidak diizinkan menghapus data penghuni.', 'danger')
-        return redirect(url_for('penghuni.index'))
     penghuni = penghuni_model.get_penghuni_by_id(pid)
     if penghuni:
         for field in ('foto_ktp', 'bukti_transfer_jaminan', 'bukti_pengembalian_jaminan'):

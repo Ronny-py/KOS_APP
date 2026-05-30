@@ -1,0 +1,265 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
+<title>Kamar {{ nomor_kamar }} — Masuk</title>
+<style>
+@import url('https://fonts.googleapis.com/css2?family=DM+Mono:wght@400;500&family=DM+Sans:wght@400;500;700;800&display=swap');
+
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+:root {
+  --bg:      #0a0a0f;
+  --surface: #13131a;
+  --border:  rgba(255,255,255,.08);
+  --text:    #f0f0f8;
+  --muted:   #6b6b80;
+  --accent:  #7c6af7;
+  --accent2: #a78bfa;
+  --green:   #22c55e;
+  --red:     #ef4444;
+  --mono:    'DM Mono', monospace;
+  --sans:    'DM Sans', sans-serif;
+}
+
+body {
+  font-family: var(--sans);
+  background: var(--bg);
+  color: var(--text);
+  min-height: 100dvh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 24px 16px;
+  position: relative;
+  overflow: hidden;
+}
+
+/* Ambient glow */
+body::before {
+  content: '';
+  position: fixed;
+  width: 400px; height: 400px;
+  background: radial-gradient(circle, rgba(124,106,247,.18) 0%, transparent 70%);
+  top: -100px; left: 50%;
+  transform: translateX(-50%);
+  pointer-events: none;
+}
+
+.card {
+  width: 100%;
+  max-width: 360px;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 20px;
+  padding: 36px 28px 32px;
+  position: relative;
+  animation: fadeUp .4s ease both;
+}
+
+@keyframes fadeUp {
+  from { opacity:0; transform:translateY(20px); }
+  to   { opacity:1; transform:translateY(0); }
+}
+
+.logo {
+  text-align: center;
+  margin-bottom: 28px;
+}
+.logo-icon {
+  width: 56px; height: 56px;
+  background: linear-gradient(135deg, var(--accent), #6d28d9);
+  border-radius: 16px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 26px;
+  margin-bottom: 14px;
+  box-shadow: 0 8px 24px rgba(124,106,247,.35);
+}
+.logo-room {
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: .12em;
+  color: var(--accent2);
+  text-transform: uppercase;
+  margin-bottom: 4px;
+}
+.logo-name {
+  font-size: 20px;
+  font-weight: 800;
+  color: var(--text);
+  letter-spacing: -.02em;
+}
+
+.label {
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--muted);
+  text-align: center;
+  margin-bottom: 20px;
+}
+
+/* PIN dots display */
+.pin-display {
+  display: flex;
+  justify-content: center;
+  gap: 14px;
+  margin-bottom: 28px;
+}
+.pin-dot {
+  width: 18px; height: 18px;
+  border-radius: 50%;
+  border: 2px solid var(--border);
+  background: transparent;
+  transition: all .15s;
+}
+.pin-dot.filled {
+  background: var(--accent);
+  border-color: var(--accent);
+  box-shadow: 0 0 10px rgba(124,106,247,.5);
+  transform: scale(1.1);
+}
+.pin-dot.error {
+  background: var(--red);
+  border-color: var(--red);
+  animation: shake .3s ease;
+}
+
+@keyframes shake {
+  0%,100% { transform: translateX(0); }
+  20%      { transform: translateX(-5px); }
+  60%      { transform: translateX(5px); }
+}
+
+/* Numpad */
+.numpad {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 10px;
+}
+.num-btn {
+  height: 58px;
+  background: rgba(255,255,255,.04);
+  border: 1px solid var(--border);
+  border-radius: 14px;
+  font-family: var(--mono);
+  font-size: 22px;
+  font-weight: 500;
+  color: var(--text);
+  cursor: pointer;
+  transition: all .12s;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  user-select: none;
+  -webkit-tap-highlight-color: transparent;
+}
+.num-btn:active {
+  background: rgba(124,106,247,.2);
+  border-color: var(--accent);
+  transform: scale(.94);
+}
+.num-btn.del {
+  font-size: 18px;
+  color: var(--muted);
+}
+.num-btn.empty { visibility: hidden; }
+
+/* Error msg */
+.error-msg {
+  text-align: center;
+  color: var(--red);
+  font-size: 12.5px;
+  font-weight: 600;
+  margin-top: 16px;
+  animation: fadeUp .2s ease;
+}
+
+/* Hidden form */
+#pinForm { display: none; }
+</style>
+</head>
+<body>
+
+<div class="card">
+  <div class="logo">
+    <div class="logo-icon">🏠</div>
+    <div class="logo-room">Kamar {{ nomor_kamar }}</div>
+    <div class="logo-name">{{ nama }}</div>
+  </div>
+
+  <div class="label">Masukkan PIN 4 digit</div>
+
+  <div class="pin-display">
+    <div class="pin-dot" id="d0"></div>
+    <div class="pin-dot" id="d1"></div>
+    <div class="pin-dot" id="d2"></div>
+    <div class="pin-dot" id="d3"></div>
+  </div>
+
+  <div class="numpad">
+    {% for n in ['1','2','3','4','5','6','7','8','9','','0','⌫'] %}
+    {% if n == '' %}
+      <div class="num-btn empty"></div>
+    {% elif n == '⌫' %}
+      <button class="num-btn del" onclick="delPin()">⌫</button>
+    {% else %}
+      <button class="num-btn" onclick="addPin('{{ n }}')">{{ n }}</button>
+    {% endif %}
+    {% endfor %}
+  </div>
+
+  {% if error %}
+  <div class="error-msg">{{ error }}</div>
+  {% endif %}
+</div>
+
+<form id="pinForm" method="POST" action="">
+  <input type="hidden" name="pin" id="pinInput">
+</form>
+
+<script>
+let pin = '';
+
+function addPin(d) {
+  if (pin.length >= 4) return;
+  pin += d;
+  updateDots();
+  if (pin.length === 4) {
+    setTimeout(submitPin, 200);
+  }
+}
+
+function delPin() {
+  pin = pin.slice(0, -1);
+  updateDots();
+}
+
+function updateDots() {
+  for (let i = 0; i < 4; i++) {
+    const dot = document.getElementById('d' + i);
+    dot.classList.toggle('filled', i < pin.length);
+    dot.classList.remove('error');
+  }
+}
+
+function submitPin() {
+  document.getElementById('pinInput').value = pin;
+  document.getElementById('pinForm').submit();
+}
+
+{% if error %}
+// Shake dots on error
+document.querySelectorAll('.pin-dot').forEach(d => d.classList.add('error'));
+{% endif %}
+
+// Keyboard support
+document.addEventListener('keydown', e => {
+  if (e.key >= '0' && e.key <= '9') addPin(e.key);
+  if (e.key === 'Backspace') delPin();
+});
+</script>
+</body>
+</html>

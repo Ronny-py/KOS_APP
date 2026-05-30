@@ -7,7 +7,6 @@ import os
 import uuid
 from flask import Blueprint, render_template, request, redirect, url_for, flash
 from utils.auth import login_required
-from flask import session
 from models import tagihan_model, pembayaran_model
 from models.database import get_db
 from datetime import date
@@ -275,12 +274,6 @@ def verifikasi(pid, status):
 @pembayaran_bp.route('/hapus/<int:pid>')
 @login_required
 def hapus(pid):
-    if session.get('admin_id') and not session.get('supervisor_id'):
-        flash('Admin tidak diizinkan menghapus data pembayaran.', 'danger')
-        conn2 = get_db()
-        row2 = conn2.execute("SELECT tagihan_id FROM pembayaran WHERE id=?", (pid,)).fetchone()
-        conn2.close()
-        return redirect(url_for('tagihan.detail', tid=row2['tagihan_id']) if row2 else url_for('tagihan.index'))
     conn = get_db()
     row = conn.execute(
         "SELECT tagihan_id, jumlah_bayar FROM pembayaran WHERE id=?", (pid,)

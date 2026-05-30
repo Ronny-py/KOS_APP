@@ -1,0 +1,54 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Pembayaran Terkirim — KostPay</title>
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;600;800&display=swap" rel="stylesheet">
+  <style>
+    :root { --accent:#4f6ef7; --accent2:#7c3aed; --green:#22c55e; --border:#2e3347; --muted:#8892a4; }
+    * { box-sizing:border-box; margin:0; padding:0; }
+    body {
+      font-family:'Plus Jakarta Sans', sans-serif;
+      background:#0f1117; color:#e2e8f0;
+      min-height:100vh; display:flex; align-items:center; justify-content:center;
+      padding:24px 16px;
+    }
+    .box {
+      background:#1a1d27; border:1px solid var(--border);
+      border-radius:20px; padding:52px 40px; max-width:440px; width:100%;
+      text-align:center;
+    }
+    .icon-wrap {
+      width:80px; height:80px; border-radius:50%;
+      background:rgba(34,197,94,.12); border:2px solid rgba(34,197,94,.3);
+      display:flex; align-items:center; justify-content:center;
+      font-size:40px; margin:0 auto 20px;
+    }
+    h2 { font-size:22px; font-weight:800; margin-bottom:10px; }
+    p  { font-size:14px; color:var(--muted); line-height:1.7; margin-bottom:28px; }
+    .flex { display:flex; gap:12px; justify-content:center; flex-wrap:wrap; }
+    .btn {
+      display:inline-flex; align-items:center; gap:7px;
+      padding:12px 24px; border-radius:10px; font-size:14px; font-weight:700;
+      cursor:pointer; text-decoration:none; border:none; transition:all .15s;
+    }
+    .btn-primary { background:var(--accent); color:#fff; }
+    .btn-primary:hover { background:#3b55e0; }
+    .btn-outline { background:transparent; color:var(--muted); border:1px solid var(--border); }
+    .btn-outline:hover { border-color:var(--accent); color:#e2e8f0; }
+  </style>
+</head>
+<body>
+  <div class="box">
+    <div class="icon-wrap">✅</div>
+    <h2>Laporan Diterima!</h2>
+    <p>Terima kasih! Laporan pembayaran Anda sudah masuk.<br>
+       Admin akan memverifikasi dan mengkonfirmasi segera.</p>
+    <div class="flex">
+      <a href="{{ url_for('pembayaran_publik.form_bayar') }}" class="btn btn-primary">💸 Lapor Lagi</a>
+      <a href="{{ url_for('auth.login') }}" class="btn btn-outline">← Kembali ke Login</a>
+    </div>
+  </div>
+</body>
+</html>
